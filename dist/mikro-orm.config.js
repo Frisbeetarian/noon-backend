@@ -6,17 +6,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const constants_1 = require("./constants");
 const Post_1 = require("./entities/Post");
 const path_1 = __importDefault(require("path"));
+const User_1 = require("./entities/User");
 exports.default = {
     migrations: {
         path: path_1.default.join(__dirname, './migrations'),
         pattern: /^[\w-]+\d+\.[tj]s$/,
         disableForeignKeys: false,
     },
-    dbName: 'reditclone',
-    user: 'admin2',
-    password: 'admin',
+    dbName: "reddit",
+    type: "postgresql",
+    user: "admin",
+    password: "admin",
     debug: !constants_1.__prod__,
-    type: 'postgresql',
-    entities: [Post_1.Post],
+    entities: [Post_1.Post, User_1.User],
 };
 //# sourceMappingURL=mikro-orm.config.js.map

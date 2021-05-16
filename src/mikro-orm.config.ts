@@ -2,6 +2,7 @@ import { __prod__ } from "./constants";
 import { Post } from "./entities/Post";
 import { MikroORM } from "@mikro-orm/core";
 import path from 'path';
+import { User } from "./entities/User";
 
 export default {
   migrations: {
@@ -9,10 +10,10 @@ export default {
     pattern: /^[\w-]+\d+\.[tj]s$/, // regex pattern for the migration files
     disableForeignKeys: false,
   },
-  dbName: 'reditclone',
-  user: 'admin2',
-  password: 'admin',
+  dbName: "reddit",
+  type: "postgresql",
+  user: "admin",
+  password: "admin",
   debug: !__prod__,
-  type: 'postgresql',
-  entities: [Post],
+  entities: [Post, User],
 } as Parameters<typeof MikroORM.init>[0];
