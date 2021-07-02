@@ -1,7 +1,13 @@
+import { Arg, Ctx, Field, InputType, Query, Mutation, ObjectType, Resolver } from "type-graphql";
 import { MyContext } from "../types";
-import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
 import { User } from '../entities/User';
 import argon2 from 'argon2';
+
+declare module 'express-session' {
+    interface Session {
+        userId: number
+    }
+  }
 
 @InputType()
 class UsernamePasswordInput {
@@ -30,25 +36,41 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+    @Query(() => User, {nullable: true})
+    async me(
+        @Ctx () { req, em }: MyContext
+    ) {
+
+        console.log("session: " + JSON.stringify(req.session));
+        if(!req.session.userId){
+            return null;
+        }
+
+        const user = await em.findOne(User, { id: req.session.userId });
+
+        return user;
+
+    }
+
     @Mutation(() => UserResponse)
     async register(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() {em}: MyContext
+        @Ctx() { em, req }: MyContext
     ): Promise<UserResponse> {
         if(options.username.length <= 2){
             return {
                 errors: [{
                     field: 'username', 
-                    message: 'length must be greated than 2',
+                    message: 'length must be greater than 2',
                 }]
             }
         }
 
-        if(options.password.length <= 2){
+        if(options.password.length <= 3){
             return {
                 errors: [{
                     field: 'password', 
-                    message: 'length must be greated than 2',
+                    message: 'length must be greater than 2',
                 }]
             }
         }
@@ -57,8 +79,25 @@ export class UserResolver {
         const user = em.create(User, {
             username: options.username,
             password: hashedPassword,
-        })
-        await em.persistAndFlush(user);
+        });
+
+        try {
+            await em.persistAndFlush(user);
+        } catch (error){
+            if(error.code === '23505' || error.detail.includes("already exists")) {
+                // duplicate username error
+                return {
+                    errors: [
+                        {
+                            field: 'username', 
+                            message: 'username already taken'
+                        }
+                    ]
+                }
+            }
+        }
+
+        req.session.userId = user.id;
 
         return { user };
     }
@@ -66,14 +105,14 @@ export class UserResolver {
     @Mutation(() => UserResponse)
     async login(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() {em}: MyContext
+        @Ctx() {em,req}: MyContext
     ): Promise<UserResponse> {
         const user = await em.findOne(User, {username: options.username});
         if(!user){
             return {
                 errors: [{
                     field: 'username',
-                    message: 'that username doesnt exist'
+                    message: 'that usernaaaaaame doesnt exist'
                 }]
             }
         }
@@ -87,6 +126,10 @@ export class UserResolver {
                 }]
             }
         }
+
+        req.session.userId = user.id;
+        // req.session.user = user;
+        // console.log("Fdsfds", req.session.userId);
 
         return {
             user,
