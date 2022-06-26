@@ -30,6 +30,7 @@ const Updoot_1 = require("./entities/Updoot");
 const createUserLoader_1 = require("./utils/createUserLoader");
 const createUpdootLoader_1 = require("./utils/createUpdootLoader");
 const Post_1 = require("./entities/Post");
+const Profile_1 = require("./entities/Profile");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     yield typeorm_1.createConnection({
         type: 'postgres',
@@ -39,7 +40,8 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         logging: true,
         synchronize: true,
         migrations: [path_1.default.join(__dirname, './migrations/*')],
-        entities: [User_1.User, Post_1.Post, Updoot_1.Updoot],
+        entities: [User_1.User, Post_1.Post, Updoot_1.Updoot, Profile_1.Profile],
+        subscribers: [path_1.default.join(__dirname, './subscribers/*')],
     });
     const app = express_1.default();
     const RedisStore = connect_redis_1.default(express_session_1.default);

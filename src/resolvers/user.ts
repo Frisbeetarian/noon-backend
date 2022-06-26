@@ -161,7 +161,6 @@ export class UserResolver {
     if (errors) {
       return { errors }
     }
-
     const hashedPassword = await argon2.hash(options.password)
     let user
 

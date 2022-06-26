@@ -20,6 +20,7 @@ import { Updoot } from './entities/Updoot'
 import { createUserLoader } from './utils/createUserLoader'
 import { createUpdootLoader } from './utils/createUpdootLoader'
 import { Post } from './entities/Post'
+import { Profile } from './entities/Profile'
 
 const main = async () => {
   await createConnection({
@@ -30,7 +31,8 @@ const main = async () => {
     logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, './migrations/*')],
-    entities: [User, Post, Updoot],
+    entities: [User, Post, Updoot, Profile],
+    subscribers: [path.join(__dirname, './subscribers/*')],
   })
   // await conn.runMigrations()
   // await Post.delete({})
