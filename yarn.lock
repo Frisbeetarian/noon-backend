@@ -1796,6 +1796,11 @@
   "resolved" "https://registry.npmjs.org/lodash.sortby/-/lodash.sortby-4.7.0.tgz"
   "version" "4.7.0"
 
+"lodash@^4.17.21":
+  "integrity" "sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg=="
+  "resolved" "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
+  "version" "4.17.21"
+
 "loglevel@^1.6.7":
   "integrity" "sha512-Hesni4s5UkWkwCGJMQGAh71PaLUmKFM60dHvq0zi/vDhhrzuk+4GgNbTXJ12YYQJn6ZKBDNIjYcuQGKudvqrIw=="
   "resolved" "https://registry.npmjs.org/loglevel/-/loglevel-1.7.1.tgz"
@@ -2687,6 +2692,17 @@
   "resolved" "https://registry.npmjs.org/type-fest/-/type-fest-0.8.1.tgz"
   "version" "0.8.1"
 
+"type-graphql-dataloader@^0.5.0":
+  "integrity" "sha512-JbbFHQzdxNfzs+Qd6epftmXqhZ2eQ7TuR4RWExeQwz6h4HUzAOHo+W3Wtu6szA1YHBLQ+dSANwquH6KT5vhZcw=="
+  "resolved" "https://registry.npmjs.org/type-graphql-dataloader/-/type-graphql-dataloader-0.5.0.tgz"
+  "version" "0.5.0"
+  dependencies:
+    "dataloader" "^2.0.0"
+    "lodash" "^4.17.21"
+    "reflect-metadata" "^0.1.13"
+    "typedi" "^0.8.0"
+    "uuid" "^8.3.1"
+
 "type-graphql@^1.1.1":
   "integrity" "sha512-iOOWVn0ehCYMukmnXStbkRwFE9dcjt7/oDcBS1JyQZo9CbhlIll4lHHps54HMEk4A4c8bUPd+DjK8w1/ZrxB4A=="
   "resolved" "https://registry.npmjs.org/type-graphql/-/type-graphql-1.1.1.tgz"
@@ -2715,6 +2731,11 @@
   "version" "3.1.5"
   dependencies:
     "is-typedarray" "^1.0.0"
+
+"typedi@^0.8.0":
+  "integrity" "sha512-/c7Bxnm6eh5kXx2I+mTuO+2OvoWni5+rXA3PhXwVWCtJRYmz3hMok5s1AKLzoDvNAZqj/Q/acGstN0ri5aQoOA=="
+  "resolved" "https://registry.npmjs.org/typedi/-/typedi-0.8.0.tgz"
+  "version" "0.8.0"
 
 "typeorm@^0.2.34":
   "integrity" "sha512-c0rCO8VMJ3ER7JQ73xfk0zDnVv0WDjpsP6Q1m6CVKul7DB9iVdWLRjPzc8v2eaeBuomsbZ2+gTaYr8k1gm3bYA=="
@@ -2832,7 +2853,7 @@
   "resolved" "https://registry.npmjs.org/uuid/-/uuid-3.4.0.tgz"
   "version" "3.4.0"
 
-"uuid@^8.0.0", "uuid@^8.3.2":
+"uuid@^8.0.0", "uuid@^8.3.1", "uuid@^8.3.2":
   "integrity" "sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg=="
   "resolved" "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
   "version" "8.3.2"

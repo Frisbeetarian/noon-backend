@@ -1,19 +1,9 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FakeDataPposts1627133231541 = void 0;
 class FakeDataPposts1627133231541 {
-    up(queryRunner) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield queryRunner.query(`insert into post (title, text, "creatorId", "createdAt") values ('Middle of the World, The (O Caminho das Nuvens)', 'Vestibulum ac est lacinia nisi venenatis tristique. Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat.
+    async up(queryRunner) {
+        await queryRunner.query(`insert into post (title, text, "creatorId", "createdAt") values ('Middle of the World, The (O Caminho das Nuvens)', 'Vestibulum ac est lacinia nisi venenatis tristique. Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat.
 
 In congue. Etiam justo. Etiam pretium iaculis justo.', 1, '2020-12-18T10:47:06Z');
 insert into post (title, text, "creatorId", "createdAt") values ('Sweetest Thing, The', 'Vestibulum quam sapien, varius ut, blandit non, interdum in, ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis.
@@ -319,11 +309,8 @@ Integer ac leo. Pellentesque ultrices mattis odio. Donec vitae nisi.', 1, '2021-
 insert into post (title, text, "creatorId", "createdAt") values ('Giant Mechanical Man, The', 'Nullam sit amet turpis elementum ligula vehicula consequat. Morbi a ipsum. Integer a nibh.
 
 In quis justo. Maecenas rhoncus aliquam lacus. Morbi quis tortor id nulla ultrices aliquet.', 1, '2020-08-24T02:33:58Z');`);
-        });
     }
-    down(_) {
-        return __awaiter(this, void 0, void 0, function* () { });
-    }
+    async down(_) { }
 }
 exports.FakeDataPposts1627133231541 = FakeDataPposts1627133231541;
 //# sourceMappingURL=1627133231541-FakeDataPposts.js.map

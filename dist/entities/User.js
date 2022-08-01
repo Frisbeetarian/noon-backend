@@ -14,6 +14,8 @@ const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 const Post_1 = require("./Post");
 const Updoot_1 = require("./Updoot");
+const Event_1 = require("./Event");
+const Profile_1 = require("./Profile");
 let User = class User extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -40,9 +42,25 @@ __decorate([
     __metadata("design:type", Array)
 ], User.prototype, "posts", void 0);
 __decorate([
+    typeorm_1.OneToMany(() => Event_1.Event, (event) => event.creator),
+    __metadata("design:type", Array)
+], User.prototype, "events", void 0);
+__decorate([
     typeorm_1.OneToMany(() => Updoot_1.Updoot, (updoot) => updoot.user),
     __metadata("design:type", Array)
 ], User.prototype, "updoots", void 0);
+__decorate([
+    typeorm_1.Column({ nullable: true }),
+    __metadata("design:type", Number)
+], User.prototype, "profileId", void 0);
+__decorate([
+    typeorm_1.OneToOne(() => Profile_1.Profile, {
+        cascade: true,
+        nullable: true,
+    }),
+    typeorm_1.JoinColumn(),
+    __metadata("design:type", Profile_1.Profile)
+], User.prototype, "profile", void 0);
 __decorate([
     type_graphql_1.Field(() => String),
     typeorm_1.UpdateDateColumn(),

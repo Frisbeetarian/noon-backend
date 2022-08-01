@@ -6,21 +6,27 @@ import { buildSchema } from 'type-graphql'
 import { HelloResolver } from './resolvers/hello'
 import { PostResolver } from './resolvers/post'
 import { UserResolver } from './resolvers/user'
+import { EventResolver } from './resolvers/events'
 import Redis from 'ioredis'
 import session from 'express-session'
 import connectRedis from 'connect-redis'
 import cors from 'cors'
-// import { sendEmail } from './utils/sendEmail'
-// import { User } from './entities/User'
 import { createConnection } from 'typeorm'
 import { User } from './entities/User'
-// import { Post } from './entities/Post'
 import path from 'path'
 import { Updoot } from './entities/Updoot'
 import { createUserLoader } from './utils/createUserLoader'
 import { createUpdootLoader } from './utils/createUpdootLoader'
 import { Post } from './entities/Post'
 import { Profile } from './entities/Profile'
+import { Event } from './entities/Event'
+import { ProfileResolver } from './resolvers/profiles'
+import { EventToProfile } from './entities/EventToProfile'
+import { EventToProfileResolver } from './resolvers/eventToProfile'
+import { Community } from './entities/Community'
+import { CommunityResolver } from './resolvers/communities'
+import { CommunityParticipant } from './entities/CommunityParticipant'
+import { CommunityParticipantsResolver } from './resolvers/communityParticipants'
 
 const main = async () => {
   await createConnection({
@@ -31,7 +37,16 @@ const main = async () => {
     logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, './migrations/*')],
-    entities: [User, Post, Updoot, Profile],
+    entities: [
+      User,
+      Post,
+      Updoot,
+      Profile,
+      Event,
+      EventToProfile,
+      Community,
+      CommunityParticipant,
+    ],
     subscribers: [path.join(__dirname, './subscribers/*')],
   })
   // await conn.runMigrations()
@@ -44,7 +59,7 @@ const main = async () => {
   const redis = new Redis()
   app.use(
     cors({
-      origin: 'http://loffcalhost:3000',
+      origin: 'http://localhost:3000',
       credentials: true,
     })
   )
@@ -70,7 +85,16 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [HelloResolver, PostResolver, UserResolver],
+      resolvers: [
+        HelloResolver,
+        PostResolver,
+        UserResolver,
+        EventResolver,
+        CommunityResolver,
+        ProfileResolver,
+        EventToProfileResolver,
+        CommunityParticipantsResolver,
+      ],
       validate: false,
     }),
     context: ({ req, res }) => ({

@@ -12,13 +12,16 @@ import {
 import { MyContext } from '../types'
 import { User } from '../entities/User'
 import argon2 from 'argon2'
-// import { EntityManager } from '@mikro-orm/postgresql'
 import { UsernamePasswordInput } from './UsernamePasswordInput'
 import { validateRegister } from '../utils/validateRegister'
 import { sendEmail } from '../utils/sendEmail'
 import { v4 } from 'uuid'
 import { FORGET_PASSWORD_PREFIX } from '../constants'
 import { getConnection } from 'typeorm'
+import { Profile } from '../entities/Profile'
+import { Community } from '../entities/Community'
+import { Post } from '../entities/Post'
+import { resolveAny } from 'dns'
 
 declare module 'express-session' {
   interface Session {
@@ -45,6 +48,12 @@ class UserResponse {
 
 @Resolver(User)
 export class UserResolver {
+  @FieldResolver(() => Profile)
+  profile(@Root() user: User, @Ctx() { req }: MyContext) {
+    // console.log('LA ASMA&: ', user.profile)
+    return user.profile
+  }
+
   @FieldResolver(() => String)
   email(@Root() user: User, @Ctx() { req }: MyContext) {
     // this is the current user and its okay to show them logged user info
@@ -54,6 +63,26 @@ export class UserResolver {
 
     // current user wants to see other user's info
     return ''
+  }
+
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { req }: MyContext) {
+    // console.log('session: ' + JSON.stringify(req.session))
+    if (!req.session.userId) {
+      return null
+    }
+
+    let user = await getConnection()
+      .getRepository(User)
+      .createQueryBuilder('user')
+      .select('user')
+      .where('user.id = :id', { id: req.session.userId })
+      .leftJoinAndSelect('user.profile', 'profile')
+      .getOne()
+
+    // console.log('USER 238ORH239UB392823923BF9UF: ', user)
+
+    return user
   }
 
   @Mutation(() => UserResponse)
@@ -141,17 +170,6 @@ export class UserResolver {
     return true
   }
 
-  @Query(() => User, { nullable: true })
-  me(@Ctx() { req }: MyContext) {
-    console.log('session: ' + JSON.stringify(req.session))
-    if (!req.session.userId) {
-      return null
-    }
-
-    return User.findOne(req.session.userId)
-    // return user
-  }
-
   @Mutation(() => UserResponse)
   async register(
     @Arg('options') options: UsernamePasswordInput,
@@ -167,6 +185,7 @@ export class UserResolver {
     try {
       // same logic differently written
       // User.create({}).save()
+
       const result = await getConnection()
         .createQueryBuilder()
         .insert()
@@ -178,21 +197,6 @@ export class UserResolver {
         })
         .returning('*')
         .execute()
-
-      // console.log('result:', result)
-      // const result = await (em as EntityManager)
-      //   .createQueryBuilder(User)
-      //   .getKnexQuery()
-      //   .insert({
-      //     username: options.username,
-      //     password: hashedPassword,
-      //     email: options.email,
-      //     created_at: new Date(),
-      //     updated_at: new Date(),
-      //   })
-      //   .returning('*')
-
-      // user = result[0]
       user = result.raw[0]
     } catch (error) {
       console.log('error:', error)
@@ -252,8 +256,6 @@ export class UserResolver {
     }
 
     req.session.userId = user.id
-    // req.session.user = user;
-    // console.log("Fdsfds", req.session.userId);
 
     return {
       user,

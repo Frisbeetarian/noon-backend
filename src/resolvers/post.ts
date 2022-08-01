@@ -65,6 +65,11 @@ export class PostResolver {
     return updoot ? updoot.value : null
   }
 
+  @Query(() => Post, { nullable: true })
+  post(@Arg('id', () => Int) id: number): Promise<Post | undefined> {
+    return Post.findOne(id)
+  }
+
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
   async vote(
@@ -72,12 +77,12 @@ export class PostResolver {
     @Arg('value', () => Int) value: number,
     @Ctx() { req }: MyContext
   ) {
-    const isUpdoot = value !== -1;
-    const realValue = isUpdoot ? 1 : -1;
-    const { userId } = req.session;
-    const updoot = await Updoot.findOne({ where: { postId, userId } });
+    const isUpdoot = value !== -1
+    const realValue = isUpdoot ? 1 : -1
+    const { userId } = req.session
+    const updoot = await Updoot.findOne({ where: { postId, userId } })
 
-    //the user has voted on the post before
+    // the user has voted on the post before
     // and they are changing their vote
     if (updoot && updoot.value !== realValue) {
       await getConnection().transaction(async (tm) => {
@@ -127,12 +132,11 @@ export class PostResolver {
   async posts(
     @Arg('limit', () => Int) limit: number,
     @Arg('cursor', () => String, { nullable: true }) cursor: string | null,
-    @Ctx() {  }: MyContext
+    @Ctx() {}: MyContext
   ): Promise<PaginatedPosts> {
     // 20 -> 21
     const realLimit = Math.min(50, limit)
     const reaLimitPlusOne = realLimit + 1
-
     const replacements: any[] = [reaLimitPlusOne]
 
     // if (req.session.userId) {
@@ -145,7 +149,7 @@ export class PostResolver {
 
     const posts = await getConnection().query(
       `
-    select p.* 
+    select p.*
     from post p
     ${cursor ? `where p."createdAt" < $2` : ''}
     order by p."createdAt" DESC
@@ -174,12 +178,6 @@ export class PostResolver {
       posts: posts.slice(0, realLimit),
       hasMore: posts.length === reaLimitPlusOne,
     }
-  }
-
-  @Query(() => Post, { nullable: true })
-  post(@Arg('id', () => Int) id: number): Promise<Post | undefined> {
-    // return em.findOne(Post, { id })
-    return Post.findOne(id)
   }
 
   @Mutation(() => Post)
