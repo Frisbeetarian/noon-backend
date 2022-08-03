@@ -29,6 +29,12 @@ export class Profile extends BaseEntity {
   @Column({ unique: true, nullable: true })
   username: string
 
+  @Column({ nullable: true })
+  userId?: number
+
+  @OneToOne(() => User, (user) => user.profile)
+  user: User
+
   @OneToMany(() => Post, (post) => post.creator)
   posts: Post[]
 

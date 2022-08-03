@@ -27,6 +27,11 @@ import { Community } from './entities/Community'
 import { CommunityResolver } from './resolvers/communities'
 import { CommunityParticipant } from './entities/CommunityParticipant'
 import { CommunityParticipantsResolver } from './resolvers/communityParticipants'
+// let test_api = require('./neo4j/routes/router.ts')
+// let bodyParser = require('body-parser') //Extract data from Express
+import bodyParser from 'body-parser'
+import router from './neo4j/routes/router'
+import { create_user } from './neo4j/neo4j_calls/neo4j_api'
 
 const main = async () => {
   await createConnection({
@@ -110,6 +115,13 @@ const main = async () => {
     app,
     cors: false,
   })
+
+  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: true }))
+
+  app.use('/test_api', router)
+
+  // create_user('lokman')
 
   app.listen(4020, () => {
     console.log('server start on localhost:4020')

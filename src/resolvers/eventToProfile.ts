@@ -1,10 +1,10 @@
-import { Arg, Field, Int, ObjectType, Query, Resolver } from 'type-graphql'
+import { Arg, Int, Query, Resolver } from 'type-graphql'
 import { EventToProfile } from '../entities/EventToProfile'
 // import { MyContext } from '../types'
 // import { getConnection, Repository } from 'typeorm'
 
-import { Post } from '../entities/Post'
-import { getConnection } from 'typeorm'
+// import { Post } from '../entities/Post'
+// import { getConnection } from 'typeorm'
 
 // @ObjectType()
 // class FilteredProfiles {

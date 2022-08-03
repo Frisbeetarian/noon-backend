@@ -49,7 +49,7 @@ export class CommunityResolver {
 
   @FieldResolver(() => Profile)
   async participants(@Root() community: Community) {
-    const participants = await this.profileRepository.find({})
+    await this.profileRepository.find({})
     return community.participants
   }
 
@@ -62,13 +62,13 @@ export class CommunityResolver {
 
   @Query(() => [Community])
   async communities(@Ctx() {}: MyContext): Promise<Community[]> {
-    const communities = await getConnection()
+    return await getConnection()
       .getRepository(Community)
       .createQueryBuilder('community')
       .leftJoinAndSelect('community.participants', 'participant')
       .getMany()
 
-    return communities
+    // return communities
   }
 
   @Mutation(() => Community)
@@ -91,9 +91,28 @@ export class CommunityResolver {
     @Arg('communityId', () => Int) communityId: number,
     @Ctx() { req }: MyContext
   ) {
+    console.log('community id:', communityId)
+    console.log('user id:', req.session.userId)
+
     const profile = await Profile.findOne({
       where: { userId: req.session.userId },
     })
+
+    // const profiles = await getConnection()
+    //   .getRepository(Profile)
+    //   .createQueryBuilder('profile')
+    //   .leftJoinAndSelect('profile.user', 'user')
+    //   .getMany()
+
+    // let profile = await getConnection()
+    //   .getRepository(Profile)
+    //   .createQueryBuilder('profile')
+    //   .select('profile')
+    //   .where('profile.userId = :userId', { userId: req.session.userId })
+    //   .leftJoinAndSelect('user.profile', 'profile')
+    //   .getOne()
+
+    console.log('profile:', profile)
 
     await CommunityParticipant.insert({
       profileId: profile?.id,

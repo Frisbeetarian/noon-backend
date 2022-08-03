@@ -97,7 +97,7 @@ export class EventResolver {
 
   @Query(() => Event, { nullable: true })
   async event(@Arg('id', () => Int) id: number): Promise<Event | undefined> {
-    let event = await Event.findOne(id)
+    return await Event.findOne(id)
     // let tempProfiles = event?.eventToProfiles
     // event?.eventToProfiles = []
     // event?.eventToProfiles.push({
@@ -106,7 +106,7 @@ export class EventResolver {
     //   profileId: tempProfiles[0].profileId,
     // })
     // console.log('EVENT: ', event)
-    return event
+    // return event
   }
 
   @Query(() => PaginatedEvents)

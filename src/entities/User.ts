@@ -46,7 +46,7 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   profileId?: number
 
-  @OneToOne(() => Profile, {
+  @OneToOne(() => Profile, (profile) => profile.user, {
     cascade: true,
     nullable: true,
   })

@@ -6,6 +6,7 @@ import {
 } from 'typeorm'
 import { User } from '../entities/User'
 import { Profile } from '../entities/Profile'
+import { create_user } from '../neo4j/neo4j_calls/neo4j_api'
 
 @EventSubscriber()
 export class UserSubscriber implements EntitySubscriberInterface<User> {
@@ -14,21 +15,24 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
   }
 
   async afterInsert(event: InsertEvent<User>) {
-    // console.log('subscribers launched')
-    // console.log('event entity: ', event.entity.username)
     const profile = await getConnection()
       .createQueryBuilder()
       .insert()
       .into(Profile)
       .values({
         username: event.entity.username,
-        // userId: event.entity.id,
+        userId: event.entity.id,
       })
       .returning('*')
       .execute()
 
     const user = await User.findOne(event.entity.id)
-    user?.profile = profile.raw[0]
-    await getConnection().manager.save(user)
+
+    if (user) {
+      user.profile = profile.raw[0]
+      await getConnection().manager.save(user)
+
+      await create_user(user.username)
+    }
   }
 }

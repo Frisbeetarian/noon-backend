@@ -19,9 +19,9 @@ import { v4 } from 'uuid'
 import { FORGET_PASSWORD_PREFIX } from '../constants'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
-import { Community } from '../entities/Community'
-import { Post } from '../entities/Post'
-import { resolveAny } from 'dns'
+// import { Community } from '../entities/Community'
+// import { Post } from '../entities/Post'
+// import { resolveAny } from 'dns'
 
 declare module 'express-session' {
   interface Session {
@@ -49,7 +49,7 @@ class UserResponse {
 @Resolver(User)
 export class UserResolver {
   @FieldResolver(() => Profile)
-  profile(@Root() user: User, @Ctx() { req }: MyContext) {
+  profile(@Root() user: User) {
     // console.log('LA ASMA&: ', user.profile)
     return user.profile
   }
@@ -72,7 +72,7 @@ export class UserResolver {
       return null
     }
 
-    let user = await getConnection()
+    return await getConnection()
       .getRepository(User)
       .createQueryBuilder('user')
       .select('user')
@@ -82,7 +82,7 @@ export class UserResolver {
 
     // console.log('USER 238ORH239UB392823923BF9UF: ', user)
 
-    return user
+    // return user
   }
 
   @Mutation(() => UserResponse)
@@ -163,7 +163,7 @@ export class UserResolver {
       1000 * 60 * 60 * 24 * 3
     ) // 3 days
 
-    sendEmail(
+    await sendEmail(
       email,
       `<a href="http://localhost:3000/change-password/${token}">reset password</a>`
     )
