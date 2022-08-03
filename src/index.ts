@@ -32,6 +32,14 @@ import { CommunityParticipantsResolver } from './resolvers/communityParticipants
 import bodyParser from 'body-parser'
 import router from './neo4j/routes/router'
 import { create_user } from './neo4j/neo4j_calls/neo4j_api'
+const http = require('http')
+var socketIo = require('socket.io')
+
+const app = express()
+const server = http.createServer(app)
+
+// const { Server } = require('socket.io')
+// const io = new Server(server)
 
 const main = async () => {
   await createConnection({
@@ -56,8 +64,6 @@ const main = async () => {
   })
   // await conn.runMigrations()
   // await Post.delete({})
-
-  const app = express()
 
   // let RedisStore = require('connect-redis')(session);
   const RedisStore = connectRedis(session)
@@ -91,7 +97,6 @@ const main = async () => {
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
       resolvers: [
-        HelloResolver,
         PostResolver,
         UserResolver,
         EventResolver,
@@ -122,8 +127,42 @@ const main = async () => {
   app.use('/test_api', router)
 
   // create_user('lokman')
+  // const server = http.createServer(app)
+  const io = socketIo(server, {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST'],
+    },
+  }) // < Interesting!
 
-  app.listen(4020, () => {
+  let interval: any
+
+  // app.get('/socket.io/socket.io.js', (req, res) => {
+  //   res.sendFile(__dirname + '/node_modules/socket.io/client-dist/socket.io.js')
+  // })
+
+  io.on('connection', (socket) => {
+    console.log('New client connected')
+    if (interval) {
+      clearInterval(interval)
+    }
+
+    interval = setInterval(() => getApiAndEmit(socket), 1000)
+
+    socket.on('disconnect', () => {
+      console.log('Client disconnected')
+      clearInterval(interval)
+    })
+  })
+
+  const getApiAndEmit = (socket) => {
+    const response = new Date()
+    // Emitting a new message. Will be consumed by the client
+    socket.emit('FromAPI', response)
+  }
+
+  server.listen(4020, () => {
+    // const getApiAndEmit = 'TODO'
     console.log('server start on localhost:4020')
   })
 

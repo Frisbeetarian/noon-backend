@@ -24,17 +24,16 @@ const typeDefs = gql`
 const driver = new Neode('bolt://localhost:7687', 'neo4j', 'test').with({
   User: import('../models/User'),
   Profile: import('../models/Profile'),
-});
+})
 
 // const neoSchema = new Neo4jGraphQL({ typeDefs, driver })
 // driver.withDirectory('./models');
 
 export const get_num_nodes = async function () {
-  await driver.all('User')
-    .then(collection => {
-      console.log(collection.length); // 1
-      console.log(collection.get(0).get('name')); // 'Adam'
-    })
+  await driver.all('User').then((collection) => {
+    console.log(collection.length) // 1
+    console.log(collection.get(0).get('name')) // 'Adam'
+  })
 
   let session = driver.session()
   const num_nodes = await session.run('MATCH (n) RETURN n', {})
@@ -61,13 +60,14 @@ export const create_user = async function (name: string) {
     //   id: name,
     // })
     // await driver.all('User', properties)
-    await driver.create('User', {
-      name: name
-    })
-      .then(user => {
-        console.log('name from neo4j: ', user); // 'Adam'
+    await driver
+      .create('User', {
+        name: name,
+      })
+      .then((user) => {
+        console.log('name from neo4j: ', user) // 'Adam'
         return name
-      });
+      })
     // user = await session.run('CREATE (a:User {name: $name}) RETURN a', {
     //   name: name,
     // })
@@ -82,13 +82,12 @@ export const create_user = async function (name: string) {
     await driver.close()
   }
 
-return name;
+  return name
   // return user.records[0].get(0).properties.name
 }
 
 export const createUserAndAssociateWithProfile = async function (user) {
-  let session = driver.session();
+  let session = driver.session()
   try {
-
-  }
+  } catch (e) {}
 }
