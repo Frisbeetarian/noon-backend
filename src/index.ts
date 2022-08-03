@@ -32,11 +32,13 @@ import { CommunityParticipantsResolver } from './resolvers/communityParticipants
 import bodyParser from 'body-parser'
 import router from './neo4j/routes/router'
 import { create_user } from './neo4j/neo4j_calls/neo4j_api'
-const http = require('http')
+
+// const http = require('http')
 var socketIo = require('socket.io')
 
+import chat from './socketio/chat'
 const app = express()
-const server = http.createServer(app)
+// const server = http.createServer(app)
 
 // const { Server } = require('socket.io')
 // const io = new Server(server)
@@ -128,6 +130,12 @@ const main = async () => {
 
   // create_user('lokman')
   // const server = http.createServer(app)
+
+  let server = app.listen(4020, () => {
+    // const getApiAndEmit = 'TODO'
+    console.log('server start on localhost:4020')
+  })
+
   const io = socketIo(server, {
     cors: {
       origin: '*',
@@ -135,11 +143,8 @@ const main = async () => {
     },
   }) // < Interesting!
 
+  chat(io)
   let interval: any
-
-  // app.get('/socket.io/socket.io.js', (req, res) => {
-  //   res.sendFile(__dirname + '/node_modules/socket.io/client-dist/socket.io.js')
-  // })
 
   io.on('connection', (socket) => {
     console.log('New client connected')
@@ -160,11 +165,6 @@ const main = async () => {
     // Emitting a new message. Will be consumed by the client
     socket.emit('FromAPI', response)
   }
-
-  server.listen(4020, () => {
-    // const getApiAndEmit = 'TODO'
-    console.log('server start on localhost:4020')
-  })
 
   // const post = orm.em.create(Post, {title: 'my first post'});
   // console.log('---------------sql 2--------------');
