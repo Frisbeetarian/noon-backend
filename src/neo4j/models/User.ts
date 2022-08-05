@@ -4,4 +4,14 @@ export const User = {
     primary: true,
   },
   name: 'string',
+  username: 'string',
+  profile: {
+    type: 'relationship',
+    relationship: 'PROFILE',
+    direction: 'out',
+  },
+  createdAt: {
+    type: 'datetime',
+    default: () => new Date(),
+  },
 }

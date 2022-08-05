@@ -18,7 +18,7 @@ import { Profile } from '../entities/Profile'
 
 @Resolver(Profile)
 export class ProfileResolver {
-  @Query(() => Event, { nullable: true })
+  @Query(() => Profile, { nullable: true })
   async profile(
     @Arg('id', () => Int) id: number
   ): Promise<Profile | undefined> {
@@ -34,5 +34,11 @@ export class ProfileResolver {
     let profile = await Profile.findOne({ where: { userId: userId } })
     console.log('PROFILE: ', profile)
     return profile
+  }
+
+  @Query(() => [Profile])
+  async getProfiles() {
+    let profiles = await Profile.find()
+    return profiles
   }
 }

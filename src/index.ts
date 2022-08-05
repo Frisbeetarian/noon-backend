@@ -32,16 +32,11 @@ import { CommunityParticipantsResolver } from './resolvers/communityParticipants
 import bodyParser from 'body-parser'
 import router from './neo4j/routes/router'
 import { create_user } from './neo4j/neo4j_calls/neo4j_api'
-
-// const http = require('http')
+const app = express()
 var socketIo = require('socket.io')
+const { instrument } = require('@socket.io/admin-ui')
 
 import chat from './socketio/chat'
-const app = express()
-// const server = http.createServer(app)
-
-// const { Server } = require('socket.io')
-// const io = new Server(server)
 
 const main = async () => {
   await createConnection({
@@ -64,6 +59,7 @@ const main = async () => {
     ],
     subscribers: [path.join(__dirname, './subscribers/*')],
   })
+
   // await conn.runMigrations()
   // await Post.delete({})
 
@@ -125,7 +121,6 @@ const main = async () => {
 
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
-
   app.use('/test_api', router)
 
   // create_user('lokman')
@@ -152,12 +147,16 @@ const main = async () => {
       clearInterval(interval)
     }
 
-    interval = setInterval(() => getApiAndEmit(socket), 1000)
+    // interval = setInterval(() => getApiAndEmit(socket), 1000)
 
     socket.on('disconnect', () => {
       console.log('Client disconnected')
       clearInterval(interval)
     })
+  })
+
+  instrument(io, {
+    auth: false,
   })
 
   const getApiAndEmit = (socket) => {

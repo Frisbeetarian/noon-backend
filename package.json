@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@neo4j/graphql": "^2.5.9",
+    "@socket.io/admin-ui": "^0.4.0",
     "apollo-server-express": "^2.24.0",
     "argon2": "^0.27.2",
     "class-validator": "^0.13.1",

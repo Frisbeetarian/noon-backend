@@ -3,6 +3,8 @@ import creds from '../config/credentials'
 const { Neo4jGraphQL } = require('@neo4j/graphql')
 import { ApolloServer, gql } from 'apollo-server-express'
 import Neode from 'neode'
+import { User } from '../models/User'
+import { Profile } from '../models/Profile'
 
 const typeDefs = gql`
   type Movie {
@@ -22,8 +24,8 @@ const typeDefs = gql`
 // )
 
 const driver = new Neode('bolt://localhost:7687', 'neo4j', 'test').with({
-  User: import('../models/User'),
-  Profile: import('../models/Profile'),
+  User,
+  Profile,
 })
 
 // const neoSchema = new Neo4jGraphQL({ typeDefs, driver })
@@ -87,7 +89,60 @@ export const create_user = async function (name: string) {
 }
 
 export const createUserAndAssociateWithProfile = async function (user) {
-  let session = driver.session()
+  // let session = driver.session()
+  console.log('user3535353535: ', user.username)
+
+  // try {
+  //   // user = await session.run('MERGE (n:user {name: $id}) RETURN n', {
+  //   //   id: name,
+  //   // })
+  //   // await driver.all('User', properties)
+  //   await driver
+  //     .create('User', {
+  //       name: user.username,
+  //     })
+  //     .then((user) => {
+  //       // console.log('user.username from neo4j: ', user) // 'Adam'
+  //       return user
+  //     })
+  //
+  //   // user = await session.run('CREATE (a:User {name: $name}) RETURN a', {
+  //   //   name: name,
+  //   // })
+  //
+  //   // const singleRecord = user.records[0]
+  //   // const node = singleRecord.get(0)
+  //   // console.log("single record: ", singleRecord)
+  // } catch (err) {
+  //   console.error(err)
+  //   return false
+  // } finally {
+  //   await driver.close()
+  // }
+
+  // return user.username
   try {
-  } catch (e) {}
+    Promise.all([
+      driver.create('User', { name: user.username }),
+      driver.create('Profile', { name: user.username }),
+    ]).then(([user, profile]) => {
+      // console.log('user response from create: ', user)
+      // console.log('profile response from create: ', profile)
+
+      user.relateTo(profile, 'profile').then((res) => {
+        console.log(
+          res.startNode().get('name'),
+          ' has known ',
+          res.endNode().get('name'),
+          'since',
+          res.get('since')
+        ) // Adam has known Joe since 2010
+      })
+
+      profile.relateTo(user, 'user')
+    })
+  } catch (e) {
+  } finally {
+    await driver.close()
+  }
 }

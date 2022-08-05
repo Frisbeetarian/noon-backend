@@ -1,5 +1,4 @@
 const uuidv4 = require('uuid').v4
-
 const messages = new Set()
 const users = new Map()
 
@@ -18,16 +17,19 @@ class Connection {
     socket.on('getMessages', () => this.getMessages())
     socket.on('message', (value) => this.handleMessage(value))
     socket.on('disconnect', () => this.disconnect())
+
     socket.on('connect_error', (err) => {
       console.log(`connect_error due to ${err.message}`)
     })
   }
 
   sendMessage(message) {
+    console.log('message received:', this.socket.client)
     this.io.sockets.emit('message', message)
   }
 
   getMessages() {
+    console.log('MESSAGES ON SERVER: ', messages)
     messages.forEach((message) => this.sendMessage(message))
   }
 

@@ -6,7 +6,10 @@ import {
 } from 'typeorm'
 import { User } from '../entities/User'
 import { Profile } from '../entities/Profile'
-import { create_user } from '../neo4j/neo4j_calls/neo4j_api'
+import {
+  create_user,
+  createUserAndAssociateWithProfile,
+} from '../neo4j/neo4j_calls/neo4j_api'
 
 @EventSubscriber()
 export class UserSubscriber implements EntitySubscriberInterface<User> {
@@ -32,7 +35,7 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
       user.profile = profile.raw[0]
       await getConnection().manager.save(user)
 
-      await create_user(user.username)
+      await createUserAndAssociateWithProfile(user)
     }
   }
 }
