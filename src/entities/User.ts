@@ -18,9 +18,9 @@ import { Profile } from './Profile'
 @ObjectType()
 @Entity()
 export class User extends BaseEntity {
-  @Field(() => Int)
-  @PrimaryGeneratedColumn()
-  id!: number
+  @Field(() => String)
+  @PrimaryGeneratedColumn('uuid')
+  id!: string
 
   @Field()
   @Column({ unique: true })
@@ -44,7 +44,7 @@ export class User extends BaseEntity {
 
   // @Field()
   @Column({ nullable: true })
-  profileId?: number
+  profileId?: string
 
   @OneToOne(() => Profile, (profile) => profile.user, {
     cascade: true,

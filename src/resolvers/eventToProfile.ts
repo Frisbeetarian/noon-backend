@@ -19,38 +19,13 @@ export class EventToProfileResolver {
   //   // return em.findOne(Post, { id })
   //   return Post.findOne(id)
   // }
-
-  @Query(() => [EventToProfile])
-  async getProfiles(
-    @Arg('id', () => Int) id: number
-    // @ts-ignore
-  ): Promise<EventToProfile[] | undefined> {
-    console.log('event id: ', id)
-
-    const data = await EventToProfile.find({ eventId: id })
-
-    console.log('eventToProfileResource: ', data)
-
-    return data
-    // if (eventToProfileResource) return eventToProfileResource
-
-    // return undefined
-    //   const eventsToProfilesRepository: Repository<EventToProfile> =
-    //     getConnection().getRepository(EventToProfile)
-    //
-    //   // console.log('eventsToProfiles:', event)
-    //
-    //   const eventsToProfiles = await eventsToProfilesRepository.find({
-    //     where: { eventId: id },
-    //   })
-    //
-    //   console.log('motherufcker: ' + JSON.stringify(eventsToProfiles))
-    //
-    //   if (eventsToProfiles) {
-    //     return { eventToProfiles: eventsToProfiles }
-    //   }
-    //
-    //   return undefined
-    // }
-  }
+  // @Query(() => [EventToProfile])
+  // async getProfiles(
+  //   @Arg('id', () => Int) id: number
+  //   // @ts-ignore
+  // ): Promise<EventToProfile[] | undefined> {
+  //   const data = await EventToProfile.find({ eventId: id })
+  //
+  //   return data
+  // }
 }

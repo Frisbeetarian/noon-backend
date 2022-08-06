@@ -21,16 +21,19 @@ import { CommunityParticipant } from './CommunityParticipant'
 @ObjectType()
 @Entity()
 export class Profile extends BaseEntity {
-  @Field(() => Int)
-  @PrimaryGeneratedColumn()
-  id!: number
+  @Field(() => String)
+  @PrimaryGeneratedColumn('uuid')
+  id!: string
 
   @Field()
   @Column({ unique: true, nullable: true })
   username: string
 
   @Column({ nullable: true })
-  userId?: number
+  name?: string
+
+  @Column({ nullable: true })
+  userId?: string
 
   @OneToOne(() => User, (user) => user.profile)
   user: User

@@ -25,6 +25,7 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
       .values({
         username: event.entity.username,
         userId: event.entity.id,
+        name: event.entity.username,
       })
       .returning('*')
       .execute()
@@ -35,7 +36,7 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
       user.profile = profile.raw[0]
       await getConnection().manager.save(user)
 
-      await createUserAndAssociateWithProfile(user)
+      await createUserAndAssociateWithProfile(user, profile.raw[0])
     }
   }
 }

@@ -72,16 +72,16 @@ export class UserResolver {
       return null
     }
 
-    return await getConnection()
+    const user = await getConnection()
       .getRepository(User)
       .createQueryBuilder('user')
       .select('user')
       .where('user.id = :id', { id: req.session.userId })
       .leftJoinAndSelect('user.profile', 'profile')
       .getOne()
-
     // console.log('USER 238ORH239UB392823923BF9UF: ', user)
 
+    return user
     // return user
   }
 

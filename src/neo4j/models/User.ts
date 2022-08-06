@@ -4,11 +4,15 @@ export const User = {
     primary: true,
   },
   name: 'string',
-  username: 'string',
+  username: {
+    type: 'string',
+    unique: true,
+  },
   profile: {
     type: 'relationship',
     relationship: 'PROFILE',
     direction: 'out',
+    eager: true,
   },
   createdAt: {
     type: 'datetime',

@@ -28,6 +28,83 @@ const driver = new Neode('bolt://localhost:7687', 'neo4j', 'test').with({
   Profile,
 })
 
+export const getProfiles = async function () {
+  let profiles = []
+  try {
+    const fetchedProfiles = await driver
+      .model('Profile')
+      .all()
+      .then((collection) => {
+        for (let profile of collection) {
+          // profile._properties.set(profile._properties.uuid)
+          profile._properties.__typename = 'Profile'
+          profile.get('user')._end._properties.__typename = 'User'
+
+          const profileObject = profile._properties.set(
+            'user',
+            profile.get('user')._end._properties
+          )
+
+          profiles.push(profileObject)
+        }
+
+        return profiles
+      })
+    // console.log('profiles in neo: ', profiles)
+
+    return profiles
+  } catch (e) {
+    console.log('error retrieving profiles: ', e)
+  }
+
+  return false
+}
+
+export const getProfileByUsername = async function (username: string | number) {
+  try {
+    const profile = driver
+      .first('profile', 'username', username)
+      .then((collection) => {})
+
+    return profile
+  } catch (e) {}
+}
+
+export const createUserAndAssociateWithProfile = async function (
+  user,
+  profile
+) {
+  try {
+    Promise.all([
+      driver.create('User', {
+        id: user.id,
+        name: user.username,
+        username: user.username,
+      }),
+      driver.create('Profile', {
+        id: profile.id,
+        name: user.username,
+        username: user.username,
+      }),
+    ]).then(([user, profile]) => {
+      user.relateTo(profile, 'profile').then((res) => {
+        console.log(
+          res.startNode().get('name'),
+          ' has known ',
+          res.endNode().get('name'),
+          'since',
+          res.get('since')
+        )
+      })
+
+      profile.relateTo(user, 'user')
+    })
+  } catch (e) {
+  } finally {
+    await driver.close()
+  }
+}
+
 // const neoSchema = new Neo4jGraphQL({ typeDefs, driver })
 // driver.withDirectory('./models');
 
@@ -86,63 +163,4 @@ export const create_user = async function (name: string) {
 
   return name
   // return user.records[0].get(0).properties.name
-}
-
-export const createUserAndAssociateWithProfile = async function (user) {
-  // let session = driver.session()
-  console.log('user3535353535: ', user.username)
-
-  // try {
-  //   // user = await session.run('MERGE (n:user {name: $id}) RETURN n', {
-  //   //   id: name,
-  //   // })
-  //   // await driver.all('User', properties)
-  //   await driver
-  //     .create('User', {
-  //       name: user.username,
-  //     })
-  //     .then((user) => {
-  //       // console.log('user.username from neo4j: ', user) // 'Adam'
-  //       return user
-  //     })
-  //
-  //   // user = await session.run('CREATE (a:User {name: $name}) RETURN a', {
-  //   //   name: name,
-  //   // })
-  //
-  //   // const singleRecord = user.records[0]
-  //   // const node = singleRecord.get(0)
-  //   // console.log("single record: ", singleRecord)
-  // } catch (err) {
-  //   console.error(err)
-  //   return false
-  // } finally {
-  //   await driver.close()
-  // }
-
-  // return user.username
-  try {
-    Promise.all([
-      driver.create('User', { name: user.username }),
-      driver.create('Profile', { name: user.username }),
-    ]).then(([user, profile]) => {
-      // console.log('user response from create: ', user)
-      // console.log('profile response from create: ', profile)
-
-      user.relateTo(profile, 'profile').then((res) => {
-        console.log(
-          res.startNode().get('name'),
-          ' has known ',
-          res.endNode().get('name'),
-          'since',
-          res.get('since')
-        ) // Adam has known Joe since 2010
-      })
-
-      profile.relateTo(user, 'user')
-    })
-  } catch (e) {
-  } finally {
-    await driver.close()
-  }
 }

@@ -62,13 +62,17 @@ export class CommunityResolver {
 
   @Query(() => [Community])
   async communities(@Ctx() {}: MyContext): Promise<Community[]> {
-    return await getConnection()
+    const communities = await getConnection()
       .getRepository(Community)
       .createQueryBuilder('community')
       .leftJoinAndSelect('community.participants', 'participant')
       .getMany()
 
-    // return communities
+    communities.map((community) => {
+      console.log('RETURNED COMMUNITIES:', Object.values(community))
+    })
+
+    return communities
   }
 
   @Mutation(() => Community)
