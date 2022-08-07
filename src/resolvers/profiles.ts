@@ -7,12 +7,14 @@ import {
   FieldResolver,
   Root,
   Ctx,
+  Mutation,
 } from 'type-graphql'
 import { Event } from '../entities/Event'
 import { Profile } from '../entities/Profile'
 import {
   getProfileByUsername,
   getProfiles,
+  sendFriendRequest,
 } from '../neo4j/neo4j_calls/neo4j_api'
 import { User } from '../entities/User'
 import { MyContext } from '../types'
@@ -60,6 +62,7 @@ export class ProfileResolver {
   async getProfiles(@Ctx() { req }: MyContext) {
     const profiles = await getProfiles()
     let profilesArray = []
+
     console.log('MEs ID:', req.session.userId)
 
     profiles.map((profile) => {
@@ -85,5 +88,18 @@ export class ProfileResolver {
     @Arg('username', () => Int) username: number | string
   ) {
     return await getProfileByUsername(username)
+  }
+
+  @Mutation(() => Boolean)
+  async sendFriendRequest(
+    @Ctx() { req }: MyContext,
+    @Arg('profileUuid', () => String) profileUuid: number | string
+  ) {
+    console.log('friend request received')
+    let senderProfile = await Profile.findOne({
+      where: { userId: req.session.userId },
+    })
+
+    await sendFriendRequest(senderProfile?.id, profileUuid)
   }
 }

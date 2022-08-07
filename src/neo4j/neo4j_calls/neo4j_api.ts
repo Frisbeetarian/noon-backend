@@ -28,6 +28,26 @@ const driver = new Neode('bolt://localhost:7687', 'neo4j', 'test').with({
   Profile,
 })
 
+export const sendFriendRequest = async function (senderUuid, targetUuid) {
+  try {
+    console.log('senderUuid:', senderUuid)
+    console.log('targetUuid:', targetUuid)
+
+    const senderProfile = await driver.model('Profile').find(senderUuid)
+    const receiverProfile = await driver.model('Profile').find(targetUuid)
+    // const receiverProfile = await driver.first('profile', 'id', targetUuid)
+    console.log('senderProfile:', senderProfile)
+    console.log('receiverProfile:', receiverProfile)
+
+    await senderProfile.relateTo(receiverProfile, 'friendshipRequest')
+
+    return true
+  } catch (e) {
+    console.log('error in neo:', e)
+    return false
+  }
+}
+
 export const getProfiles = async function () {
   let profiles = []
   try {

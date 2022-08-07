@@ -14,6 +14,18 @@ export const Profile = {
     direction: 'out',
     eager: true,
   },
+  friends: {
+    type: 'relationship',
+    relationship: 'FRIEND',
+    direction: 'out',
+    eager: true,
+  },
+  friendshipRequest: {
+    type: 'relationship',
+    relationship: 'FRIENDSHIP_REQUEST',
+    direction: 'out',
+    eager: true,
+  },
   createdAt: {
     type: 'datetime',
     default: () => new Date(),
