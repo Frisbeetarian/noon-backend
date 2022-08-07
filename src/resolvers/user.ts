@@ -19,9 +19,11 @@ import { v4 } from 'uuid'
 import { FORGET_PASSWORD_PREFIX } from '../constants'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
+import { createUserAndAssociateWithProfile } from '../neo4j/neo4j_calls/neo4j_api'
 // import { Community } from '../entities/Community'
 // import { Post } from '../entities/Post'
 // import { resolveAny } from 'dns'
+const uuidv4 = require('uuid').v4
 
 declare module 'express-session' {
   interface Session {
@@ -42,7 +44,7 @@ class UserResponse {
   @Field(() => [FieldError], { nullable: true })
   errors?: FieldError[]
 
-  @Field(() => User, { nullable: true })
+  @Field(() => User, { nullable: false })
   user?: User
 }
 
@@ -197,7 +199,40 @@ export class UserResolver {
         })
         .returning('*')
         .execute()
-      user = result.raw[0]
+      // user = result.raw[0]
+
+      user = await User.findOne(result.raw[0].id)
+      // profile = await getConnection()
+      //   .createQueryBuilder()
+      //   .insert()
+      //   .into(Profile)
+      //   .values({
+      //     username: user.username,
+      //     userId: user.id,
+      //     name: user.username,
+      //   })
+      //   .returning('*')
+      //   .execute()
+
+      // const user = await User.findOne(user.id)
+
+      // if (user) {
+      //   // result.profile = profile.raw[0]
+      //   // await getConnection().manager.save(result)
+      //
+      //   await getConnection().transaction(async (tm) => {
+      //     await tm.query(
+      //       `
+      //     update user
+      //     set profileId = $1
+      //     where "id" = $2
+      //   `,
+      //       [profile.raw[0].id, user.id]
+      //     )
+      //   })
+      //
+      //   await createUserAndAssociateWithProfile(user, profile.raw[0])
+      // }
     } catch (error) {
       console.log('error:', error)
 
@@ -216,7 +251,13 @@ export class UserResolver {
     }
 
     req.session.userId = user.id
+    let profile = await Profile.findOne({ where: { id: user?.profileId } })
+    user = {
+      ...user,
+      profile: { id: profile?.id, username: profile?.username },
+    }
 
+    console.log('user in register:', user)
     return { user }
   }
 
@@ -226,12 +267,13 @@ export class UserResolver {
     @Arg('password') password: string,
     @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
-    const user = await User.findOne(
+    let user = await User.findOne(
       usernameOrEmail.includes('@')
         ? { where: { email: usernameOrEmail } }
         : { where: { username: usernameOrEmail } }
     )
 
+    let profile = await Profile.findOne({ where: { id: user?.profileId } })
     if (!user) {
       return {
         errors: [
@@ -256,6 +298,11 @@ export class UserResolver {
     }
 
     req.session.userId = user.id
+
+    user = {
+      ...user,
+      profile: { id: profile?.id, username: profile?.username },
+    }
 
     return {
       user,

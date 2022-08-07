@@ -60,24 +60,20 @@ export class ProfileResolver {
   async getProfiles(@Ctx() { req }: MyContext) {
     const profiles = await getProfiles()
     let profilesArray = []
+    console.log('MEs ID:', req.session.userId)
 
     profiles.map((profile) => {
-      let profileObject = new Profile()
-      console.log('Profile : ', profile.get('id'))
+      if (profile.get('user').get('id') !== req.session.userId) {
+        let profileObject = new Profile()
+        console.log('Profile : ', profile.get('user').get('id'))
 
-      profileObject.id = profile.get('id')
-      profileObject.username = profile.get('username')
-        ? profile.get('username')
-        : 'emptyusername'
+        profileObject.id = profile.get('id')
+        profileObject.username = profile.get('username')
+          ? profile.get('username')
+          : 'emptyusername'
 
-      // profileObject.name = 'dddd'
-      // profileObject.userId = 5
-      // profileObject = {
-      //   id: profile.id,
-      //   username: profile.username,
-      // }
-
-      profilesArray.push(profileObject)
+        profilesArray.push(profileObject)
+      }
     })
 
     console.log('Profiles in getprofiles: ', profilesArray)
