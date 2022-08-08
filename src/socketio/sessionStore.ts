@@ -40,6 +40,8 @@ class RedisSessionStore extends SessionStore {
   }
 
   saveSession(id, { userID, username, connected }) {
+    console.log('session id:', id)
+
     this.redisClient
       .multi()
       .hset(

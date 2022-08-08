@@ -17,6 +17,7 @@ import path from 'path'
 import { Updoot } from './entities/Updoot'
 import { createUserLoader } from './utils/createUserLoader'
 import { createUpdootLoader } from './utils/createUpdootLoader'
+
 import { Post } from './entities/Post'
 import { Profile } from './entities/Profile'
 import { Event } from './entities/Event'
@@ -180,13 +181,13 @@ const main = async () => {
     }),
   }) // < Interesting!
 
-  // instrument(io, {
-  //   auth: false,
-  // })
+  instrument(io, {
+    auth: false,
+  })
 
   io.use(async (socket, next) => {
-    const sessionID = socket.handshake
-    console.log('session id: ', sessionID)
+    const sessionID = socket.handshake.auth.sessionID
+    console.log('session id in middleware: ', sessionID)
     if (sessionID) {
       const session = await sessionStore.findSession(sessionID)
       if (session) {
@@ -197,7 +198,7 @@ const main = async () => {
       }
     }
     const username = socket.handshake.auth.username
-    console.log('username id in the name: ', username)
+    // console.log('username id in the name: ', username)
 
     if (!username) {
       return next(new Error('invalid username'))
@@ -212,7 +213,7 @@ const main = async () => {
   // setupWorker(io)
 
   io.on('connection', async (socket) => {
-    console.log('connected to socket server')
+    console.log('connected to socket server in connection:', socket.sessionID)
     // persist session
     sessionStore.saveSession(socket.sessionID, {
       userID: socket.userID,
@@ -227,6 +228,7 @@ const main = async () => {
     })
 
     // join the "userID" room
+    console.log('user join room id:', socket.userID)
     socket.join(socket.userID)
 
     // fetch existing users
@@ -267,13 +269,18 @@ const main = async () => {
     })
 
     // forward the private message to the right recipient (and to other tabs of the sender)
-    socket.on('private message', ({ content, to }) => {
+    socket.on('privatemessage', ({ content, to, toUsername }) => {
+      console.log('private message user id:', to)
       const message = {
         content,
         from: socket.userID,
         to,
       }
-      socket.to(to).to(socket.userID).emit('private message', message)
+
+      io.to('3547f65075150edd').emit('privatemessage', { content })
+
+      console.log('message isn friend request:', toUsername)
+
       messageStore.saveMessage(message)
     })
 

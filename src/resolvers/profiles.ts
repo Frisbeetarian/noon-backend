@@ -54,7 +54,7 @@ export class ProfileResolver {
     @Arg('userId', () => Int) userId: number
   ): Promise<Profile | undefined> {
     let profile = await Profile.findOne({ where: { userId: userId } })
-    console.log('PROFILE: ', profile)
+    console.log('PROFILdE: ', profile)
     return profile
   }
 
@@ -95,7 +95,7 @@ export class ProfileResolver {
     @Ctx() { req }: MyContext,
     @Arg('profileUuid', () => String) profileUuid: number | string
   ) {
-    console.log('friend request received')
+    // console.log('friend request received')
     let senderProfile = await Profile.findOne({
       where: { userId: req.session.userId },
     })

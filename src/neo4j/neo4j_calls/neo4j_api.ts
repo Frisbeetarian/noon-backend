@@ -6,17 +6,17 @@ import Neode from 'neode'
 import { User } from '../models/User'
 import { Profile } from '../models/Profile'
 
-const typeDefs = gql`
-  type Movie {
-    title: String
-    actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
-  }
-
-  type Actor {
-    name: String
-    movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
-  }
-`
+// const typeDefs = gql`
+//   type Movie {
+//     title: String
+//     actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+//   }
+//
+//   type Actor {
+//     name: String
+//     movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+//   }
+// `
 
 // let driver = neo4j.driver(
 //   'bolt://0.0.0.0:7687',
@@ -30,14 +30,14 @@ const driver = new Neode('bolt://localhost:7687', 'neo4j', 'test').with({
 
 export const sendFriendRequest = async function (senderUuid, targetUuid) {
   try {
-    console.log('senderUuid:', senderUuid)
-    console.log('targetUuid:', targetUuid)
+    // console.log('senderUuid:', senderUuid)
+    // console.log('targetUuid:', targetUuid)
 
     const senderProfile = await driver.model('Profile').find(senderUuid)
     const receiverProfile = await driver.model('Profile').find(targetUuid)
     // const receiverProfile = await driver.first('profile', 'id', targetUuid)
-    console.log('senderProfile:', senderProfile)
-    console.log('receiverProfile:', receiverProfile)
+    // console.log('senderProfile:', senderProfile)
+    // console.log('receiverProfile:', receiverProfile)
 
     await senderProfile.relateTo(receiverProfile, 'friendshipRequest')
 
