@@ -187,12 +187,19 @@ const main = async () => {
 
   io.use(async (socket, next) => {
     const sessionID = socket.handshake.auth.sessionID
-    console.log('session id in middleware: ', sessionID)
+    console.log('socket auth in middleware: ', socket.handshake.auth)
+    console.log(
+      'user uuid in middleware: ',
+      socket.handshake.auth.userSocketUuid
+    )
+
     if (sessionID) {
       const session = await sessionStore.findSession(sessionID)
+
       if (session) {
         socket.sessionID = sessionID
-        socket.userID = session.userID
+        socket.userID = session.userId
+        socket.userSocketUuid = session.userSocketUuid
         socket.username = session.username
         return next()
       }
@@ -203,9 +210,11 @@ const main = async () => {
     if (!username) {
       return next(new Error('invalid username'))
     }
+
     socket.sessionID = randomId()
-    socket.userID = randomId()
+    socket.userID = socket.handshake.auth.userID
     socket.username = username
+    socket.userSocketUuid = socket.handshake.auth.userSocketUuid
     next()
   })
 
@@ -213,12 +222,13 @@ const main = async () => {
   // setupWorker(io)
 
   io.on('connection', async (socket) => {
-    console.log('connected to socket server in connection:', socket.sessionID)
+    console.log('socket handshake on connection:', socket.handshake)
     // persist session
     sessionStore.saveSession(socket.sessionID, {
-      userID: socket.userID,
+      userID: socket.handshake.auth.userSocketUuid,
       username: socket.username,
       connected: true,
+      userSocketUuid: socket.handshake.auth.userSocketUuid,
     })
 
     // emit session details
@@ -269,15 +279,18 @@ const main = async () => {
     })
 
     // forward the private message to the right recipient (and to other tabs of the sender)
-    socket.on('privatemessage', ({ content, to, toUsername }) => {
-      console.log('private message user id:', to)
+    socket.on('private message', ({ content, from, to, toUsername }) => {
+      console.log('private message content:', content)
+      console.log('private message from:', from)
+      console.log('private message to:', to)
+      console.log('private message tousername:', toUsername)
       const message = {
         content,
-        from: socket.userID,
+        from: from,
         to,
       }
 
-      io.to('3547f65075150edd').emit('privatemessage', { content })
+      io.to(to).emit('private message', { content })
 
       console.log('message isn friend request:', toUsername)
 
@@ -296,10 +309,12 @@ const main = async () => {
           userID: socket.userID,
           username: socket.username,
           connected: false,
+          userSocketUuid: socket.userSocketUuid,
         })
       }
     })
   })
+
   // }
 }
 

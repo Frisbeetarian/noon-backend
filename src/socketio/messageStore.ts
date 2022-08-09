@@ -30,6 +30,9 @@ class RedisMessageStore extends MessageStore {
 
   saveMessage(message) {
     const value = JSON.stringify(message)
+
+    console.log('SAVE MESSAGE value: ', value)
+
     this.redisClient
       .multi()
       .rpush(`messages:${message.from}`, value)

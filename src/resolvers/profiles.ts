@@ -63,12 +63,12 @@ export class ProfileResolver {
     const profiles = await getProfiles()
     let profilesArray = []
 
-    console.log('MEs ID:', req.session.userId)
+    // console.log('MEs ID:', req.session.userId)
 
     profiles.map((profile) => {
       if (profile.get('user').get('id') !== req.session.userId) {
         let profileObject = new Profile()
-        console.log('Profile : ', profile.get('user').get('id'))
+        // console.log('Profile : ', profile.get('user').get('id'))
 
         profileObject.id = profile.get('id')
         profileObject.username = profile.get('username')
@@ -79,7 +79,7 @@ export class ProfileResolver {
       }
     })
 
-    console.log('Profiles in getprofiles: ', profilesArray)
+    // console.log('Profiles in getprofiles: ', profilesArray)
     return profilesArray
   }
 

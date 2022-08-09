@@ -39,7 +39,7 @@ class RedisSessionStore extends SessionStore {
       .then(mapSession)
   }
 
-  saveSession(id, { userID, username, connected }) {
+  saveSession(id, { userID, username, connected, userSocketUuid }) {
     console.log('session id:', id)
 
     this.redisClient
@@ -50,6 +50,8 @@ class RedisSessionStore extends SessionStore {
         userID,
         'username',
         username,
+        'userSocketUuid',
+        userSocketUuid,
         'connected',
         connected
       )
