@@ -12,6 +12,7 @@ import {
 import { Event } from '../entities/Event'
 import { Profile } from '../entities/Profile'
 import {
+  acceptFriendRequest,
   getProfileByUsername,
   getProfiles,
   sendFriendRequest,
@@ -63,7 +64,7 @@ export class ProfileResolver {
     const profiles = await getProfiles()
     let profilesArray = []
 
-    // console.log('MEs ID:', req.session.userId)
+    // console.log('PROFILES:', profiles)
 
     profiles.map((profile) => {
       if (profile.get('user').get('id') !== req.session.userId) {
@@ -96,10 +97,26 @@ export class ProfileResolver {
     @Arg('profileUuid', () => String) profileUuid: number | string
   ) {
     // console.log('friend request received')
-    let senderProfile = await Profile.findOne({
+    const senderProfile = await Profile.findOne({
       where: { userId: req.session.userId },
     })
 
     await sendFriendRequest(senderProfile?.id, profileUuid)
+  }
+
+  @Mutation(() => Boolean)
+  async acceptFriendRequest(
+    @Ctx() { req }: MyContext,
+    @Arg('profileUuid', () => String) profileUuid: number | string
+  ) {
+    console.log('ACCEPT FRIEND REQUEST RECEIVED')
+
+    const recipientProfile = await Profile.findOne({
+      where: { userId: req.session.userId },
+    })
+
+    const senderProfile = await Profile.findOne(profileUuid)
+
+    return await acceptFriendRequest(senderProfile.id, recipientProfile.id)
   }
 }

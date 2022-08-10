@@ -40,8 +40,6 @@ class RedisSessionStore extends SessionStore {
   }
 
   saveSession(id, { userID, username, connected, userSocketUuid }) {
-    console.log('session id:', id)
-
     this.redisClient
       .multi()
       .hset(
@@ -88,6 +86,7 @@ class RedisSessionStore extends SessionStore {
       })
   }
 }
+
 module.exports = {
   InMemorySessionStore,
   RedisSessionStore,

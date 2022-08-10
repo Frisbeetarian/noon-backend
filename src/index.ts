@@ -187,11 +187,11 @@ const main = async () => {
 
   io.use(async (socket, next) => {
     const sessionID = socket.handshake.auth.sessionID
-    console.log('socket auth in middleware: ', socket.handshake.auth)
-    console.log(
-      'user uuid in middleware: ',
-      socket.handshake.auth.userSocketUuid
-    )
+    // console.log('socket auth in middleware: ', socket.handshake.auth)
+    // console.log(
+    //   'user uuid in middleware: ',
+    //   socket.handshake.auth.userSocketUuid
+    // )
 
     if (sessionID) {
       const session = await sessionStore.findSession(sessionID)
@@ -222,7 +222,7 @@ const main = async () => {
   // setupWorker(io)
 
   io.on('connection', async (socket) => {
-    console.log('socket handshake on connection:', socket.handshake)
+    // console.log('socket handshake on connection:', socket.handshake)
     // persist session
     sessionStore.saveSession(socket.sessionID, {
       userID: socket.handshake.auth.userSocketUuid,
@@ -238,7 +238,7 @@ const main = async () => {
     })
 
     // join the "userID" room
-    console.log('user join room id:', socket.userID)
+    // console.log('user join room id:', socket.userID)
     socket.join(socket.userID)
 
     // fetch existing users
@@ -279,23 +279,57 @@ const main = async () => {
     })
 
     // forward the private message to the right recipient (and to other tabs of the sender)
-    socket.on('private message', ({ content, from, to, toUsername }) => {
-      console.log('private message content:', content)
-      console.log('private message from:', from)
-      console.log('private message to:', to)
-      console.log('private message tousername:', toUsername)
-      const message = {
-        content,
-        from: from,
-        to,
+    socket.on(
+      'private message',
+      ({ content, from, fromUsername, to, toUsername }) => {
+        // console.log('private message content:', content)
+        // console.log('private message from:', from)
+        // console.log('private message to:', to)
+        // console.log('private message tousername:', toUsername)
+        // console.log('private message from username:', fromUsername)
+
+        const message = {
+          content,
+          from: from,
+          fromUsername,
+          to,
+        }
+
+        io.to(to).emit('private message', {
+          content,
+          from,
+          fromUsername,
+          to,
+          toUsername,
+        })
+
+        console.log('message isn friend request:', toUsername)
+
+        messageStore.saveMessage(message)
       }
+    )
 
-      io.to(to).emit('private message', { content })
+    socket.on(
+      'friendship-request-accepted',
+      ({ content, from, fromUsername, to, toUsername }) => {
+        const message = {
+          content,
+          from: from,
+          fromUsername,
+          to,
+        }
 
-      console.log('message isn friend request:', toUsername)
+        io.to(to).emit('friendship-request-accepted', {
+          content,
+          from,
+          fromUsername,
+          to,
+          toUsername,
+        })
 
-      messageStore.saveMessage(message)
-    })
+        messageStore.saveMessage(message)
+      }
+    )
 
     // notify users upon disconnection
     socket.on('disconnect', async () => {

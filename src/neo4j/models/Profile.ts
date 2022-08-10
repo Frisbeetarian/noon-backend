@@ -16,7 +16,7 @@ export const Profile = {
   },
   friends: {
     type: 'relationship',
-    relationship: 'FRIEND',
+    relationship: 'FRIENDS',
     direction: 'out',
     eager: true,
   },

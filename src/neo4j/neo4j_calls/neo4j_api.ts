@@ -5,7 +5,7 @@ import { ApolloServer, gql } from 'apollo-server-express'
 import Neode from 'neode'
 import { User } from '../models/User'
 import { Profile } from '../models/Profile'
-
+import { parse, stringify, toJSON, fromJSON } from 'flatted'
 // const typeDefs = gql`
 //   type Movie {
 //     title: String
@@ -48,6 +48,28 @@ export const sendFriendRequest = async function (senderUuid, targetUuid) {
   }
 }
 
+export const acceptFriendRequest = async function (
+  senderProfileUuid,
+  recipientProfileUuid
+) {
+  console.log('AU MILIEU DU TRESOR')
+  try {
+    const senderProfile = await driver.model('Profile').find(senderProfileUuid)
+    const recipientProfile = await driver
+      .model('Profile')
+      .find(recipientProfileUuid)
+
+    await senderProfile.detachFrom(recipientProfile, 'friendshipRequest')
+    await senderProfile.relateTo(recipientProfile, 'friends')
+    await recipientProfile.relateTo(senderProfile, 'friends')
+
+    return true
+  } catch (e) {
+    console.log('error in neo establish friendship:', e)
+    return false
+  }
+}
+
 export const getProfiles = async function () {
   let profiles = []
   try {
@@ -56,14 +78,47 @@ export const getProfiles = async function () {
       .all()
       .then((collection) => {
         for (let profile of collection) {
+          const friendsCollectionsOnProfile = profile.get('friends')
+
+          driver
+            // .cypher('MATCH (p:Profile {id: $id})-[:FRIENDS]-(b) RETURN p, b', {
+            .cypher(
+              'MATCH (profile1:Profile {id: $id})-[:FRIENDS]-(profile2) RETURN profile2',
+              {
+                id: profile.get('id'),
+              }
+            )
+            .then((res) => {
+              // console.log(res.records)
+              console.log('/n' + profile.get('username') + 'friends: ')
+
+              res.records.map((record) => {
+                console.log(record._fields[0].properties)
+              })
+            })
+          // if (friendsCollectionsOnProfile) {
+          //   // console.log(
+          //   //   "LILy's in the bar for a bar fight:",
+          //   //   profile.get('friends')._end._properties
+          //   // )
+          // }
           // profile._properties.set(profile._properties.uuid)
           profile._properties.__typename = 'Profile'
           profile.get('user')._end._properties.__typename = 'User'
 
-          const profileObject = profile._properties.set(
+          let profileObject = profile._properties.set(
             'user',
             profile.get('user')._end._properties
           )
+
+          if (friendsCollectionsOnProfile) {
+            profileObject.set('friends', profile.get('friends'))
+
+            // console.log(
+            //   profile.get('username') + 'friends: ',
+            //   profile.get('friends')
+            // )
+          }
 
           profiles.push(profileObject)
         }
