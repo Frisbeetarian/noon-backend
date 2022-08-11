@@ -161,30 +161,64 @@ export const getProfileByUsername = async function (username: string | number) {
 }
 
 export const sendFriendRequest = async function (senderUuid, targetUuid) {
+  console.log('senderUuid:', senderUuid)
+  console.log('targetUuid:', targetUuid)
+
+  let session = driver.session()
+  const tx = session.beginTransaction()
+
+  // console.log('user in create:', user)
+  // console.log('profile in create:', profile)
+
   try {
-    // console.log('senderUuid:', senderUuid)
-    // console.log('targetUuid:', targetUuid)
+    // .run('MATCH (p:Profile)-[:FRIENDS]-(b) return p, b')
 
-    const senderProfile = await driver.model('Profile').find(senderUuid)
-    const receiverProfile = await driver.model('Profile').find(targetUuid)
-    // const receiverProfile = await driver.first('profile', 'id', targetUuid)
-    // console.log('senderProfile:', senderProfile)
-    // console.log('receiverProfile:', receiverProfile)
-
-    await senderProfile.relateTo(receiverProfile, 'friendshipRequest')
-
-    return true
-  } catch (e) {
-    console.log('error in neo:', e)
-    return false
-  }
+    tx.run(
+      ' Match (p1:Profile {uuid: $sUuid}) ' +
+        ' Match (p2:Profile {uuid: $rUuid})' +
+        ' CREATE (p1)-[friendRequest:FRIEND_REQUEST]->(p2)' +
+        ' RETURN p1, friendRequest, p2',
+      {
+        sUuid: senderUuid,
+        rUuid: targetUuid,
+      }
+    )
+      .then((result) => {
+        result.records.forEach((record) => {
+          console.log(record)
+        })
+        return tx.commit()
+      })
+      .then(() => {
+        session.close()
+        // driver.close()
+      })
+      .catch((exception) => {
+        console.log(exception)
+        session.close()
+        // driver.close()
+      })
+  } catch (e) {}
+  // try {
+  //   const senderProfile = await driver.model('Profile').find(senderUuid)
+  //   const receiverProfile = await driver.model('Profile').find(targetUuid)
+  //   // const receiverProfile = await driver.first('profile', 'id', targetUuid)
+  //   // console.log('senderProfile:', senderProfile)
+  //   // console.log('receiverProfile:', receiverProfile)
+  //
+  //   await senderProfile.relateTo(receiverProfile, 'friendshipRequest')
+  //
+  //   return true
+  // } catch (e) {
+  //   console.log('error in neo:', e)
+  //   return false
+  // }
 }
 
 export const acceptFriendRequest = async function (
   senderProfileUuid,
   recipientProfileUuid
 ) {
-  console.log('AU MILIEU DU TRESOR')
   try {
     const senderProfile = await driver.model('Profile').find(senderProfileUuid)
     const recipientProfile = await driver

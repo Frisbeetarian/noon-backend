@@ -82,7 +82,6 @@ export class ProfileResolver {
     @Ctx() { req }: MyContext,
     @Arg('profileUuid', () => String) profileUuid: number | string
   ) {
-    // console.log('friend request received')
     const senderProfile = await Profile.findOne({
       where: { userId: req.session.userId },
     })
