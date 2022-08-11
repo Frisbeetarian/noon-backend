@@ -119,7 +119,7 @@ export class CommunityResolver {
     console.log('profile:', profile)
 
     await CommunityParticipant.insert({
-      profileId: profile?.id,
+      profileId: profile?.uuid,
       communityId: communityId,
       participantUsername: profile?.username,
     })

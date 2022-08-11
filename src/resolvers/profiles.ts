@@ -43,9 +43,9 @@ export class ProfileResolver {
 
   @Query(() => Profile, { nullable: true })
   async profile(
-    @Arg('id', () => Int) id: number
+    @Arg('uuid', () => Int) uuid: number
   ): Promise<Profile | undefined> {
-    let profile = await Profile.findOne(id, { relations: ['events'] })
+    let profile = await Profile.findOne(uuid, { relations: ['events'] })
     console.log('PROFILE: ', profile)
     return profile
   }
@@ -61,27 +61,13 @@ export class ProfileResolver {
 
   @Query(() => [Profile])
   async getProfiles(@Ctx() { req }: MyContext) {
-    const profiles = await getProfiles()
-    let profilesArray = []
+    let profiles = await getProfiles()
+    profiles = profiles.filter(
+      (profile) => profile.user.uuid != req.session.userId
+    )
 
-    // console.log('PROFILES:', profiles)
-
-    profiles.map((profile) => {
-      if (profile.get('user').get('id') !== req.session.userId) {
-        let profileObject = new Profile()
-        // console.log('Profile : ', profile.get('user').get('id'))
-
-        profileObject.id = profile.get('id')
-        profileObject.username = profile.get('username')
-          ? profile.get('username')
-          : 'emptyusername'
-
-        profilesArray.push(profileObject)
-      }
-    })
-
-    console.log('Profiles in getprofiles: ', profilesArray)
-    return profilesArray
+    console.log('Profiles in getprofiles: ', profiles)
+    return profiles
   }
 
   @Query(() => Profile)
@@ -101,7 +87,7 @@ export class ProfileResolver {
       where: { userId: req.session.userId },
     })
 
-    await sendFriendRequest(senderProfile?.id, profileUuid)
+    await sendFriendRequest(senderProfile?.uuid, profileUuid)
   }
 
   @Mutation(() => Boolean)
@@ -117,6 +103,6 @@ export class ProfileResolver {
 
     const senderProfile = await Profile.findOne(profileUuid)
 
-    return await acceptFriendRequest(senderProfile.id, recipientProfile.id)
+    return await acceptFriendRequest(senderProfile.uuid, recipientProfile.uuid)
   }
 }

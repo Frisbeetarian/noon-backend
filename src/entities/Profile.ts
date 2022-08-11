@@ -23,7 +23,7 @@ import { CommunityParticipant } from './CommunityParticipant'
 export class Profile extends BaseEntity {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  uuid!: string
 
   @Field()
   @Column({ unique: true, nullable: true })

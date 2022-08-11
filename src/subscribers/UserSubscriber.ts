@@ -24,16 +24,17 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
       .into(Profile)
       .values({
         username: event.entity.username,
-        userId: event.entity.id,
+        userId: event.entity.uuid,
         name: event.entity.username,
       })
       .returning('*')
       .execute()
 
-    const user = await User.findOne(event.entity.id)
+    const user = await User.findOne(event.entity.uuid)
 
     if (user) {
       user.profile = profile.raw[0]
+      user.profileId = profile.raw[0].uuid
       await getConnection().manager.save(user)
 
       await createUserAndAssociateWithProfile(user, profile.raw[0])

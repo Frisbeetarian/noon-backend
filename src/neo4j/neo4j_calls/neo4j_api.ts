@@ -32,6 +32,134 @@ var driver = neo4j.driver(
   'bolt://localhost:7687',
   neo4j.auth.basic('neo4j', 'test')
 )
+
+export const createUserAndAssociateWithProfile = async function (
+  user,
+  profile
+) {
+  let session = driver.session()
+  const tx = session.beginTransaction()
+  // console.log('user in create:', user)
+  // console.log('profile in create:', profile)
+
+  try {
+    // .run('MATCH (p:Profile)-[:FRIENDS]-(b) return p, b')
+
+    tx.run(
+      ' CREATE (a:User {uuid: $id, username: $username, name: $name}) ' +
+        ' CREATE (b:Profile {uuid: $profileId, username: $username, name: $name})' +
+        ' CREATE (a)-[:PROFILE {username: $username, name: $name, profileUuid: $profileId}]->(b)' +
+        ' CREATE (b)-[:USER {username: $username, name: $name, userUuid: $id}]->(a)' +
+        ' RETURN a, b',
+      {
+        id: user.uuid,
+        username: user.username,
+        name: user.username,
+        profileId: profile.uuid,
+      }
+    )
+      .then((result) => {
+        result.records.forEach((record) => {
+          console.log(record)
+        })
+        return tx.commit()
+      })
+      .then(() => {
+        session.close()
+        // driver.close()
+      })
+      .catch((exception) => {
+        console.log(exception)
+        session.close()
+        // driver.close()
+      })
+  } catch (e) {}
+}
+
+export const getProfiles = async function () {
+  var session = driver.session()
+
+  let profiles = []
+  // .run('MATCH (p:Profile)-[:FRIENDS]-(b) return p, b')
+
+  await session
+    .run(
+      'MATCH (p:Profile)' +
+        'OPTIONAL MATCH (p)-[friends:FRIENDS]-(m)' +
+        'OPTIONAL MATCH (p)-[user:USER]-(u)' +
+        ' return p, user, friends'
+    )
+    .then((result) => {
+      // return result
+      result.records.forEach((record) => {
+        // console.log('GREGERGERGERGERGERGER:', {
+        //   uuid: record._fields[0].properties.uuid,
+        //   username: record._fields[0].properties.username,
+        //   name: record._fields[0].properties.name,
+        //   user: {
+        //     uuid: record._fields[1].properties.userUuid,
+        //     username: record._fields[1].properties.username,
+        //     name: record._fields[1].properties.name,
+        //   },
+        //   friends: null,
+        // })
+
+        profiles.push({
+          uuid: record._fields[0].properties.uuid,
+          username: record._fields[0].properties.username,
+          name: record._fields[0].properties.name,
+          user: {
+            uuid: record._fields[1].properties.userUuid,
+            username: record._fields[1].properties.username,
+            name: record._fields[1].properties.name,
+          },
+        })
+        // const profileObject = new Set()
+        // profileObject.add({
+        //   uuid: record._fields[0].properties.uuid,
+        //   username: record._fields[0].properties.username,
+        //   name: record._fields[0].properties.name,
+        //   user: {
+        //     uuid: record._fields[1].properties.uuid,
+        //     username: record._fields[1].properties.username,
+        //     name: record._fields[1].properties.name,
+        //   },
+        //   friends: null,
+        // })
+        // profileObject.add(record._fields[0].properties.username)
+        // profileObject.add(record._fields[0].properties.name)
+        // console.log('GREGERGERGERGERGERGER:', profileObject)
+
+        // const { Relationship } = record._fields
+        //
+        // record._fields.forEach((field) => {
+        //   // console.log('GREGERGERGERGERGERGER:', field)
+        //   // console.log('RELATIONSHIP:', field)
+        // })
+      })
+    })
+    .catch((error) => {
+      console.log('error')
+
+      console.log(error)
+    })
+    .then(() => {
+      session.close()
+    })
+
+  return profiles
+}
+
+export const getProfileByUsername = async function (username: string | number) {
+  try {
+    const profile = driver
+      .first('profile', 'username', username)
+      .then((collection) => {})
+
+    return profile
+  } catch (e) {}
+}
+
 export const sendFriendRequest = async function (senderUuid, targetUuid) {
   try {
     // console.log('senderUuid:', senderUuid)
@@ -72,191 +200,6 @@ export const acceptFriendRequest = async function (
     console.log('error in neo establish friendship:', e)
     return false
   }
-}
-
-export const getProfiles = async function () {
-  var session = driver.session()
-
-  let profiles = []
-  session
-    // .run('MATCH (p:Profile)-[:FRIENDS]-(b) return p, b')
-    .run(
-      'MATCH (p:Profile)' +
-        'OPTIONAL MATCH (p)-[r:FRIENDS]-(m)' +
-        'OPTIONAL MATCH (p)-[rr:USER]-(u)' +
-        ' return p, r, rr, u'
-    )
-    .then((result) => {
-      // return result
-      result.records.forEach((record) => {
-        console.log('GREGERGERGERGERGERGER:', record._fields)
-
-        // console.log(record)
-      })
-    })
-    .catch((error) => {
-      console.log('error')
-
-      console.log(error)
-    })
-    .then(() => {
-      session.close()
-    })
-
-  // const fetchedProfiles = await driver
-  //   .model('Profile')
-  //   .all()
-  //   .then((collection) => {
-  //     for (let profile of collection) {
-  //       const friendsCollectionsOnProfile = profile.get('friends')
-  //
-  //       driver
-  //         // .cypher('MATCH (p:Profile {id: $id})-[:FRIENDS]-(b) RETURN p, b', {
-  //         .cypher(
-  //           'MATCH (profile1:Profile {id: $id})-[:FRIENDS]-(profile2) RETURN profile2',
-  //           {
-  //             id: profile.get('id'),
-  //           }
-  //         )
-  //         .then((res) => {
-  //           // console.log(res.records)
-  //           console.log('/n' + profile.get('username') + 'friends: ')
-  //
-  //           res.records.map((record) => {
-  //             console.log(record._fields[0].properties)
-  //           })
-  //         })
-  //       // if (friendsCollectionsOnProfile) {
-  //       //   // console.log(
-  //       //   //   "LILy's in the bar for a bar fight:",
-  //       //   //   profile.get('friends')._end._properties
-  //       //   // )
-  //       // }
-  //       // profile._properties.set(profile._properties.uuid)
-  //       profile._properties.__typename = 'Profile'
-  //       profile.get('user')._end._properties.__typename = 'User'
-  //
-  //       let profileObject = profile._properties.set(
-  //         'user',
-  //         profile.get('user')._end._properties
-  //       )
-  //
-  //       if (friendsCollectionsOnProfile) {
-  //         profileObject.set('friends', profile.get('friends'))
-  //
-  //         // console.log(
-  //         //   profile.get('username') + 'friends: ',
-  //         //   profile.get('friends')
-  //         // )
-  //       }
-  //
-  //       profiles.push(profileObject)
-  //     }
-  //
-  //     return profiles
-  //   })
-  // console.log('profiles in neo: ', profiles)
-
-  return profiles
-}
-
-export const getProfileByUsername = async function (username: string | number) {
-  try {
-    const profile = driver
-      .first('profile', 'username', username)
-      .then((collection) => {})
-
-    return profile
-  } catch (e) {}
-}
-
-export const createUserAndAssociateWithProfile = async function (
-  user,
-  profile
-) {
-  let session = driver.session()
-  const tx = session.beginTransaction()
-
-  try {
-    // .run('MATCH (p:Profile)-[:FRIENDS]-(b) return p, b')
-
-    tx.run(
-      ' CREATE (a:User {id: $id, username: $username, name: $name}) ' +
-        ' CREATE (b:Profile {id: $id, username: $username, name: $name})' +
-        ' CREATE (a)-[:PROFILE]->(b)' +
-        ' CREATE (b)-[:USER]->(a)' +
-        ' RETURN a, b',
-      {
-        id: user.id,
-        username: user.username,
-        name: user.username,
-      }
-    )
-      .then((result) => {
-        result.records.forEach((record) => {
-          console.log(record)
-        })
-        return tx.commit()
-      })
-      .then(() => {
-        session.close()
-        // driver.close()
-      })
-      .catch((exception) => {
-        console.log(exception)
-        session.close()
-        // driver.close()
-      })
-
-    // tx.run(
-    //   `CREATE (user:User {id: $userId , name: $userName, username: $userUsername})`,
-    //   {
-    //     userId: user.id,
-    //     userName: user.username,
-    //     userUsername: user.username,
-    //     profileId: profile.id,
-    //     profileUsername: user.username,
-    //     profileName: user.username,
-    //   }
-    // )
-    //   .then((result) => {
-    //     result.records.forEach((record) => {
-    //       console.log(record)
-    //     })
-    //   })
-    //   .catch((error) => {
-    //     console.log(error)
-    //   })
-    //   .then(() => session.close())
-
-    // Promise.all([
-    //   driver.create('User', {
-    //     id: user.id,
-    //     name: user.username,
-    //     username: user.username,
-    //   }),
-    //   driver.create('Profile', {
-    //     id: profile.id,
-    //     name: user.username,
-    //     username: user.username,
-    //   }),
-    // ]).then(([user, profile]) => {
-    //   user.relateTo(profile, 'profile').then((res) => {
-    //     console.log(
-    //       res.startNode().get('name'),
-    //       ' has known ',
-    //       res.endNode().get('name'),
-    //       'since',
-    //       res.get('since')
-    //     )
-    //   })
-    //
-    //   profile.relateTo(user, 'user')
-    // })
-  } catch (e) {}
-  // finally {
-  //   await driver.close()
-  // }
 }
 
 // const neoSchema = new Neo4jGraphQL({ typeDefs, driver })

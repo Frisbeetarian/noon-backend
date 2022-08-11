@@ -20,7 +20,7 @@ import { Profile } from './Profile'
 export class User extends BaseEntity {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  uuid!: string
 
   @Field()
   @Column({ unique: true })

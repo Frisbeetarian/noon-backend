@@ -59,7 +59,7 @@ export class UserResolver {
   @FieldResolver(() => String)
   email(@Root() user: User, @Ctx() { req }: MyContext) {
     // this is the current user and its okay to show them logged user info
-    if (req.session.userId === user.id) {
+    if (req.session.userId == user.uuid) {
       return user.email
     }
 
@@ -78,7 +78,7 @@ export class UserResolver {
       .getRepository(User)
       .createQueryBuilder('user')
       .select('user')
-      .where('user.id = :id', { id: req.session.userId })
+      .where('user.uuid = :id', { id: req.session.userId })
       .leftJoinAndSelect('user.profile', 'profile')
       .getOne()
     // console.log('USER 238ORH239UB392823923BF9UF: ', user)
@@ -134,13 +134,13 @@ export class UserResolver {
     // user.password = await argon2.hash(newPassword)
     // await em.persistAndFlush(user)
     await User.update(
-      { id: userIdNum },
+      { uuid: userIdNum },
       { password: await argon2.hash(newPassword) }
     )
 
     await redis.del(key)
     // log in user after change password
-    req.session.userId = user.id
+    req.session.userId = user.uuid
 
     return { user }
   }
@@ -185,9 +185,6 @@ export class UserResolver {
     let user
 
     try {
-      // same logic differently written
-      // User.create({}).save()
-
       const result = await getConnection()
         .createQueryBuilder()
         .insert()
@@ -201,38 +198,7 @@ export class UserResolver {
         .execute()
       // user = result.raw[0]
 
-      user = await User.findOne(result.raw[0].id)
-      // profile = await getConnection()
-      //   .createQueryBuilder()
-      //   .insert()
-      //   .into(Profile)
-      //   .values({
-      //     username: user.username,
-      //     userId: user.id,
-      //     name: user.username,
-      //   })
-      //   .returning('*')
-      //   .execute()
-
-      // const user = await User.findOne(user.id)
-
-      // if (user) {
-      //   // result.profile = profile.raw[0]
-      //   // await getConnection().manager.save(result)
-      //
-      //   await getConnection().transaction(async (tm) => {
-      //     await tm.query(
-      //       `
-      //     update user
-      //     set profileId = $1
-      //     where "id" = $2
-      //   `,
-      //       [profile.raw[0].id, user.id]
-      //     )
-      //   })
-      //
-      //   await createUserAndAssociateWithProfile(user, profile.raw[0])
-      // }
+      user = await User.findOne(result.raw[0].uuid)
     } catch (error) {
       console.log('error:', error)
 
@@ -250,11 +216,11 @@ export class UserResolver {
       }
     }
 
-    req.session.userId = user.id
-    let profile = await Profile.findOne({ where: { id: user?.profileId } })
+    req.session.userId = user.uuid
+    let profile = await Profile.findOne({ where: { userId: user?.uuid } })
     user = {
       ...user,
-      profile: { id: profile?.id, username: profile?.username },
+      profile: { uuid: profile?.uuid, username: profile?.username },
     }
 
     console.log('user in register:', user)
@@ -273,7 +239,7 @@ export class UserResolver {
         : { where: { username: usernameOrEmail } }
     )
 
-    let profile = await Profile.findOne({ where: { id: user?.profileId } })
+    let profile = await Profile.findOne({ where: { uuid: user?.profileId } })
     if (!user) {
       return {
         errors: [
@@ -297,11 +263,11 @@ export class UserResolver {
       }
     }
 
-    req.session.userId = user.id
+    req.session.userId = user.uuid
 
     user = {
       ...user,
-      profile: { id: profile?.id, username: profile?.username },
+      profile: { id: profile?.uuid, username: profile?.username },
     }
 
     return {
