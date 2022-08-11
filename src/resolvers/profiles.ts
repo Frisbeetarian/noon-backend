@@ -102,6 +102,9 @@ export class ProfileResolver {
 
     const senderProfile = await Profile.findOne(profileUuid)
 
-    return await acceptFriendRequest(senderProfile.uuid, recipientProfile.uuid)
+    return await acceptFriendRequest(
+      senderProfile?.uuid,
+      recipientProfile?.uuid
+    )
   }
 }
