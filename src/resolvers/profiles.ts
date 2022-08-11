@@ -80,7 +80,7 @@ export class ProfileResolver {
       }
     })
 
-    // console.log('Profiles in getprofiles: ', profilesArray)
+    console.log('Profiles in getprofiles: ', profilesArray)
     return profilesArray
   }
 
