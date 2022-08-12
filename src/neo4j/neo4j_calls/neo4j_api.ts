@@ -1,37 +1,97 @@
 import neo4j from 'neo4j-driver'
-import creds from '../config/credentials'
-const { Neo4jGraphQL } = require('@neo4j/graphql')
-import { ApolloServer, gql } from 'apollo-server-express'
-import Neode from 'neode'
-import { User } from '../models/User'
-import { Profile } from '../models/Profile'
 import { parse, stringify, toJSON, fromJSON } from 'flatted'
-// const typeDefs = gql`
-//   type Movie {
-//     title: String
-//     actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
-//   }
-//
-//   type Actor {
-//     name: String
-//     movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
-//   }
-// `
-
-// let driver = neo4j.driver(
-//   'bolt://0.0.0.0:7687',
-//   neo4j.auth.basic(creds.neo4jusername, creds.neo4jpw)
-// )
-
-// const driver = new Neode('bolt://localhost:7687', 'neo4j', 'test').with({
-//   User,
-//   Profile,
-// })
 
 var driver = neo4j.driver(
   'bolt://localhost:7687',
   neo4j.auth.basic('neo4j', 'test')
 )
+
+export const getProfiles = async function () {
+  var session = driver.session()
+  let profiles = {}
+  // ' Match (p2:Profile {uuid: $rUuid})' +
+  let currentProfileUuid
+  await session
+    .run(
+      'MATCH (p:Profile)' +
+        ' OPTIONAL MATCH (p)-[user:USER]->(u)' +
+        ' return p, user'
+      // {
+      //   samirUuid: '42528a01-4a84-4127-8a88-da81e793f682',
+      // }
+    )
+    .then((result) => {
+      // console.log('profiles in get profiles:', result.records)
+
+      result.records.forEach((record) => {
+        // console.log('profiles in get profiles:', record._fields)
+
+        // session.run(
+        //   'MATCH (p:Profile {uuid: $profileUuid})' +
+        //     ' OPTIONAL MATCH (p)<-[friends:FRIENDS]-(m)' +
+        //     ' return friends',
+        //   {
+        //     profileUuid: '42528a01-4a84-4127-8a88-da81e793f682',
+        //   }
+        // )
+
+        profiles[record._fields[0].properties.uuid] = {
+          uuid: record._fields[0].properties.uuid,
+          username: record._fields[0].properties.username,
+          name: record._fields[0].properties.name,
+          user: {
+            uuid: record._fields[1].properties.userUuid,
+            username: record._fields[1].properties.username,
+            name: record._fields[1].properties.name,
+          },
+        }
+
+        // profiles.push({
+        //   uuid: record._fields[0].properties.uuid,
+        //   username: record._fields[0].properties.username,
+        //   name: record._fields[0].properties.name,
+        //   user: {
+        //     uuid: record._fields[1].properties.userUuid,
+        //     username: record._fields[1].properties.username,
+        //     name: record._fields[1].properties.name,
+        //   },
+        //   // friends: { ...record._fields[2].properties },
+        // })
+      })
+    })
+    .then((result) => {
+      return session.run(
+        'MATCH (p:Profile)' +
+          ' OPTIONAL MATCH (p)-[friends:FRIENDS]->(m)' +
+          ' return friends, p'
+      )
+    })
+    .then((results) => {
+      results.records.forEach((record) => {
+        console.log('friends results:', record._fields[1].properties.uuid)
+
+        profiles[record._fields[1].properties.uuid] = {
+          ...profiles[record._fields[1].properties.uuid],
+          friends: {
+            ...profiles[record._fields[1].properties.uuid].friends,
+            [record._fields[0].properties.friendUuid]:
+              record._fields[0].properties,
+          },
+        }
+      })
+    })
+    .catch((error) => {
+      console.log('error')
+
+      console.log(error)
+    })
+    .then(() => {
+      session.close()
+    })
+  console.log('profiles in get profiles:', profiles)
+
+  return profiles
+}
 
 export const createUserAndAssociateWithProfile = async function (
   user,
@@ -39,12 +99,8 @@ export const createUserAndAssociateWithProfile = async function (
 ) {
   let session = driver.session()
   const tx = session.beginTransaction()
-  // console.log('user in create:', user)
-  // console.log('profile in create:', profile)
 
   try {
-    // .run('MATCH (p:Profile)-[:FRIENDS]-(b) return p, b')
-
     tx.run(
       ' CREATE (a:User {uuid: $id, username: $username, name: $name}) ' +
         ' CREATE (b:Profile {uuid: $profileId, username: $username, name: $name})' +
@@ -76,80 +132,6 @@ export const createUserAndAssociateWithProfile = async function (
   } catch (e) {}
 }
 
-export const getProfiles = async function () {
-  var session = driver.session()
-
-  let profiles = []
-  // .run('MATCH (p:Profile)-[:FRIENDS]-(b) return p, b')
-
-  await session
-    .run(
-      'MATCH (p:Profile)' +
-        'OPTIONAL MATCH (p)-[friends:FRIENDS]-(m)' +
-        'OPTIONAL MATCH (p)-[user:USER]-(u)' +
-        ' return p, user, friends'
-    )
-    .then((result) => {
-      // return result
-      result.records.forEach((record) => {
-        // console.log('GREGERGERGERGERGERGER:', {
-        //   uuid: record._fields[0].properties.uuid,
-        //   username: record._fields[0].properties.username,
-        //   name: record._fields[0].properties.name,
-        //   user: {
-        //     uuid: record._fields[1].properties.userUuid,
-        //     username: record._fields[1].properties.username,
-        //     name: record._fields[1].properties.name,
-        //   },
-        //   friends: null,
-        // })
-
-        profiles.push({
-          uuid: record._fields[0].properties.uuid,
-          username: record._fields[0].properties.username,
-          name: record._fields[0].properties.name,
-          user: {
-            uuid: record._fields[1].properties.userUuid,
-            username: record._fields[1].properties.username,
-            name: record._fields[1].properties.name,
-          },
-        })
-        // const profileObject = new Set()
-        // profileObject.add({
-        //   uuid: record._fields[0].properties.uuid,
-        //   username: record._fields[0].properties.username,
-        //   name: record._fields[0].properties.name,
-        //   user: {
-        //     uuid: record._fields[1].properties.uuid,
-        //     username: record._fields[1].properties.username,
-        //     name: record._fields[1].properties.name,
-        //   },
-        //   friends: null,
-        // })
-        // profileObject.add(record._fields[0].properties.username)
-        // profileObject.add(record._fields[0].properties.name)
-        // console.log('GREGERGERGERGERGERGER:', profileObject)
-
-        // const { Relationship } = record._fields
-        //
-        // record._fields.forEach((field) => {
-        //   // console.log('GREGERGERGERGERGERGER:', field)
-        //   // console.log('RELATIONSHIP:', field)
-        // })
-      })
-    })
-    .catch((error) => {
-      console.log('error')
-
-      console.log(error)
-    })
-    .then(() => {
-      session.close()
-    })
-
-  return profiles
-}
-
 export const getProfileByUsername = async function (username: string | number) {
   try {
     const profile = driver
@@ -167,12 +149,7 @@ export const sendFriendRequest = async function (senderUuid, targetUuid) {
   let session = driver.session()
   const tx = session.beginTransaction()
 
-  // console.log('user in create:', user)
-  // console.log('profile in create:', profile)
-
   try {
-    // .run('MATCH (p:Profile)-[:FRIENDS]-(b) return p, b')
-
     tx.run(
       ' Match (p1:Profile {uuid: $sUuid}) ' +
         ' Match (p2:Profile {uuid: $rUuid})' +
@@ -203,19 +180,19 @@ export const sendFriendRequest = async function (senderUuid, targetUuid) {
 
 export const acceptFriendRequest = async function (
   senderProfileUuid,
-  recipientProfileUuid
+  senderProfileUsername,
+  recipientProfileUuid,
+  recipientProfileUsername
 ) {
   let session = driver.session()
   const tx = session.beginTransaction()
 
   try {
-    // .run('MATCH (p:Profile)-[:FRIENDS]-(b) return p, b')
-
     tx.run(
       ' Match (p1:Profile {uuid: $sUuid}) ' +
         ' Match (p2:Profile {uuid: $rUuid})' +
-        ' MERGE (p1)-[friends:FRIENDS]->(p2)' +
-        ' MERGE (p2)-[:FRIENDS]->(p1)' +
+        ' Merge (p1)-[friends:FRIENDS {friendUsername: $recipientProfileUsername, friendUuid: $recipientProfileUuid}]->(p2)' +
+        ' Merge (p2)-[:FRIENDS {friendUsername: $senderProfileUsername, friendUuid: $senderProfileUuid}]->(p1)' +
         ' WITH p1, friends, p2' +
         ' Match (p1)-[fr:FRIEND_REQUEST]->(p2)' +
         ' DELETE fr' +
@@ -223,6 +200,10 @@ export const acceptFriendRequest = async function (
       {
         sUuid: senderProfileUuid,
         rUuid: recipientProfileUuid,
+        recipientProfileUuid,
+        recipientProfileUsername,
+        senderProfileUsername,
+        senderProfileUuid,
       }
     )
       .then((result) => {
@@ -241,80 +222,4 @@ export const acceptFriendRequest = async function (
         // driver.close()
       })
   } catch (e) {}
-
-  // try {
-  //   const senderProfile = await driver.model('Profile').find(senderProfileUuid)
-  //   const recipientProfile = await driver
-  //     .model('Profile')
-  //     .find(recipientProfileUuid)
-  //
-  //   await senderProfile.detachFrom(recipientProfile, 'friendshipRequest')
-  //   await senderProfile.relateTo(recipientProfile, 'friends')
-  //   await recipientProfile.relateTo(senderProfile, 'friends')
-  //
-  //   return true
-  // } catch (e) {
-  //   console.log('error in neo establish friendship:', e)
-  //   return false
-  // }
-}
-
-// const neoSchema = new Neo4jGraphQL({ typeDefs, driver })
-// driver.withDirectory('./models');
-
-export const get_num_nodes = async function () {
-  await driver.all('User').then((collection) => {
-    console.log(collection.length) // 1
-    console.log(collection.get(0).get('name')) // 'Adam'
-  })
-
-  let session = driver.session()
-  const num_nodes = await session.run('MATCH (n) RETURN n', {})
-  // session.close()
-
-  driver.close()
-  console.log('RESULT', !num_nodes ? 0 : num_nodes.records.length)
-
-  // await driver.all('User', {name: 'mohamad'}, {name: 'ASC', id: 'DESC'}, 1, 0)
-  //   .then(collection => {
-  //     console.log(collection.length); // 1
-  //     console.log(collection.get(0).get('name')); // 'Adam'
-  //   })
-
-  return !num_nodes ? 0 : num_nodes.records.length
-}
-export const create_user = async function (name: string) {
-  // let session = driver.session()
-  // let user = 'No User Was Created'
-
-  console.log('name: ', name)
-  try {
-    // user = await session.run('MERGE (n:user {name: $id}) RETURN n', {
-    //   id: name,
-    // })
-    // await driver.all('User', properties)
-    await driver
-      .create('User', {
-        name: name,
-      })
-      .then((user) => {
-        console.log('name from neo4j: ', user) // 'Adam'
-        return name
-      })
-    // user = await session.run('CREATE (a:User {name: $name}) RETURN a', {
-    //   name: name,
-    // })
-
-    // const singleRecord = user.records[0]
-    // const node = singleRecord.get(0)
-    // console.log("single record: ", singleRecord)
-  } catch (err) {
-    console.error(err)
-    return false
-  } finally {
-    await driver.close()
-  }
-
-  return name
-  // return user.records[0].get(0).properties.name
 }

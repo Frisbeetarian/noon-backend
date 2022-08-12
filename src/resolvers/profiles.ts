@@ -66,7 +66,7 @@ export class ProfileResolver {
       (profile) => profile.user.uuid != req.session.userId
     )
 
-    console.log('Profiles in getprofiles: ', profiles)
+    // console.log('Profiles in getprofiles: ', profiles)
     return profiles
   }
 
@@ -104,7 +104,9 @@ export class ProfileResolver {
 
     return await acceptFriendRequest(
       senderProfile?.uuid,
-      recipientProfile?.uuid
+      senderProfile?.username,
+      recipientProfile?.uuid,
+      recipientProfile?.username
     )
   }
 }
