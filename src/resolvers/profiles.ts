@@ -19,6 +19,7 @@ import {
 } from '../neo4j/neo4j_calls/neo4j_api'
 import { User } from '../entities/User'
 import { MyContext } from '../types'
+import { Friend } from '../entities/Friend'
 
 // @InputType()
 // class ProfileInput {
@@ -39,6 +40,11 @@ export class ProfileResolver {
   @FieldResolver(() => User)
   user(@Root() profile: Profile) {
     return profile.user
+  }
+
+  @FieldResolver(() => [Friend])
+  friends(@Root() profile: Profile) {
+    return profile.friends
   }
 
   @Query(() => Profile, { nullable: true })
@@ -62,11 +68,11 @@ export class ProfileResolver {
   @Query(() => [Profile])
   async getProfiles(@Ctx() { req }: MyContext) {
     let profiles = await getProfiles()
-    profiles = profiles.filter(
-      (profile) => profile.user.uuid != req.session.userId
-    )
+    // profiles = profiles.filter(
+    //   (profile) => profile.user.uuid != req.session.userId
+    // )
 
-    // console.log('Profiles in getprofiles: ', profiles)
+    console.log('Profiles in getprofiles33: ', profiles)
     return profiles
   }
 

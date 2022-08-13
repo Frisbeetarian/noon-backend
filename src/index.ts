@@ -20,6 +20,7 @@ import { createUpdootLoader } from './utils/createUpdootLoader'
 
 import { Post } from './entities/Post'
 import { Profile } from './entities/Profile'
+import { Friend } from './entities/Friend'
 import { Event } from './entities/Event'
 import { ProfileResolver } from './resolvers/profiles'
 import { EventToProfile } from './entities/EventToProfile'
@@ -43,7 +44,6 @@ const cluster = require('cluster')
 
 import chat from './socketio/chat'
 import { RedisSessionStore } from './socketio/sessionStore'
-import { RedisMessageStore } from './socketio/messageStore'
 
 const main = async () => {
   await createConnection({
@@ -59,6 +59,7 @@ const main = async () => {
       Post,
       Updoot,
       Profile,
+      Friend,
       Event,
       EventToProfile,
       Community,
