@@ -18,17 +18,6 @@ export const getProfiles = async function () {
     )
     .then((result) => {
       result.records.forEach((record) => {
-        // profiles[record._fields[0].properties.uuid] = {
-        //   uuid: record._fields[0].properties.uuid,
-        //   username: record._fields[0].properties.username,
-        //   name: record._fields[0].properties.name,
-        //   user: {
-        //     uuid: record._fields[1].properties.userUuid,
-        //     username: record._fields[1].properties.username,
-        //     name: record._fields[1].properties.name,
-        //   },
-        // }
-
         profiles.push({
           uuid: record._fields[0].properties.uuid,
           username: record._fields[0].properties.username,
@@ -38,7 +27,6 @@ export const getProfiles = async function () {
             username: record._fields[1].properties.username,
             name: record._fields[1].properties.name,
           },
-          // friends: { ...record._fields[2].properties },
         })
       })
     })
@@ -63,17 +51,47 @@ export const getProfiles = async function () {
         } else {
           profile['friends'].push(record._fields[0].properties)
         }
+      })
+    })
+    .catch((error) => {
+      console.log('error')
 
-        // console.log('profile friends results:', profile)
-        // profile.friends =
+      console.log(error)
+    })
+    .then(() => {
+      session.close()
+    })
+  return profiles
+}
 
-        // profiles[record._fields[1].properties.uuid] = {
-        //   ...profiles[record._fields[1].properties.uuid],
-        //   friends: {
-        //     ...profiles[record._fields[1].properties.uuid].friends,
-        //     [record._fields[0].properties.friendUuid]:
-        //       record._fields[0].properties,
-        //   },
+export const getFriendsForProfile = async function (profileUuid) {
+  let session = driver.session()
+  let friends = []
+  await session
+    .run(
+      'MATCH (p:Profile {uuid: $profileUuid})' +
+        ' OPTIONAL MATCH (p)-[friends:FRIENDS]->(u)' +
+        ' return u',
+      {
+        profileUuid,
+      }
+    )
+    .then((results) => {
+      results.records.forEach((record) => {
+        console.log('FRIENDS FOR PROFILE:', record._fields[0].properties)
+
+        friends.push(record._fields[0].properties)
+        // const profile = profiles.find(
+        //   ({ uuid }) => uuid === record._fields[1].properties.uuid
+        // )
+        //
+        // console.log('profile:', profile)
+        //
+        // if (!profile['friends']) {
+        //   profile['friends'] = []
+        //   profile['friends'].push(record._fields[0].properties)
+        // } else {
+        //   profile['friends'].push(record._fields[0].properties)
         // }
       })
     })
@@ -86,8 +104,7 @@ export const getProfiles = async function () {
       session.close()
     })
 
-  // console.log('profiles in get profiles:', JSON.stringify(profiles))
-  return profiles
+  return friends
 }
 
 export const createUserAndAssociateWithProfile = async function (

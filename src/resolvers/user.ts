@@ -19,7 +19,11 @@ import { v4 } from 'uuid'
 import { FORGET_PASSWORD_PREFIX } from '../constants'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
-import { createUserAndAssociateWithProfile } from '../neo4j/neo4j_calls/neo4j_api'
+import {
+  createUserAndAssociateWithProfile,
+  getFriendsForProfile,
+} from '../neo4j/neo4j_calls/neo4j_api'
+import { Friend } from '../entities/Friend'
 // import { Community } from '../entities/Community'
 // import { Post } from '../entities/Post'
 // import { resolveAny } from 'dns'
@@ -56,6 +60,12 @@ export class UserResolver {
     return user.profile
   }
 
+  @FieldResolver(() => [Friend])
+  friends(@Root() user: User) {
+    // console.log('LA ASMA&: ', user.profile)
+    return user.friends
+  }
+
   @FieldResolver(() => String)
   email(@Root() user: User, @Ctx() { req }: MyContext) {
     // this is the current user and its okay to show them logged user info
@@ -74,14 +84,17 @@ export class UserResolver {
       return null
     }
 
-    const user = await getConnection()
+    let user = await getConnection()
       .getRepository(User)
       .createQueryBuilder('user')
       .select('user')
       .where('user.uuid = :id', { id: req.session.userId })
       .leftJoinAndSelect('user.profile', 'profile')
       .getOne()
-    // console.log('USER 238ORH239UB392823923BF9UF: ', user)
+
+    const friends = await getFriendsForProfile(user?.profile?.uuid)
+    user = { ...user, friends }
+    console.log('USER 238ORH239UB392823923BF9UF: ', user)
 
     return user
     // return user
