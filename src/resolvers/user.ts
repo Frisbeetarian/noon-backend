@@ -56,13 +56,11 @@ class UserResponse {
 export class UserResolver {
   @FieldResolver(() => Profile)
   profile(@Root() user: User) {
-    // console.log('LA ASMA&: ', user.profile)
     return user.profile
   }
 
   @FieldResolver(() => [Friend])
   friends(@Root() user: User) {
-    // console.log('LA ASMA&: ', user.profile)
     return user.friends
   }
 
@@ -92,12 +90,19 @@ export class UserResolver {
       .leftJoinAndSelect('user.profile', 'profile')
       .getOne()
 
-    const friends = await getFriendsForProfile(user?.profile?.uuid)
-    user = { ...user, friends }
-    console.log('USER 238ORH239UB392823923BF9UF: ', user)
+    const friendsArray = await getFriendsForProfile(user?.profile?.uuid)
 
+    if (friendsArray.length == 0) {
+      user = { ...user, friends: friendsArray }
+    } else {
+      user = {
+        ...user,
+        friends: [],
+      }
+    }
+
+    // console.log('USER 238ORH239UB392823923BF9UF: ', user)
     return user
-    // return user
   }
 
   @Mutation(() => UserResponse)
@@ -119,6 +124,7 @@ export class UserResolver {
 
     const key = FORGET_PASSWORD_PREFIX + token
     const userId = await redis.get(FORGET_PASSWORD_PREFIX + token)
+
     if (!userId) {
       return {
         errors: [
@@ -173,7 +179,7 @@ export class UserResolver {
     const token = v4()
     await redis.set(
       FORGET_PASSWORD_PREFIX + token,
-      user.id,
+      user.uuid,
       'ex',
       1000 * 60 * 60 * 24 * 3
     ) // 3 days
@@ -230,13 +236,16 @@ export class UserResolver {
     }
 
     req.session.userId = user.uuid
+
     let profile = await Profile.findOne({ where: { userId: user?.uuid } })
+
     user = {
       ...user,
       profile: { uuid: profile?.uuid, username: profile?.username },
     }
+    req.session.user = user
 
-    console.log('user in register:', user)
+    // console.log('user in register:', user)
     return { user }
   }
 
@@ -253,6 +262,7 @@ export class UserResolver {
     )
 
     let profile = await Profile.findOne({ where: { uuid: user?.profileId } })
+
     if (!user) {
       return {
         errors: [
@@ -265,6 +275,7 @@ export class UserResolver {
     }
 
     const valid = await argon2.verify(user.password, password)
+
     if (!valid) {
       return {
         errors: [
@@ -276,12 +287,13 @@ export class UserResolver {
       }
     }
 
-    req.session.userId = user.uuid
-
     user = {
       ...user,
       profile: { id: profile?.uuid, username: profile?.username },
     }
+
+    req.session.userId = user.uuid
+    req.session.user = user
 
     return {
       user,

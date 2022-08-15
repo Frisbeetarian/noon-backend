@@ -1,20 +1,15 @@
-import {
-  BaseEntity,
-  Column,
-  Entity,
-  ManyToOne,
-  PrimaryColumn,
-  PrimaryGeneratedColumn,
-} from 'typeorm'
-import { Community } from './Community'
-import { Profile } from './Profile'
-import { Field, Int, ObjectType } from 'type-graphql'
+import { BaseEntity, PrimaryGeneratedColumn } from 'typeorm'
+import { Field, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class Friend extends BaseEntity {
   @Field(() => String)
+  @PrimaryGeneratedColumn('uuid')
   uuid?: string
 
   @Field()
   username?: string
+
+  // @ManyToMany(() => Profile)
+  // profiles?: Profile[]
 }

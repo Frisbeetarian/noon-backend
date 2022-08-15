@@ -38,18 +38,23 @@ export const getProfiles = async function () {
       )
     })
     .then((results) => {
+      if (results.records.length == 0) {
+        profile['friends'] = []
+      }
+
       results.records.forEach((record) => {
         const profile = profiles.find(
-          ({ uuid }) => uuid === record._fields[1].properties.uuid
+          ({ uuid }) => uuid === record._fields[1]?.properties.uuid
         )
+        console.log('results.records.length:', record._fields[0]?.properties)
 
-        console.log('profile:', profile)
-
-        if (!profile['friends']) {
+        if (record._fields[0]?.properties === undefined) {
           profile['friends'] = []
-          profile['friends'].push(record._fields[0].properties)
+        } else if (!profile['friends']) {
+          profile['friends'] = []
+          profile['friends'].push(record._fields[0]?.properties)
         } else {
-          profile['friends'].push(record._fields[0].properties)
+          profile['friends'].push(record._fields[0]?.properties)
         }
       })
     })
@@ -61,6 +66,8 @@ export const getProfiles = async function () {
     .then(() => {
       session.close()
     })
+
+  console.log('PROFILES IN GET PROFILES:', profiles)
   return profiles
 }
 
@@ -78,9 +85,9 @@ export const getFriendsForProfile = async function (profileUuid) {
     )
     .then((results) => {
       results.records.forEach((record) => {
-        console.log('FRIENDS FOR PROFILE:', record._fields[0].properties)
+        // console.log('FRIENDS FOR PROFILE:', record._fields[0].properties)
 
-        friends.push(record._fields[0].properties)
+        friends.push(record._fields[0]?.properties)
         // const profile = profiles.find(
         //   ({ uuid }) => uuid === record._fields[1].properties.uuid
         // )

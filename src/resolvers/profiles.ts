@@ -43,7 +43,7 @@ export class ProfileResolver {
   }
 
   @FieldResolver(() => [Friend])
-  friends(@Root() profile: Profile) {
+  friends(@Root() profile: Profile[] | null) {
     return profile.friends
   }
 
@@ -67,7 +67,7 @@ export class ProfileResolver {
 
   @Query(() => [Profile])
   async getProfiles(@Ctx() { req }: MyContext) {
-    let profiles = await getProfiles()
+    let profiles = await getProfiles(req.session.user.profile.uuid)
     // profiles = profiles.filter(
     //   (profile) => profile.user.uuid != req.session.userId
     // )

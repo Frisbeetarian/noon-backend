@@ -4,9 +4,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  // JoinTable,
-  // JoinTable,
-  // ManyToMany,
+  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -14,7 +12,6 @@ import {
 } from 'typeorm'
 import { Post } from './Post'
 import { Updoot } from './Updoot'
-// import { Event } from './Event'
 import { User } from './User'
 import { CommunityParticipant } from './CommunityParticipant'
 
@@ -43,6 +40,9 @@ export class Profile extends BaseEntity {
 
   @OneToMany(() => Updoot, (updoot) => updoot.user)
   updoots: Updoot[]
+
+  // @ManyToMany(() => Friend)
+  // friends?: Friend[]
 
   @OneToMany(
     () => CommunityParticipant,
