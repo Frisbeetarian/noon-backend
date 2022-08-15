@@ -6,7 +6,7 @@ var driver = neo4j.driver(
   neo4j.auth.basic('neo4j', 'test')
 )
 
-export const getProfiles = async function () {
+export const getProfiles = async function (loggedInProfileUuid) {
   var session = driver.session()
   let profiles = []
 
@@ -33,8 +33,12 @@ export const getProfiles = async function () {
     .then((result) => {
       return session.run(
         'MATCH (p:Profile)' +
-          ' OPTIONAL MATCH (p)-[friends:FRIENDS]->(m)' +
-          ' return friends, p'
+          ' OPTIONAL MATCH (p)-[friends:FRIENDS]->()' +
+          ' OPTIONAL MATCH (p)-[friendRequest:FRIEND_REQUEST]->()' +
+          ' return friends, p, friendRequest',
+        {
+          loggedInProfileUuid,
+        }
       )
     })
     .then((results) => {
@@ -43,10 +47,16 @@ export const getProfiles = async function () {
       }
 
       results.records.forEach((record) => {
+        console.log('results records:', record._fields[2])
+
         const profile = profiles.find(
           ({ uuid }) => uuid === record._fields[1]?.properties.uuid
         )
-        console.log('results.records.length:', record._fields[0]?.properties)
+
+        if (record._fields[0]?.properties.uuid == loggedInProfileUuid) {
+          profiles.pop(profile)
+          return
+        }
 
         if (record._fields[0]?.properties === undefined) {
           profile['friends'] = []
@@ -67,7 +77,6 @@ export const getProfiles = async function () {
       session.close()
     })
 
-  console.log('PROFILES IN GET PROFILES:', profiles)
   return profiles
 }
 
@@ -85,8 +94,6 @@ export const getFriendsForProfile = async function (profileUuid) {
     )
     .then((results) => {
       results.records.forEach((record) => {
-        // console.log('FRIENDS FOR PROFILE:', record._fields[0].properties)
-
         friends.push(record._fields[0]?.properties)
         // const profile = profiles.find(
         //   ({ uuid }) => uuid === record._fields[1].properties.uuid
@@ -163,22 +170,32 @@ export const getProfileByUsername = async function (username: string | number) {
   } catch (e) {}
 }
 
-export const sendFriendRequest = async function (senderUuid, targetUuid) {
-  console.log('senderUuid:', senderUuid)
-  console.log('targetUuid:', targetUuid)
+export const sendFriendRequest = async function (
+  senderProfileUuid,
+  senderProfileUsername,
+  recipientProfileUuid,
+  recipientProfileUsername
+) {
+  console.log('senderProfileUuid:', senderProfileUuid)
+  console.log('recipientProfileUuid:', recipientProfileUuid)
 
   let session = driver.session()
   const tx = session.beginTransaction()
 
   try {
     tx.run(
-      'Match (p1:Profile {uuid: $sUuid})' +
-        ' Match (p2:Profile {uuid: $rUuid})' +
-        ' MERGE (p1)-[friendRequest:FRIEND_REQUEST]->(p2)' +
+      'MATCH (p1:Profile {uuid: $sUuid})' +
+        ' MATCH (p2:Profile {uuid: $rUuid})' +
+        ' MERGE (p1)-[friendRequest:FRIEND_REQUEST {uuid: $recipientProfileUuid, username: $recipientProfileUsername }]->(p2)' +
+        ' MERGE (p2)-[:FRIEND_REQUEST {uuid: $senderProfileUuid, username: $senderProfileUsername }]->(p1)' +
         ' RETURN p1, friendRequest, p2',
       {
-        sUuid: senderUuid,
-        rUuid: targetUuid,
+        sUuid: senderProfileUuid,
+        rUuid: recipientProfileUuid,
+        recipientProfileUuid,
+        recipientProfileUsername,
+        senderProfileUsername,
+        senderProfileUuid,
       }
     )
       .then((result) => {

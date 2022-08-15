@@ -72,7 +72,7 @@ export class ProfileResolver {
     //   (profile) => profile.user.uuid != req.session.userId
     // )
 
-    console.log('Profiles in getprofiles33: ', profiles)
+    // console.log('Profiles in getprofiles33: ', profiles)
     return profiles
   }
 
@@ -92,7 +92,14 @@ export class ProfileResolver {
       where: { userId: req.session.userId },
     })
 
-    await sendFriendRequest(senderProfile?.uuid, profileUuid)
+    const recipientProfile = await Profile.findOne(profileUuid)
+
+    await sendFriendRequest(
+      senderProfile?.uuid,
+      senderProfile?.username,
+      recipientProfile.uuid,
+      recipientProfile.username
+    )
   }
 
   @Mutation(() => Boolean)
