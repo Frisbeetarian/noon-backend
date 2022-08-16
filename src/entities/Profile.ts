@@ -43,7 +43,6 @@ export class Profile extends BaseEntity {
 
   // @ManyToMany(() => Friend)
   // friends?: Friend[]
-
   @OneToMany(
     () => CommunityParticipant,
     (communityParticipant) => communityParticipant.profile

@@ -20,20 +20,17 @@ import { FORGET_PASSWORD_PREFIX } from '../constants'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
 import {
-  createUserAndAssociateWithProfile,
   getFriendRequestsForProfile,
   getFriendsForProfile,
 } from '../neo4j/neo4j_calls/neo4j_api'
 import { Friend } from '../entities/Friend'
 import { FriendshipRequest } from '../entities/FriendshipRequest'
-// import { Community } from '../entities/Community'
-// import { Post } from '../entities/Post'
-// import { resolveAny } from 'dns'
 const uuidv4 = require('uuid').v4
 
 declare module 'express-session' {
   interface Session {
-    userId: number
+    userId: string
+    user: any
   }
 }
 
@@ -101,6 +98,7 @@ export class UserResolver {
     const friendRequestsArray = await getFriendRequestsForProfile(
       user?.profile?.uuid
     )
+
     console.log('friendRequestsArray: ', friendRequestsArray)
 
     if (friendsArray.length !== 0) {
@@ -111,6 +109,7 @@ export class UserResolver {
         friends: [],
       }
     }
+
     if (friendRequestsArray.length !== 0) {
       user = { ...user, friendshipRequests: friendRequestsArray }
     } else {
@@ -262,6 +261,7 @@ export class UserResolver {
       ...user,
       profile: { uuid: profile?.uuid, username: profile?.username },
     }
+
     req.session.user = user
 
     // console.log('user in register:', user)

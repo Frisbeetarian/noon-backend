@@ -138,7 +138,9 @@ export const getFriendRequestsForProfile = async function (profileUuid) {
     )
     .then((results) => {
       results.records.forEach((record) => {
-        friendRequests.push(record._fields[0]?.properties)
+        if (record._fields[0]?.properties !== undefined) {
+          friendRequests.push(record._fields[0]?.properties)
+        }
       })
     })
     .catch((error) => {
