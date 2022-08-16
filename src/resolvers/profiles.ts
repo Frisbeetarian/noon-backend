@@ -20,6 +20,7 @@ import {
 import { User } from '../entities/User'
 import { MyContext } from '../types'
 import { Friend } from '../entities/Friend'
+import { FriendshipRequest } from '../entities/FriendshipRequest'
 
 // @InputType()
 // class ProfileInput {
@@ -47,6 +48,11 @@ export class ProfileResolver {
     return profile.friends
   }
 
+  @FieldResolver(() => [FriendshipRequest])
+  friendshipRequests(@Root() profile: Profile[] | null) {
+    return profile.friendshipRequests
+  }
+
   @Query(() => Profile, { nullable: true })
   async profile(
     @Arg('uuid', () => Int) uuid: number
@@ -67,7 +73,9 @@ export class ProfileResolver {
 
   @Query(() => [Profile])
   async getProfiles(@Ctx() { req }: MyContext) {
-    let profiles = await getProfiles(req.session.user.profile.uuid)
+    // console.log('FERWFERFERFre:', req.session.user)
+
+    let profiles = await getProfiles(req.session.user?.profile.uuid)
     // profiles = profiles.filter(
     //   (profile) => profile.user.uuid != req.session.userId
     // )

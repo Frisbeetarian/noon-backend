@@ -27,6 +27,8 @@ export const getProfiles = async function (loggedInProfileUuid) {
             username: record._fields[1].properties.username,
             name: record._fields[1].properties.name,
           },
+          friends: [],
+          friendshipRequests: [],
         })
       })
     })
@@ -42,13 +44,11 @@ export const getProfiles = async function (loggedInProfileUuid) {
       )
     })
     .then((results) => {
-      if (results.records.length == 0) {
-        profile['friends'] = []
-      }
+      // if (results.records.length == 0) {
+      //   profile['friends'] = []
+      // }
 
       results.records.forEach((record) => {
-        console.log('results records:', record._fields[2])
-
         const profile = profiles.find(
           ({ uuid }) => uuid === record._fields[1]?.properties.uuid
         )
@@ -58,13 +58,12 @@ export const getProfiles = async function (loggedInProfileUuid) {
           return
         }
 
-        if (record._fields[0]?.properties === undefined) {
-          profile['friends'] = []
-        } else if (!profile['friends']) {
-          profile['friends'] = []
+        if (record._fields[0]?.properties !== undefined) {
           profile['friends'].push(record._fields[0]?.properties)
-        } else {
-          profile['friends'].push(record._fields[0]?.properties)
+        }
+
+        if (record._fields[2]?.properties !== undefined) {
+          profile['friendshipRequests'].push(record._fields[2]?.properties)
         }
       })
     })
@@ -76,6 +75,7 @@ export const getProfiles = async function (loggedInProfileUuid) {
     .then(() => {
       session.close()
     })
+  console.log('profiles:', profiles)
 
   return profiles
 }
@@ -83,6 +83,7 @@ export const getProfiles = async function (loggedInProfileUuid) {
 export const getFriendsForProfile = async function (profileUuid) {
   let session = driver.session()
   let friends = []
+
   await session
     .run(
       'MATCH (p:Profile {uuid: $profileUuid})' +
@@ -94,7 +95,9 @@ export const getFriendsForProfile = async function (profileUuid) {
     )
     .then((results) => {
       results.records.forEach((record) => {
-        friends.push(record._fields[0]?.properties)
+        if (record._fields[0]?.properties !== undefined) {
+          friends.push(record._fields[0]?.properties)
+        }
         // const profile = profiles.find(
         //   ({ uuid }) => uuid === record._fields[1].properties.uuid
         // )
@@ -111,7 +114,6 @@ export const getFriendsForProfile = async function (profileUuid) {
     })
     .catch((error) => {
       console.log('error')
-
       console.log(error)
     })
     .then(() => {
@@ -119,6 +121,34 @@ export const getFriendsForProfile = async function (profileUuid) {
     })
 
   return friends
+}
+
+export const getFriendRequestsForProfile = async function (profileUuid) {
+  let session = driver.session()
+  let friendRequests = []
+
+  await session
+    .run(
+      'MATCH (p:Profile {uuid: $profileUuid})' +
+        ' OPTIONAL MATCH (p)-[friendRequests:FRIEND_REQUEST]->(u)' +
+        ' return u',
+      {
+        profileUuid,
+      }
+    )
+    .then((results) => {
+      results.records.forEach((record) => {
+        friendRequests.push(record._fields[0]?.properties)
+      })
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+    .then(() => {
+      session.close()
+    })
+
+  return friendRequests
 }
 
 export const createUserAndAssociateWithProfile = async function (
@@ -146,6 +176,7 @@ export const createUserAndAssociateWithProfile = async function (
         result.records.forEach((record) => {
           console.log(record)
         })
+
         return tx.commit()
       })
       .then(() => {
@@ -187,15 +218,13 @@ export const sendFriendRequest = async function (
       'MATCH (p1:Profile {uuid: $sUuid})' +
         ' MATCH (p2:Profile {uuid: $rUuid})' +
         ' MERGE (p1)-[friendRequest:FRIEND_REQUEST {uuid: $recipientProfileUuid, username: $recipientProfileUsername }]->(p2)' +
-        ' MERGE (p2)-[:FRIEND_REQUEST {uuid: $senderProfileUuid, username: $senderProfileUsername }]->(p1)' +
+        // ' MERGE (p2)-[:FRIEND_REQUEST {uuid: $senderProfileUuid, username: $senderProfileUsername }]->(p1)' +
         ' RETURN p1, friendRequest, p2',
       {
         sUuid: senderProfileUuid,
         rUuid: recipientProfileUuid,
         recipientProfileUuid,
         recipientProfileUsername,
-        senderProfileUsername,
-        senderProfileUuid,
       }
     )
       .then((result) => {

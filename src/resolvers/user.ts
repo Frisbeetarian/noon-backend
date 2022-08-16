@@ -21,9 +21,11 @@ import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
 import {
   createUserAndAssociateWithProfile,
+  getFriendRequestsForProfile,
   getFriendsForProfile,
 } from '../neo4j/neo4j_calls/neo4j_api'
 import { Friend } from '../entities/Friend'
+import { FriendshipRequest } from '../entities/FriendshipRequest'
 // import { Community } from '../entities/Community'
 // import { Post } from '../entities/Post'
 // import { resolveAny } from 'dns'
@@ -64,6 +66,11 @@ export class UserResolver {
     return user.friends
   }
 
+  @FieldResolver(() => [FriendshipRequest])
+  friendshipRequests(@Root() user: User | null) {
+    return user.friendshipRequests
+  }
+
   @FieldResolver(() => String)
   email(@Root() user: User, @Ctx() { req }: MyContext) {
     // this is the current user and its okay to show them logged user info
@@ -91,8 +98,12 @@ export class UserResolver {
       .getOne()
 
     const friendsArray = await getFriendsForProfile(user?.profile?.uuid)
+    const friendRequestsArray = await getFriendRequestsForProfile(
+      user?.profile?.uuid
+    )
+    console.log('friendRequestsArray: ', friendRequestsArray)
 
-    if (friendsArray.length == 0) {
+    if (friendsArray.length !== 0) {
       user = { ...user, friends: friendsArray }
     } else {
       user = {
@@ -100,8 +111,16 @@ export class UserResolver {
         friends: [],
       }
     }
+    if (friendRequestsArray.length !== 0) {
+      user = { ...user, friendshipRequests: friendRequestsArray }
+    } else {
+      user = {
+        ...user,
+        friendshipRequests: [],
+      }
+    }
 
-    // console.log('USER 238ORH239UB392823923BF9UF: ', user)
+    console.log('USER 238ORH239UB392823923BF9UF: ', user)
     return user
   }
 
