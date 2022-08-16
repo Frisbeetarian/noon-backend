@@ -102,12 +102,15 @@ export class ProfileResolver {
 
     const recipientProfile = await Profile.findOne(profileUuid)
 
-    await sendFriendRequest(
+    const response = await sendFriendRequest(
       senderProfile?.uuid,
       senderProfile?.username,
       recipientProfile.uuid,
       recipientProfile.username
     )
+    console.log('response fromf riend request:', response)
+
+    return true
   }
 
   @Mutation(() => Boolean)
