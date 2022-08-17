@@ -68,9 +68,8 @@ export class CommunityResolver {
       .leftJoinAndSelect('community.participants', 'participant')
       .getMany()
 
-    communities.map((community) => {
-      console.log('RETURNED COMMUNITIES:', Object.values(community))
-    })
+    // communities.map((community) => {})
+    console.log('RETURNED COMMUNITIES:', communities)
 
     return communities
   }
@@ -115,8 +114,6 @@ export class CommunityResolver {
     //   .where('profile.userId = :userId', { userId: req.session.userId })
     //   .leftJoinAndSelect('user.profile', 'profile')
     //   .getOne()
-
-    console.log('profile:', profile)
 
     await CommunityParticipant.insert({
       profileId: profile?.uuid,

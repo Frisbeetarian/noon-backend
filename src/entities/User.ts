@@ -14,6 +14,7 @@ import { Post } from './Post'
 import { Updoot } from './Updoot'
 import { Event } from './Event'
 import { Profile } from './Profile'
+import { Community } from './Community'
 
 @ObjectType()
 @Entity()
@@ -38,6 +39,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Event, (event) => event.creator)
   events: Post[]
+
+  @OneToMany(() => Community, (community) => community.creator)
+  communities: Community[]
 
   @OneToMany(() => Updoot, (updoot) => updoot.user)
   updoots: Updoot[]

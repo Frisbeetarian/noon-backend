@@ -58,26 +58,8 @@ export const getProfiles = async function (loggedInProfileUuid) {
           profile['friends'].push(record._fields[0]?.properties)
         }
 
-        if (record._fields[0]?.properties.uuid == loggedInProfileUuid) {
-          profiles.splice(index, 1)
-        }
-
-        // if (record._fields[2]?.properties !== undefined) {
-        //   record._fields[3]?.properties = {
-        //     ...record._fields[3]?.properties,
-        //     reverse: false,
-        //   }
-        //
-        //   profile['friendshipRequests'].push(record._fields[3]?.properties)
-        // }
-        //
-        // if (record._fields[4]?.properties !== undefined) {
-        //   record._fields[5]?.properties = {
-        //     ...record._fields[5]?.properties,
-        //     reverse: true,
-        //   }
-        //
-        //   profile['friendshipRequests'].push(record._fields[5]?.properties)
+        // if (record._fields[0]?.properties.uuid === loggedInProfileUuid) {
+        //   profiles.splice(index, 1)
         // }
       })
     })

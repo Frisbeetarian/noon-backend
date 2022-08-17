@@ -279,7 +279,6 @@ export class UserResolver {
         ? { where: { email: usernameOrEmail } }
         : { where: { username: usernameOrEmail } }
     )
-
     let profile = await Profile.findOne({ where: { uuid: user?.profileId } })
 
     if (!user) {
@@ -313,6 +312,7 @@ export class UserResolver {
 
     req.session.userId = user.uuid
     req.session.user = user
+    console.log('FSDFSDFDSFSDF:', user)
 
     return {
       user,

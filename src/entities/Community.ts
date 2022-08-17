@@ -52,7 +52,7 @@ export class Community extends BaseEntity {
   creatorId: string
 
   @Field(() => User)
-  @ManyToOne(() => User, (user) => user.events)
+  @ManyToOne(() => User, (user) => user.communities)
   creator: User
 
   // @Field(() => [Profile])
