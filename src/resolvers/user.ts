@@ -99,7 +99,7 @@ export class UserResolver {
       user?.profile?.uuid
     )
 
-    console.log('friendRequestsArray: ', friendRequestsArray)
+    // console.log('friendRequestsArray: ', friendRequestsArray)
 
     if (friendsArray.length !== 0) {
       user = { ...user, friends: friendsArray }
@@ -119,7 +119,7 @@ export class UserResolver {
       }
     }
 
-    console.log('USER 238ORH239UB392823923BF9UF: ', user)
+    // console.log('USER 238ORH239UB392823923BF9UF: ', user)
     return user
   }
 

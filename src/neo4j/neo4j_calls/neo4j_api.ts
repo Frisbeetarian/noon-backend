@@ -49,18 +49,17 @@ export const getProfiles = async function (loggedInProfileUuid) {
       //   profile['friends'] = []
       // }
 
-      results.records.forEach((record) => {
+      results.records.map((record, index) => {
         const profile = profiles.find(
           ({ uuid }) => uuid === record._fields[1]?.properties.uuid
         )
 
-        // if (record._fields[0]?.properties.uuid == loggedInProfileUuid) {
-        //   profiles.pop(profile)
-        //   return
-        // }
-
         if (record._fields[0]?.properties !== undefined) {
           profile['friends'].push(record._fields[0]?.properties)
+        }
+
+        if (record._fields[0]?.properties.uuid == loggedInProfileUuid) {
+          profiles.splice(index, 1)
         }
 
         // if (record._fields[2]?.properties !== undefined) {
@@ -90,7 +89,7 @@ export const getProfiles = async function (loggedInProfileUuid) {
     .then(() => {
       session.close()
     })
-  console.log('profiles:', profiles)
+  // console.log('profiles:', profiles)
 
   return profiles
 }
