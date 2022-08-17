@@ -35,10 +35,10 @@ export const getProfiles = async function (loggedInProfileUuid) {
     .then((result) => {
       return session.run(
         'MATCH (p:Profile)' +
-          ' OPTIONAL MATCH (p)-[friends:FRIENDS]->()' +
-          ' OPTIONAL MATCH (p)-[friendRequest:FRIEND_REQUEST]->()' +
-          ' OPTIONAL MATCH (p)<-[friendRequestReverse:FRIEND_REQUEST]-()' +
-          ' return friends, p, friendRequest, friendRequestReverse',
+          ' OPTIONAL MATCH (p)-[friends:FRIENDS]->(o)' +
+          ' OPTIONAL MATCH (p)-[friendRequest:FRIEND_REQUEST]->(i)' +
+          ' OPTIONAL MATCH (p)<-[friendRequestReverse:FRIEND_REQUEST]-(m)' +
+          ' return friends, p, friendRequest, i, friendRequestReverse, m',
         {
           loggedInProfileUuid,
         }
@@ -63,13 +63,23 @@ export const getProfiles = async function (loggedInProfileUuid) {
           profile['friends'].push(record._fields[0]?.properties)
         }
 
-        if (record._fields[2]?.properties !== undefined) {
-          profile['friendshipRequests'].push(record._fields[2]?.properties)
-        }
-
-        if (record._fields[3]?.properties !== undefined) {
-          profile['friendshipRequests'].push(record._fields[3]?.properties)
-        }
+        // if (record._fields[2]?.properties !== undefined) {
+        //   record._fields[3]?.properties = {
+        //     ...record._fields[3]?.properties,
+        //     reverse: false,
+        //   }
+        //
+        //   profile['friendshipRequests'].push(record._fields[3]?.properties)
+        // }
+        //
+        // if (record._fields[4]?.properties !== undefined) {
+        //   record._fields[5]?.properties = {
+        //     ...record._fields[5]?.properties,
+        //     reverse: true,
+        //   }
+        //
+        //   profile['friendshipRequests'].push(record._fields[5]?.properties)
+        // }
       })
     })
     .catch((error) => {
@@ -103,18 +113,6 @@ export const getFriendsForProfile = async function (profileUuid) {
         if (record._fields[0]?.properties !== undefined) {
           friends.push(record._fields[0]?.properties)
         }
-        // const profile = profiles.find(
-        //   ({ uuid }) => uuid === record._fields[1].properties.uuid
-        // )
-        //
-        // console.log('profile:', profile)
-        //
-        // if (!profile['friends']) {
-        //   profile['friends'] = []
-        //   profile['friends'].push(record._fields[0].properties)
-        // } else {
-        //   profile['friends'].push(record._fields[0].properties)
-        // }
       })
     })
     .catch((error) => {
@@ -136,7 +134,8 @@ export const getFriendRequestsForProfile = async function (profileUuid) {
     .run(
       'MATCH (p:Profile {uuid: $profileUuid})' +
         ' OPTIONAL MATCH (p)-[friendRequests:FRIEND_REQUEST]->(u)' +
-        ' return u',
+        ' OPTIONAL MATCH (e)<-[reverseFriendRequest:FRIEND_REQUEST]-(l)' +
+        ' return u, reverseFriendRequest, l',
       {
         profileUuid,
       }
@@ -144,7 +143,19 @@ export const getFriendRequestsForProfile = async function (profileUuid) {
     .then((results) => {
       results.records.forEach((record) => {
         if (record._fields[0]?.properties !== undefined) {
+          record._fields[0]?.properties = {
+            ...record._fields[0]?.properties,
+            reverse: false,
+          }
           friendRequests.push(record._fields[0]?.properties)
+        }
+
+        if (record._fields[1]?.properties !== undefined) {
+          record._fields[2]?.properties = {
+            ...record._fields[2]?.properties,
+            reverse: true,
+          }
+          friendRequests.push(record._fields[2]?.properties)
         }
       })
     })
