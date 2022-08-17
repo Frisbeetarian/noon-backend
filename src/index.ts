@@ -32,7 +32,6 @@ import { CommunityParticipantsResolver } from './resolvers/communityParticipants
 import bodyParser from 'body-parser'
 import router from './neo4j/routes/router'
 import * as http from 'http'
-let elasticsearch = require('es7')
 
 const app = express()
 // const server = http.createServer(app)
@@ -45,6 +44,10 @@ const cluster = require('cluster')
 
 import chat from './socketio/chat'
 import { RedisSessionStore } from './socketio/sessionStore'
+// let elasticsearch = require('es7')
+import elasticsearch from 'es7'
+import { Client } from '@elastic/elasticsearch'
+import { SearchResolver } from './resolvers/search'
 
 const main = async () => {
   await createConnection({
@@ -118,6 +121,7 @@ const main = async () => {
         ProfileResolver,
         EventToProfileResolver,
         CommunityParticipantsResolver,
+        SearchResolver,
       ],
       validate: false,
     }),
@@ -351,11 +355,56 @@ const main = async () => {
     })
   })
 
-  let client = new elasticsearch.Client({
-    host: 'localhost:9200',
-  })
-
+  // let client = new Client({
+  //   node: 'http://localhost:9200',
+  // })
+  //
+  // const response = await client.info()
+  // console.log(response)
   // }
+
+  // async function run() {
+  //   // Let's start by indexing some data
+  //   await client.index({
+  //     index: 'game-of-thrones',
+  //     document: {
+  //       character: 'Ned Stark',
+  //       quote: 'Winter is coming.',
+  //     },
+  //   })
+  //
+  //   await client.index({
+  //     index: 'game-of-thrones',
+  //     document: {
+  //       character: 'Daenerys Targaryen',
+  //       quote: 'I am the blood osf the dragon.',
+  //     },
+  //   })
+  //
+  //   await client.index({
+  //     index: 'game-of-thrones',
+  //     document: {
+  //       character: 'Tyrion Lannister',
+  //       quote: 'A mind needs books like a sword needs a whetstone.',
+  //     },
+  //   })
+  //
+  //   // here we are forcing an index refresh, otherwise we will not
+  //   // get any result in the consequent search
+  //   await client.indices.refresh({ index: 'game-of-thrones' })
+  //
+  //   // Let's search!
+  //   const result = await client.search({
+  //     index: 'game-of-thrones',
+  //     query: {
+  //       match: { quote: 'winter' },
+  //     },
+  //   })
+  //
+  //   console.log(result.hits.hits)
+  // }
+
+  // run().catch(console.log)
 }
 
 main().catch((err) => {

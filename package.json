@@ -28,6 +28,7 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
+    "@elastic/elasticsearch": "^8.2.1",
     "@neo4j/graphql": "^2.5.9",
     "@socket.io/admin-ui": "^0.4.0",
     "@socket.io/sticky": "^1.0.0",
