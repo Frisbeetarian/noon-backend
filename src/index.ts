@@ -32,6 +32,7 @@ import { CommunityParticipantsResolver } from './resolvers/communityParticipants
 import bodyParser from 'body-parser'
 import router from './neo4j/routes/router'
 import * as http from 'http'
+let elasticsearch = require('es7')
 
 const app = express()
 // const server = http.createServer(app)
@@ -348,6 +349,10 @@ const main = async () => {
         })
       }
     })
+  })
+
+  let client = new elasticsearch.Client({
+    host: 'localhost:9200',
   })
 
   // }
