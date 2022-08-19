@@ -12,15 +12,19 @@ import {
 import { Profile } from '../entities/Profile'
 import { Search } from '../entities/Search'
 import { testQuery } from '../elasticsearch/index'
+const rpcClient = require('../utils/brokerInitializer')
 
 @Resolver(Search)
 export class SearchResolver {
   @Query(() => Search, { nullable: true })
   async testQuery(): Promise<{ uuid: 1 }> {
-    console.log('VVVVVVV')
     try {
-      const response = await testQuery()
-      console.log('response:', response)
+      // const response = await testQuery()
+
+      const response = await rpcClient
+        .search()
+        .searchForProfile({ profileUuid: 'lifewasntmadeforone' })
+      console.log('response in resolver:', response)
     } catch (e) {
       console.log('error:', e)
     }
