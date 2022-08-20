@@ -9,28 +9,27 @@ import {
   Ctx,
   Mutation,
 } from 'type-graphql'
-import { Profile } from '../entities/Profile'
 import { Search } from '../entities/Search'
-import { testQuery } from '../elasticsearch/index'
 const rpcClient = require('../utils/brokerInitializer')
 
 @Resolver(Search)
 export class SearchResolver {
   @Query(() => Search, { nullable: true })
-  async testQuery(): Promise<{ uuid: 1 }> {
+  async searchForProfileByUuid(
+    @Arg('profileUuid', () => String) profileUuid: number | string
+  ): Promise<Search | null> {
     try {
-      // const response = await testQuery()
-
       const response = await rpcClient
         .search()
-        .searchForProfile({ profileUuid: 'lifewasntmadeforone' })
+        .searchForProfile({ profileUuid })
       console.log('response in resolver:', response)
+
+      return response
     } catch (e) {
       console.log('error:', e)
+      return null
     }
 
-    return {
-      uuid: 1,
-    }
+    return null
   }
 }

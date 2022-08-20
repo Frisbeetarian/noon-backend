@@ -55,7 +55,7 @@ export class ProfileResolver {
 
   @Query(() => Profile, { nullable: true })
   async profile(
-    @Arg('uuid', () => Int) uuid: number
+    @Arg('uuid', () => String) uuid: number
   ): Promise<Profile | undefined> {
     let profile = await Profile.findOne(uuid, { relations: ['events'] })
     console.log('PROFILE: ', profile)
