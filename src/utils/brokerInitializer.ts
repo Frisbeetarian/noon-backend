@@ -54,6 +54,16 @@ function search() {
   const channel = QUEUES.SEARCH_SERVER.channel
 
   return {
+    async indexProfile(profile) {
+      try {
+        return await searchRPCRequest(channel, 'INDEX_PROFILE', profile)
+
+        // return response
+      } catch (e) {
+        console.log('error:', e)
+        return null
+      }
+    },
     async searchForProfile({ profileUuid }) {
       try {
         return await searchRPCRequest(channel, 'SEARCH_FOR_PROFILE', {

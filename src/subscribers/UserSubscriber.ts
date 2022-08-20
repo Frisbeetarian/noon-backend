@@ -10,6 +10,7 @@ import {
   create_user,
   createUserAndAssociateWithProfile,
 } from '../neo4j/neo4j_calls/neo4j_api'
+const rpcClient = require('../utils/brokerInitializer')
 
 @EventSubscriber()
 export class UserSubscriber implements EntitySubscriberInterface<User> {
@@ -38,6 +39,8 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
       await getConnection().manager.save(user)
 
       await createUserAndAssociateWithProfile(user, profile.raw[0])
+
+      await rpcClient.search().indexProfile(profile)
     }
   }
 }
