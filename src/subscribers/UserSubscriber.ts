@@ -40,7 +40,7 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
 
       await createUserAndAssociateWithProfile(user, profile.raw[0])
 
-      await rpcClient.search().indexProfile(profile)
+      await rpcClient.search().indexProfile({ profile })
     }
   }
 }

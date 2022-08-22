@@ -22,7 +22,7 @@ export class SearchResolver {
       const response = await rpcClient
         .search()
         .searchForProfile({ profileUuid })
-      console.log('response in resolver:', response)
+      // console.log('response in resolver:', response)
 
       return response
     } catch (e) {

@@ -67,7 +67,6 @@ export class ProfileResolver {
     @Arg('userId', () => Int) userId: number
   ): Promise<Profile | undefined> {
     let profile = await Profile.findOne({ where: { userId: userId } })
-    console.log('PROFILdE: ', profile)
     return profile
   }
 

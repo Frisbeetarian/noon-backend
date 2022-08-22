@@ -54,9 +54,9 @@ function search() {
   const channel = QUEUES.SEARCH_SERVER.channel
 
   return {
-    async indexProfile(profile) {
+    async indexProfile({ profile }) {
       try {
-        return await searchRPCRequest(channel, 'INDEX_PROFILE', profile)
+        return await searchRPCRequest(channel, 'INDEX_PROFILE', { profile })
 
         // return response
       } catch (e) {

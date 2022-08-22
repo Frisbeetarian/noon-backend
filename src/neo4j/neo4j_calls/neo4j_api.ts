@@ -64,13 +64,12 @@ export const getProfiles = async function (loggedInProfileUuid) {
       })
     })
     .catch((error) => {
-      console.log('error')
-
-      console.log(error)
+      console.log('error:', error)
     })
     .then(() => {
       session.close()
     })
+
   // console.log('profiles:', profiles)
 
   return profiles
@@ -115,7 +114,7 @@ export const getFriendRequestsForProfile = async function (profileUuid) {
     .run(
       'MATCH (p:Profile {uuid: $profileUuid})' +
         ' OPTIONAL MATCH (p)-[friendRequests:FRIEND_REQUEST]->(u)' +
-        ' OPTIONAL MATCH (e)<-[reverseFriendRequest:FRIEND_REQUEST]-(l)' +
+        ' OPTIONAL MATCH (p)<-[reverseFriendRequest:FRIEND_REQUEST]-(l)' +
         ' return u, reverseFriendRequest, l',
       {
         profileUuid,
@@ -123,6 +122,7 @@ export const getFriendRequestsForProfile = async function (profileUuid) {
     )
     .then((results) => {
       results.records.forEach((record) => {
+        // console.log('user friend requests:', record)
         if (record._fields[0]?.properties !== undefined) {
           record._fields[0]?.properties = {
             ...record._fields[0]?.properties,
@@ -235,7 +235,6 @@ export const sendFriendRequest = async function (
       .then(() => {
         session.close()
         return true
-
         // driver.close()
       })
       .catch((exception) => {

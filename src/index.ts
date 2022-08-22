@@ -29,6 +29,7 @@ import { Community } from './entities/Community'
 import { CommunityResolver } from './resolvers/communities'
 import { CommunityParticipant } from './entities/CommunityParticipant'
 import { CommunityParticipantsResolver } from './resolvers/communityParticipants'
+
 import bodyParser from 'body-parser'
 import router from './neo4j/routes/router'
 import * as http from 'http'
@@ -42,11 +43,7 @@ const crypto = require('crypto')
 const randomId = () => crypto.randomBytes(8).toString('hex')
 const cluster = require('cluster')
 
-import chat from './socketio/chat'
 import { RedisSessionStore } from './socketio/sessionStore'
-// let elasticsearch = require('es7')
-import elasticsearch from 'es7'
-import { Client } from '@elastic/elasticsearch'
 import { SearchResolver } from './resolvers/search'
 import { RPCServer } from '@noon/rabbit-mq-rpc/server'
 
@@ -149,7 +146,7 @@ const main = async () => {
   // let httpServer = http.createServer()
   // const WORKERS_COUNT = 4
   let server = app.listen(4020, () =>
-    console.log(`servser listening at http://localhost:${4020}`)
+    console.log(`server listening at http://localhost:${4020}`)
   )
 
   // if (cluster.isMaster) {
@@ -194,11 +191,12 @@ const main = async () => {
 
   io.use(async (socket, next) => {
     const sessionID = socket.handshake.auth.sessionID
-    // console.log('socket auth in middleware: ', socket.handshake.auth)
+    console.log('socket auth in middleware: ', socket.handshake.auth)
     // console.log(
     //   'user uuid in middleware: ',
     //   socket.handshake.auth.userSocketUuid
     // )
+    // console.log()
 
     if (sessionID) {
       const session = await sessionStore.findSession(sessionID)
@@ -211,6 +209,7 @@ const main = async () => {
         return next()
       }
     }
+
     const username = socket.handshake.auth.username
     // console.log('username id in the name: ', username)
 
@@ -229,7 +228,11 @@ const main = async () => {
   // setupWorker(io)
 
   io.on('connection', async (socket) => {
-    // console.log('socket handshake on connection:', socket.handshake)
+    console.log(
+      'socket handshake on connection:',
+      socket.handshake.auth.sessionID
+    )
+
     // persist session
     sessionStore.saveSession(socket.sessionID, {
       userID: socket.handshake.auth.userSocketUuid,
@@ -240,7 +243,7 @@ const main = async () => {
 
     // emit session details
     socket.emit('session', {
-      sessionID: socket.sessionID,
+      sessionID: socket.handshake.auth.sessionID,
       userID: socket.userID,
     })
 
@@ -256,6 +259,7 @@ const main = async () => {
     ])
 
     const messagesPerUser = new Map()
+
     messages.forEach((message) => {
       const { from, to } = message
       const otherUser = socket.userID === from ? to : from
@@ -275,6 +279,7 @@ const main = async () => {
         messages: messagesPerUser.get(session.userID) || [],
       })
     })
+
     socket.emit('users', users)
 
     // notify existing users
@@ -291,7 +296,7 @@ const main = async () => {
       ({ content, from, fromUsername, to, toUsername }) => {
         // console.log('private message content:', content)
         // console.log('private message from:', from)
-        // console.log('private message to:', to)
+        console.log('private message to:', to)
         // console.log('private message tousername:', toUsername)
         // console.log('private message from username:', fromUsername)
 
@@ -346,12 +351,12 @@ const main = async () => {
         // notify other users
         socket.broadcast.emit('user disconnected', socket.userID)
         // update the connection status of the session
-        sessionStore.saveSession(socket.sessionID, {
-          userID: socket.userID,
-          username: socket.username,
-          connected: false,
-          userSocketUuid: socket.userSocketUuid,
-        })
+        // sessionStore.saveSession(socket.sessionID, {
+        //   userID: socket.userID,
+        //   username: socket.username,
+        //   connected: false,
+        //   userSocketUuid: socket.userSocketUuid,
+        // })
       }
     })
   })
