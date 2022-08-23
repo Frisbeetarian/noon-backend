@@ -206,8 +206,8 @@ export const sendFriendRequest = async function (
   recipientProfileUuid,
   recipientProfileUsername
 ) {
-  console.log('senderProfileUuid:', senderProfileUuid)
-  console.log('recipientProfileUuid:', recipientProfileUuid)
+  // console.log('senderProfileUuid:', senderProfileUuid)
+  // console.log('recipientProfileUuid:', recipientProfileUuid)
 
   let session = driver.session()
   const tx = session.beginTransaction()

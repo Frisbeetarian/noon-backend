@@ -189,67 +189,79 @@ const main = async () => {
     auth: false,
   })
 
-  io.use(async (socket, next) => {
-    const sessionID = socket.handshake.auth.sessionID
-    console.log('socket auth in middleware: ', socket.handshake.auth)
-    // console.log(
-    //   'user uuid in middleware: ',
-    //   socket.handshake.auth.userSocketUuid
-    // )
-    // console.log()
-
-    if (sessionID) {
-      const session = await sessionStore.findSession(sessionID)
-
-      if (session) {
-        socket.sessionID = sessionID
-        socket.userID = session.userId
-        socket.userSocketUuid = session.userSocketUuid
-        socket.username = session.username
-        return next()
-      }
-    }
-
-    const username = socket.handshake.auth.username
-    // console.log('username id in the name: ', username)
-
-    if (!username) {
-      return next(new Error('invalid username'))
-    }
-
-    socket.sessionID = randomId()
-    socket.userID = socket.handshake.auth.userID
-    socket.username = username
-    socket.userSocketUuid = socket.handshake.auth.userSocketUuid
-    next()
-  })
+  // io.use(async (socket, next) => {
+  //   let sessionID = socket.handshake.auth.sessionID
+  //   console.log('socket auth in middleware: ', socket.handshake.auth)
+  //   // console.log(
+  //   //   'user uuid in middleware: ',
+  //   //   socket.handshake.auth.userSocketUuid
+  //   // )
+  //   // console.log()
+  //
+  //   // if (sessionID === undefined) {
+  //   //   sessionID = socket.sessionID
+  //   // }
+  //
+  //   if (sessionID) {
+  //     const session = await sessionStore.findSession(sessionID)
+  //
+  //     if (session) {
+  //       socket.sessionID = sessionID
+  //       socket.userID = session.userId
+  //       socket.userSocketUuid = session.userSocketUuid
+  //       socket.username = session.username
+  //       return next()
+  //     }
+  //   }
+  //
+  //   const username = socket.handshake.auth.username
+  //
+  //   if (!username) {
+  //     return next(new Error('invalid username'))
+  //   }
+  //   console.log('middleware not passing through session')
+  //   socket.sessionID = randomId()
+  //   socket.userID = socket.handshake.auth.userID
+  //   socket.username = username
+  //   socket.userSocketUuid = socket.handshake.auth.userSocketUuid
+  //   next()
+  // })
 
   // chat(io)
   // setupWorker(io)
 
   io.on('connection', async (socket) => {
     console.log(
-      'socket handshake on connection:',
+      'socket.handshake.auth.sessionID:',
       socket.handshake.auth.sessionID
     )
 
-    // persist session
-    sessionStore.saveSession(socket.sessionID, {
-      userID: socket.handshake.auth.userSocketUuid,
-      username: socket.username,
-      connected: true,
-      userSocketUuid: socket.handshake.auth.userSocketUuid,
-    })
+    // let sessionIdToSend = socket.handshake.auth.userSocketUuid
 
-    // emit session details
-    socket.emit('session', {
-      sessionID: socket.handshake.auth.sessionID,
-      userID: socket.userID,
-    })
+    // if (!sessionIdToSend) {
+    //   sessionIdToSend = socket.handshake.auth.userSocketUuid
+    // }
+    //
+    // console.log('sessionIdToSend:', sessionIdToSend)
+    if (socket.handshake.auth.userSocketUuid) {
+      // persist session
+      sessionStore.saveSession(socket.handshake.auth.userSocketUuid, {
+        userID: socket.handshake.auth.userSocketUuid,
+        username: socket.handshake.auth.username,
+        connected: true,
+        userSocketUuid: socket.handshake.auth.userSocketUuid,
+      })
+
+      // emit session details
+      socket.emit('session', {
+        sessionID: socket.handshake.auth.userSocketUuid,
+        userID: socket.handshake.auth.userID,
+      })
+    }
 
     // join the "userID" room
     // console.log('user join room id:', socket.userID)
-    socket.join(socket.userID)
+    socket.join(socket.handshake.auth.userID)
 
     // fetch existing users
     const users = []
@@ -280,7 +292,7 @@ const main = async () => {
       })
     })
 
-    socket.emit('users', users)
+    // socket.emit('users', users)
 
     // notify existing users
     socket.broadcast.emit('user connected', {
@@ -289,6 +301,29 @@ const main = async () => {
       connected: true,
       messages: [],
     })
+
+    socket.on(
+      'private-chat-message',
+      ({ content, from, fromUsername, to, toUsername, message }) => {
+        const messagePayload = {
+          content,
+          from: from,
+          fromUsername,
+          to,
+        }
+
+        io.to(to).emit('private-chat-message', {
+          content,
+          from,
+          fromUsername,
+          to,
+          toUsername,
+          message,
+        })
+
+        messageStore.saveMessage(messagePayload)
+      }
+    )
 
     // forward the private message to the right recipient (and to other tabs of the sender)
     socket.on(
@@ -351,12 +386,12 @@ const main = async () => {
         // notify other users
         socket.broadcast.emit('user disconnected', socket.userID)
         // update the connection status of the session
-        // sessionStore.saveSession(socket.sessionID, {
-        //   userID: socket.userID,
-        //   username: socket.username,
-        //   connected: false,
-        //   userSocketUuid: socket.userSocketUuid,
-        // })
+        sessionStore.saveSession(socket.handshake.auth.userSocketUuid, {
+          userID: socket.handshake.auth.userSocketUuid,
+          username: socket.handshake.auth.userID,
+          connected: false,
+          userSocketUuid: socket.handshake.auth.userSocketUuid,
+        })
       }
     })
   })
