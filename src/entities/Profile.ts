@@ -14,6 +14,7 @@ import { Post } from './Post'
 import { Updoot } from './Updoot'
 import { User } from './User'
 import { CommunityParticipant } from './CommunityParticipant'
+import { Conversation } from './Conversation'
 
 @ObjectType()
 @Entity()
@@ -48,6 +49,9 @@ export class Profile extends BaseEntity {
     (communityParticipant) => communityParticipant.profile
   )
   communities: CommunityParticipant[]
+
+  @OneToMany(() => Conversation, (conversation) => conversation.profiles)
+  conversations: Conversation[]
 
   @Field(() => String)
   @UpdateDateColumn()

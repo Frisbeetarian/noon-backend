@@ -351,7 +351,6 @@ const main = async () => {
         })
 
         console.log('message isn friend request:', toUsername)
-
         messageStore.saveMessage(message)
       }
     )
