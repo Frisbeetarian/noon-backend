@@ -1,5 +1,8 @@
 import neo4j from 'neo4j-driver'
 import { parse, stringify, toJSON, fromJSON } from 'flatted'
+import { Profile } from '../../entities/Profile'
+import { Conversation } from '../../entities/Conversation'
+import { getConnection } from 'typeorm'
 
 var driver = neo4j.driver(
   'bolt://localhost:7687',
@@ -173,7 +176,7 @@ export const createUserAndAssociateWithProfile = async function (
     )
       .then((result) => {
         result.records.forEach((record) => {
-          console.log(record)
+          // console.log(record)
         })
 
         return tx.commit()
@@ -228,7 +231,7 @@ export const sendFriendRequest = async function (
     )
       .then((result) => {
         result.records.forEach((record) => {
-          console.log(record)
+          // console.log(record)
         })
         return tx.commit()
       })
@@ -282,8 +285,16 @@ export const acceptFriendRequest = async function (
       }
     )
       .then((result) => {
-        result.records.forEach((record) => {
+        result.records.forEach(async (record) => {
           console.log(record)
+
+          const profile1 = await Profile.findOne(senderProfileUuid)
+          const profile2 = await Profile.findOne(recipientProfileUuid)
+          let conversation = await Conversation.create()
+          // '3c05340e-4424-4421-961a-5720799a3f52'
+          conversation.profiles = [profile1, profile2]
+          await getConnection().manager.save(conversation)
+          console.log('conversation:', conversation.profiles)
         })
         return tx.commit()
       })

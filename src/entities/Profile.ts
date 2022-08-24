@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
   ManyToMany,
   OneToMany,
   OneToOne,
@@ -49,9 +50,6 @@ export class Profile extends BaseEntity {
     (communityParticipant) => communityParticipant.profile
   )
   communities: CommunityParticipant[]
-
-  @OneToMany(() => Conversation, (conversation) => conversation.profiles)
-  conversations: Conversation[]
 
   @Field(() => String)
   @UpdateDateColumn()

@@ -11,7 +11,7 @@ import Redis from 'ioredis'
 import session from 'express-session'
 import connectRedis from 'connect-redis'
 import cors from 'cors'
-import { createConnection } from 'typeorm'
+import { createConnection, getConnection } from 'typeorm'
 import { User } from './entities/User'
 import path from 'path'
 import { Updoot } from './entities/Updoot'
@@ -46,6 +46,8 @@ const cluster = require('cluster')
 import { RedisSessionStore } from './socketio/sessionStore'
 import { SearchResolver } from './resolvers/search'
 import { RPCServer } from '@noon/rabbit-mq-rpc/server'
+import { Conversation } from './entities/Conversation'
+import { Message } from './entities/Message'
 
 const main = async () => {
   await createConnection({
@@ -66,6 +68,8 @@ const main = async () => {
       EventToProfile,
       Community,
       CommunityParticipant,
+      Conversation,
+      Message,
     ],
     subscribers: [path.join(__dirname, './subscribers/*')],
   })
@@ -304,7 +308,7 @@ const main = async () => {
 
     socket.on(
       'private-chat-message',
-      ({ content, from, fromUsername, to, toUsername, message }) => {
+      async ({ content, from, fromUsername, to, toUsername, message }) => {
         const messagePayload = {
           content,
           from: from,
@@ -320,6 +324,29 @@ const main = async () => {
           toUsername,
           message,
         })
+
+        try {
+          const profile1 = await Profile.findOne(from)
+          const profile2 = await Profile.findOne(to)
+          let conversation = await Conversation.findOne(
+            '3c05340e-4424-4421-961a-5720799a3f52'
+          )
+          conversation.profiles = [profile1, profile2]
+          await getConnection().manager.save(conversation)
+          console.log('conversation:', conversation.profiles)
+
+          // await getConnection()
+          //   .createQueryBuilder()
+          //   .insert()
+          //   .into(Conversation)
+          //   .values({
+          //     profiles: [profile1, profile2],
+          //   })
+          //   .returning('*')
+          //   .execute()
+        } catch (e) {
+          console.log('ERROR SAVING CONVERSATION:', e)
+        }
 
         messageStore.saveMessage(messagePayload)
       }

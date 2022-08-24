@@ -93,7 +93,6 @@ export class UserResolver {
       .where('user.uuid = :id', { id: req.session.userId })
       .leftJoinAndSelect('user.profile', 'profile')
       .getOne()
-
     const friendsArray = await getFriendsForProfile(user?.profile?.uuid)
     const friendRequestsArray = await getFriendRequestsForProfile(
       user?.profile?.uuid
@@ -118,6 +117,7 @@ export class UserResolver {
         friendshipRequests: [],
       }
     }
+    console.log('UAWER:', user)
 
     // console.log('USER 238ORH239UB392823923BF9UF: ', user)
     return user
@@ -220,7 +220,7 @@ export class UserResolver {
     }
     const hashedPassword = await argon2.hash(options.password)
     let user
-
+    console.log('ENTER REGISTER')
     try {
       const result = await getConnection()
         .createQueryBuilder()
@@ -236,6 +236,7 @@ export class UserResolver {
       // user = result.raw[0]
 
       user = await User.findOne(result.raw[0].uuid)
+      console.log('user in register:', user)
     } catch (error) {
       console.log('error:', error)
 
@@ -252,8 +253,7 @@ export class UserResolver {
         }
       }
     }
-
-    req.session.userId = user.uuid
+    console.log('user in register:', user)
 
     let profile = await Profile.findOne({ where: { userId: user?.uuid } })
 
@@ -263,8 +263,10 @@ export class UserResolver {
     }
 
     req.session.user = user
+    req.session.userId = user.uuid
 
-    // console.log('user in register:', user)
+    console.log('user in register:', req.session.user)
+    console.log('user in register:', req.session.userId)
     return { user }
   }
 

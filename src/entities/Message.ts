@@ -2,17 +2,19 @@ import {
   BaseEntity,
   Column,
   CreateDateColumn,
+  Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql'
-import { Profiler } from 'inspector'
-import Profile = module
+import { Profile } from './Profile'
+
 import { Conversation } from './Conversation'
 
 @ObjectType()
+@Entity()
 export class Message extends BaseEntity {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')

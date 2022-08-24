@@ -1,16 +1,19 @@
 import {
   BaseEntity,
   CreateDateColumn,
+  Entity,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql'
 import { Message } from './Message'
-import { CommunityParticipant } from './CommunityParticipant'
 import { Profile } from './Profile'
 
 @ObjectType()
+@Entity()
 export class Conversation extends BaseEntity {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
@@ -22,7 +25,11 @@ export class Conversation extends BaseEntity {
   })
   messages: Message[]
 
-  @OneToMany(() => Profile, (profile) => profile.conversations)
+  // @OneToMany(() => Profile, (profile) => profile.conversations)
+  // profiles: Profile[]
+
+  @ManyToMany(() => Profile)
+  @JoinTable()
   profiles: Profile[]
 
   @Field(() => String)
