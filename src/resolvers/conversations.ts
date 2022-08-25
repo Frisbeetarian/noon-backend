@@ -5,6 +5,7 @@ import { Profile } from '../entities/Profile'
 import { Friend } from '../entities/Friend'
 import { MyContext } from '../types'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
+import { Message } from '../entities/Message'
 
 @Resolver(Conversation)
 export class ConversationResolver {
@@ -16,6 +17,11 @@ export class ConversationResolver {
   @FieldResolver(() => [ConversationToProfile])
   conversations(@Root() profile: Profile | null) {
     return profile.conversationToProfiles
+  }
+
+  @FieldResolver(() => [Message])
+  messages(@Root() conversation: Conversation | null) {
+    return conversation.messages
   }
 
   @Query(() => Conversation, { nullable: true })
@@ -50,34 +56,40 @@ export class ConversationResolver {
         ],
         relations: ['conversation', 'profile'],
       })
+      console.log('CONVERSATION:', conversation.conversation.messages)
 
-      // const conversationProfile = await ConversationToProfile.find({
-      //   where: { uuid: loggedInProfileUuid },
-      //   relations: ['conversation', 'profile'],
-      // })
+      if (conversation) {
+        // let messages = []
+        // conversation.conversation.messages.forEach((message) => {
+        //   messages.push({
+        //     uuid: message.uuid,
+        //     content: message.content,
+        //     sender: {
+        //       uuid: message.sender.uuid,
+        //       username: message.sender.username,
+        //     },
+        //     updatedAt: message.updatedAt,
+        //     createdAt: message.createdAt,
+        //   })
+        // })
 
-      // const conversations = await getConnection()
-      //   .getRepository(ConversationToProfile)
-      //   .findOne(ConversationToProfile, {
-      //     where: { profileUuid: loggedInProfileUuid },
-      //     relations: ['conversation'],
-      //   })
-
-      const objectToSend = {
-        uuid: conversation.conversationUuid,
-        profiles: [
-          {
-            uuid: conversation.profileUuid,
-            username: conversation.profile.username,
-          },
-          {
-            uuid: req.session.user.profile.uuid,
-            username: req.session.user.profile.username,
-          },
-        ],
+        const objectToSend = {
+          uuid: conversation.conversationUuid,
+          profiles: [
+            {
+              uuid: conversation.profileUuid,
+              username: conversation.profile.username,
+            },
+            {
+              uuid: req.session.user.profile.uuid,
+              username: req.session.user.profile.username,
+            },
+          ],
+          messages: [...conversation.conversation.messages],
+        }
+        console.log('objectToSend:', objectToSend)
+        return objectToSend
       }
-      console.log('objectToSend:', objectToSend)
-      return objectToSend
     } catch (e) {
       console.log('error:', e)
       return null

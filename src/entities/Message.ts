@@ -27,11 +27,13 @@ export class Message extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   uuid?: string
 
+  @Field(() => Profile)
   @ManyToOne(() => Profile, (profile) => profile.senderMessages, {
     eager: true,
   })
   sender: Profile
 
+  @Field(() => String)
   @Column()
   content: string
 
