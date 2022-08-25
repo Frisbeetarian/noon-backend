@@ -16,6 +16,8 @@ import { Updoot } from './Updoot'
 import { User } from './User'
 import { CommunityParticipant } from './CommunityParticipant'
 import { Conversation } from './Conversation'
+import { ConversationToProfile } from './ConversationToProfile'
+import { Message } from './Message'
 
 @ObjectType()
 @Entity()
@@ -43,6 +45,19 @@ export class Profile extends BaseEntity {
   @OneToMany(() => Updoot, (updoot) => updoot.user)
   updoots: Updoot[]
 
+  // @ManyToMany(() => Conversation, (conversation) => conversation.profiles)
+  // @JoinTable()
+  // conversations: Conversation[]
+  @OneToMany(
+    () => ConversationToProfile,
+    (conversationToProfile) => conversationToProfile.profile
+  )
+  public conversationToProfiles!: ConversationToProfile[]
+
+  @OneToMany(() => Message, (message) => message.sender, {
+    cascade: true,
+  })
+  senderMessages: Message[]
   // @ManyToMany(() => Friend)
   // friends?: Friend[]
   @OneToMany(

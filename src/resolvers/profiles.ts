@@ -21,6 +21,9 @@ import { User } from '../entities/User'
 import { MyContext } from '../types'
 import { Friend } from '../entities/Friend'
 import { FriendshipRequest } from '../entities/FriendshipRequest'
+import { Conversation } from '../entities/Conversation'
+import { getConnection } from 'typeorm'
+import { ConversationToProfile } from '../entities/ConversationToProfile'
 
 // @InputType()
 // class ProfileInput {
@@ -122,11 +125,43 @@ export class ProfileResolver {
 
     const senderProfile = await Profile.findOne(profileUuid)
 
-    return await acceptFriendRequest(
+    await acceptFriendRequest(
       senderProfile?.uuid,
       senderProfile?.username,
       recipientProfile?.uuid,
       recipientProfile?.username
     )
+
+    // const profile1 = await Profile.findOne(senderProfile?.uuid)
+    // const profile2 = await Profile.findOne(recipientProfile?.uuid)
+    // let conversation = await Conversation.create().save()
+    const conversationRepository = getConnection().getRepository(Conversation)
+    const conversationProfileRepository = getConnection().getRepository(
+      ConversationToProfile
+    )
+
+    let conversation = new Conversation()
+    await conversationRepository.save(conversation)
+
+    const conversationToProfile = new ConversationToProfile(
+      conversation,
+      recipientProfile
+    )
+    await conversationProfileRepository.save(conversationToProfile)
+
+    const conversationToProfile2 = new ConversationToProfile(
+      conversation,
+      senderProfile
+    )
+    await conversationProfileRepository.save(conversationToProfile2)
+    // await conversationRepository.save(conversation)
+
+    // await getConnection().manager.save(conversation)
+
+    // conversation.profiles = [profile2]
+    // await getConnection().manager.save(conversation)
+    console.log('conversation:', conversation.profiles)
+
+    return conversation
   }
 }

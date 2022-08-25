@@ -1,0 +1,88 @@
+import { Resolver, Query, Arg, FieldResolver, Root, Ctx } from 'type-graphql'
+import { Conversation } from '../entities/Conversation'
+import { getConnection } from 'typeorm'
+import { Profile } from '../entities/Profile'
+import { Friend } from '../entities/Friend'
+import { MyContext } from '../types'
+import { ConversationToProfile } from '../entities/ConversationToProfile'
+
+@Resolver(Conversation)
+export class ConversationResolver {
+  @FieldResolver(() => [Profile])
+  profiles(@Root() conversation: Conversation | null) {
+    return conversation.profiles
+  }
+
+  @FieldResolver(() => [ConversationToProfile])
+  conversations(@Root() profile: Profile | null) {
+    return profile.conversationToProfiles
+  }
+
+  @Query(() => Conversation, { nullable: true })
+  async getConversationsByProfileUuid(
+    @Arg('profileUuid', () => String) profileUuid: number | string,
+    @Ctx() { req }: MyContext
+  ): Promise<Conversation | null> {
+    const loggedInProfileUuid = req.session.user.profile.uuid
+
+    console.log('logged in profile uuid:', loggedInProfileUuid)
+    console.log('logged in profile uuid:', profileUuid)
+
+    try {
+      // const conversations = await getConnection()
+      //   .getRepository(Profile)
+      //   .createQueryBuilder('profile')
+      //   .where('profile.uuid = :loggedInProfileUuid', { loggedInProfileUuid })
+      //   .leftJoinAndSelect('profile.conversations', 'conversation')
+      //   .getMany()
+
+      // const conversations = await getConnection()
+      //   .getRepository(Conversation)
+      //   .createQueryBuilder('conversation')
+      //   .leftJoinAndSelect('conversation.profiles', 'profile')
+      //   .where('profile.uuid = :profileUuid', { profileUuid })
+      //   .getOne()
+
+      const conversation = await ConversationToProfile.findOne({
+        where: [
+          { profileUuid: loggedInProfileUuid },
+          { profileUuid: profileUuid },
+        ],
+        relations: ['conversation', 'profile'],
+      })
+
+      // const conversationProfile = await ConversationToProfile.find({
+      //   where: { uuid: loggedInProfileUuid },
+      //   relations: ['conversation', 'profile'],
+      // })
+
+      // const conversations = await getConnection()
+      //   .getRepository(ConversationToProfile)
+      //   .findOne(ConversationToProfile, {
+      //     where: { profileUuid: loggedInProfileUuid },
+      //     relations: ['conversation'],
+      //   })
+
+      const objectToSend = {
+        uuid: conversation.conversationUuid,
+        profiles: [
+          {
+            uuid: conversation.profileUuid,
+            username: conversation.profile.username,
+          },
+          {
+            uuid: req.session.user.profile.uuid,
+            username: req.session.user.profile.username,
+          },
+        ],
+      }
+      console.log('objectToSend:', objectToSend)
+      return objectToSend
+    } catch (e) {
+      console.log('error:', e)
+      return null
+    }
+
+    return null
+  }
+}

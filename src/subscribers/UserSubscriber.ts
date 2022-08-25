@@ -37,7 +37,6 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
         user.profile = profile.raw[0]
         user.profileId = profile.raw[0].uuid
         await getConnection().manager.save(user)
-        console.log('user in listener:', user)
 
         await createUserAndAssociateWithProfile(user, profile.raw[0])
 

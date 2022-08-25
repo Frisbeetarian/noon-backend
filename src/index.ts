@@ -48,6 +48,9 @@ import { SearchResolver } from './resolvers/search'
 import { RPCServer } from '@noon/rabbit-mq-rpc/server'
 import { Conversation } from './entities/Conversation'
 import { Message } from './entities/Message'
+import { ConversationResolver } from './resolvers/conversations'
+import { ConversationToProfile } from './entities/ConversationToProfile'
+import { MessageResolver } from './resolvers/messages'
 
 const main = async () => {
   await createConnection({
@@ -70,6 +73,7 @@ const main = async () => {
       CommunityParticipant,
       Conversation,
       Message,
+      ConversationToProfile,
     ],
     subscribers: [path.join(__dirname, './subscribers/*')],
   })
@@ -124,6 +128,8 @@ const main = async () => {
         EventToProfileResolver,
         CommunityParticipantsResolver,
         SearchResolver,
+        ConversationResolver,
+        MessageResolver,
       ],
       validate: false,
     }),
@@ -326,15 +332,14 @@ const main = async () => {
         })
 
         try {
-          const profile1 = await Profile.findOne(from)
-          const profile2 = await Profile.findOne(to)
-          let conversation = await Conversation.findOne(
-            '3c05340e-4424-4421-961a-5720799a3f52'
-          )
-          conversation.profiles = [profile1, profile2]
-          await getConnection().manager.save(conversation)
-          console.log('conversation:', conversation.profiles)
-
+          // const profile1 = await Profile.findOne(from)
+          // const profile2 = await Profile.findOne(to)
+          // let conversation = await Conversation.findOne(
+          //   '3c05340e-4424-4421-961a-5720799a3f52'
+          // )
+          // conversation.profiles = [profile1, profile2]
+          // await getConnection().manager.save(conversation)
+          // console.log('conversation:', conversation.profiles)
           // await getConnection()
           //   .createQueryBuilder()
           //   .insert()

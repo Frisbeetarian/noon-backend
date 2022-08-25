@@ -16,11 +16,18 @@ import { Conversation } from './Conversation'
 @ObjectType()
 @Entity()
 export class Message extends BaseEntity {
+  constructor(conversation: Conversation, sender: Profile, content: string) {
+    super()
+    this.conversation = conversation
+    this.sender = sender
+    this.content = content
+  }
+
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
   uuid?: string
 
-  @ManyToOne((type) => Profile, (profile) => profile.senderMessages, {
+  @ManyToOne(() => Profile, (profile) => profile.senderMessages, {
     eager: true,
   })
   sender: Profile
@@ -28,7 +35,7 @@ export class Message extends BaseEntity {
   @Column()
   content: string
 
-  @ManyToOne((type) => Conversation, (Conversation) => Conversation.messages)
+  @ManyToOne(() => Conversation, (Conversation) => Conversation.messages)
   conversation: Conversation
 
   @Field(() => String)
