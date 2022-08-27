@@ -61,7 +61,7 @@ export class ConversationResolver {
             })
           })
         )
-        console.log('object to send:', objectToSend)
+        // console.log('object to send:', objectToSend)
         return objectToSend
       }
     } catch (e) {

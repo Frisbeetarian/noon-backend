@@ -52,6 +52,7 @@ import { ConversationResolver } from './resolvers/conversations'
 import { ConversationToProfile } from './entities/ConversationToProfile'
 import { MessageResolver } from './resolvers/messages'
 import { ConversationProfileResolver } from './resolvers/conversationProfile'
+import { getFriendsForProfile } from './neo4j/neo4j_calls/neo4j_api'
 
 const main = async () => {
   await createConnection({
@@ -425,6 +426,23 @@ const main = async () => {
           connected: false,
           userSocketUuid: socket.handshake.auth.userSocketUuid,
         })
+        console.log(
+          'socket.handshake.auth.userSocketUuid on disconnect:',
+          socket.handshake.auth.sessionID
+        )
+
+        const friends = await getFriendsForProfile(
+          socket.handshake.auth.sessionID
+        )
+
+        friends.map((friend) => {
+          io.to(friend.uuid).emit('friend-disconnected', {
+            username: friend.username,
+            uuid: friend.uuid,
+          })
+        })
+
+        console.log('friends on disconnect:', friends)
       }
     })
   })
