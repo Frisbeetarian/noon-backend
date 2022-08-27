@@ -1,5 +1,6 @@
 import {
   BaseEntity,
+  Column,
   CreateDateColumn,
   Entity,
   JoinTable,
@@ -12,6 +13,7 @@ import { Field, ObjectType } from 'type-graphql'
 import { Message } from './Message'
 import { Profile } from './Profile'
 import { ConversationToProfile } from './ConversationToProfile'
+import { Community } from './Community'
 
 @ObjectType()
 @Entity()
@@ -42,6 +44,13 @@ export class Conversation extends BaseEntity {
     (conversationToProfile) => conversationToProfile.conversation
   )
   public conversationToProfiles!: ConversationToProfile[]
+
+  // @Field(() => String)
+  // @Column({ nullable: true })
+  // profiles: Profile[]
+
+  // @OneToMany(() => Profile, (profile) => profile.conversation)
+  // profiles: Profile[]
 
   @Field(() => String)
   @UpdateDateColumn()

@@ -24,6 +24,54 @@ export class ConversationResolver {
     return conversation.messages
   }
 
+  @Query(() => [Conversation], { nullable: true })
+  async getConversationForLoggedInUser(
+    @Ctx() { req }: MyContext
+  ): Promise<Conversation | null> {
+    const loggedInProfileUuid = req.session.user.profile.uuid
+    const objectToSend = []
+
+    try {
+      const conversations = await ConversationToProfile.find({
+        where: [{ profileUuid: loggedInProfileUuid }],
+        relations: ['conversation', 'profile'],
+      })
+
+      if (conversations) {
+        await Promise.all(
+          conversations.map(async (conversation) => {
+            const conversationObject = await ConversationToProfile.find({
+              where: [{ conversationUuid: conversation.conversationUuid }],
+              relations: ['conversation', 'profile'],
+            })
+
+            objectToSend.push({
+              uuid: conversationObject[0].conversationUuid,
+              profiles: [
+                {
+                  uuid: conversationObject[0].profile.uuid,
+                  username: conversationObject[0].profile.username,
+                },
+                {
+                  uuid: conversationObject[1].profile.uuid,
+                  username: conversationObject[1].profile.username,
+                },
+              ],
+              messages: [...conversationObject[0].conversation.messages],
+            })
+          })
+        )
+        console.log('object to send:', objectToSend)
+        return objectToSend
+      }
+    } catch (e) {
+      console.log('error:', e)
+      return null
+    }
+
+    return objectToSend
+  }
+
   @Query(() => Conversation, { nullable: true })
   async getConversationsByProfileUuid(
     @Arg('profileUuid', () => String) profileUuid: number | string,

@@ -51,6 +51,7 @@ import { Message } from './entities/Message'
 import { ConversationResolver } from './resolvers/conversations'
 import { ConversationToProfile } from './entities/ConversationToProfile'
 import { MessageResolver } from './resolvers/messages'
+import { ConversationProfileResolver } from './resolvers/conversationProfile'
 
 const main = async () => {
   await createConnection({
@@ -129,6 +130,7 @@ const main = async () => {
         CommunityParticipantsResolver,
         SearchResolver,
         ConversationResolver,
+        ConversationProfileResolver,
         MessageResolver,
       ],
       validate: false,

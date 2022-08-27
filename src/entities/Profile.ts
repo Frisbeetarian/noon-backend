@@ -6,6 +6,7 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -48,11 +49,11 @@ export class Profile extends BaseEntity {
   // @ManyToMany(() => Conversation, (conversation) => conversation.profiles)
   // @JoinTable()
   // conversations: Conversation[]
-  @OneToMany(
+  @ManyToOne(
     () => ConversationToProfile,
     (conversationToProfile) => conversationToProfile.profile
   )
-  public conversationToProfiles!: ConversationToProfile[]
+  public conversationToProfiles!: ConversationToProfile
 
   @OneToMany(() => Message, (message) => message.sender, {
     cascade: true,
