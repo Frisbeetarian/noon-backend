@@ -308,12 +308,23 @@ const main = async () => {
     // socket.emit('users', users)
 
     // notify existing users
-    socket.broadcast.emit('user connected', {
-      userID: socket.userID,
-      username: socket.username,
-      connected: true,
-      messages: [],
+    // socket.broadcast.emit('user connected', {
+    //   userID: socket.userID,
+    //   username: socket.username,
+    //   connected: true,
+    //   messages: [],
+    // })
+
+    const friends = await getFriendsForProfile(socket.handshake.auth.sessionID)
+
+    // socket.on('friend-connected', async ({}) => {
+    friends.map((friend) => {
+      io.to(friend.uuid).emit('friend-connected', {
+        username: socket.handshake.auth.username,
+        uuid: socket.handshake.auth.sessionID,
+      })
     })
+    // })
 
     socket.on(
       'private-chat-message',
@@ -412,6 +423,23 @@ const main = async () => {
       }
     )
 
+    socket.on(
+      'check-friend-connection',
+      async ({ from, fromUsername, to, toUsername }) => {
+        const session = await sessionStore.findSession(to)
+
+        io.to(from).emit('check-friend-connection', {
+          session: session,
+        })
+        console.log('session DATA:', session)
+      }
+    )
+
+    // io.to(friend.uuid).emit('friend-disconnected', {
+    //   username: socket.handshake.auth.username,
+    //   uuid: socket.handshake.auth.sessionID,
+    // })
+
     // notify users upon disconnection
     socket.on('disconnect', async () => {
       const matchingSockets = await io.in(socket.userID).allSockets()
@@ -426,6 +454,7 @@ const main = async () => {
           connected: false,
           userSocketUuid: socket.handshake.auth.userSocketUuid,
         })
+
         console.log(
           'socket.handshake.auth.userSocketUuid on disconnect:',
           socket.handshake.auth.sessionID
@@ -437,8 +466,8 @@ const main = async () => {
 
         friends.map((friend) => {
           io.to(friend.uuid).emit('friend-disconnected', {
-            username: friend.username,
-            uuid: friend.uuid,
+            username: socket.handshake.auth.username,
+            uuid: socket.handshake.auth.sessionID,
           })
         })
 
