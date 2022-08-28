@@ -249,13 +249,6 @@ const main = async () => {
       socket.handshake.auth.sessionID
     )
 
-    // let sessionIdToSend = socket.handshake.auth.userSocketUuid
-
-    // if (!sessionIdToSend) {
-    //   sessionIdToSend = socket.handshake.auth.userSocketUuid
-    // }
-    //
-    // console.log('sessionIdToSend:', sessionIdToSend)
     if (socket.handshake.auth.userSocketUuid) {
       // persist session
       sessionStore.saveSession(socket.handshake.auth.userSocketUuid, {
@@ -346,23 +339,6 @@ const main = async () => {
         })
 
         try {
-          // const profile1 = await Profile.findOne(from)
-          // const profile2 = await Profile.findOne(to)
-          // let conversation = await Conversation.findOne(
-          //   '3c05340e-4424-4421-961a-5720799a3f52'
-          // )
-          // conversation.profiles = [profile1, profile2]
-          // await getConnection().manager.save(conversation)
-          // console.log('conversation:', conversation.profiles)
-          // await getConnection()
-          //   .createQueryBuilder()
-          //   .insert()
-          //   .into(Conversation)
-          //   .values({
-          //     profiles: [profile1, profile2],
-          //   })
-          //   .returning('*')
-          //   .execute()
         } catch (e) {
           console.log('ERROR SAVING CONVERSATION:', e)
         }
@@ -375,12 +351,6 @@ const main = async () => {
     socket.on(
       'private message',
       ({ content, from, fromUsername, to, toUsername }) => {
-        // console.log('private message content:', content)
-        // console.log('private message from:', from)
-        console.log('private message to:', to)
-        // console.log('private message tousername:', toUsername)
-        // console.log('private message from username:', fromUsername)
-
         const message = {
           content,
           from: from,
@@ -396,7 +366,6 @@ const main = async () => {
           toUsername,
         })
 
-        console.log('message isn friend request:', toUsername)
         messageStore.saveMessage(message)
       }
     )
@@ -435,11 +404,6 @@ const main = async () => {
       }
     )
 
-    // io.to(friend.uuid).emit('friend-disconnected', {
-    //   username: socket.handshake.auth.username,
-    //   uuid: socket.handshake.auth.sessionID,
-    // })
-
     // notify users upon disconnection
     socket.on('disconnect', async () => {
       const matchingSockets = await io.in(socket.userID).allSockets()
@@ -475,57 +439,6 @@ const main = async () => {
       }
     })
   })
-
-  // let client = new Client({
-  //   node: 'http://localhost:9200',
-  // })
-  //
-  // const response = await client.info()
-  // console.log(response)
-  // }
-
-  // async function run() {
-  //   // Let's start by indexing some data
-  //   await client.index({
-  //     index: 'game-of-thrones',
-  //     document: {
-  //       character: 'Ned Stark',
-  //       quote: 'Winter is coming.',
-  //     },
-  //   })
-  //
-  //   await client.index({
-  //     index: 'game-of-thrones',
-  //     document: {
-  //       character: 'Daenerys Targaryen',
-  //       quote: 'I am the blood osf the dragon.',
-  //     },
-  //   })
-  //
-  //   await client.index({
-  //     index: 'game-of-thrones',
-  //     document: {
-  //       character: 'Tyrion Lannister',
-  //       quote: 'A mind needs books like a sword needs a whetstone.',
-  //     },
-  //   })
-  //
-  //   // here we are forcing an index refresh, otherwise we will not
-  //   // get any result in the consequent search
-  //   await client.indices.refresh({ index: 'game-of-thrones' })
-  //
-  //   // Let's search!
-  //   const result = await client.search({
-  //     index: 'game-of-thrones',
-  //     query: {
-  //       match: { quote: 'winter' },
-  //     },
-  //   })
-  //
-  //   console.log(result.hits.hits)
-  // }
-
-  // run().catch(console.log)
 
   const { RPCServer } = require('@noon/rabbit-mq-rpc/server')
 

@@ -117,7 +117,7 @@ export class UserResolver {
         friendshipRequests: [],
       }
     }
-    // console.log('UAWER:', user)
+    console.log('UAWER:', user)
 
     // console.log('USER 238ORH239UB392823923BF9UF: ', user)
     return user
@@ -281,7 +281,6 @@ export class UserResolver {
         ? { where: { email: usernameOrEmail } }
         : { where: { username: usernameOrEmail } }
     )
-    let profile = await Profile.findOne({ where: { uuid: user?.profileId } })
 
     if (!user) {
       return {
@@ -306,15 +305,17 @@ export class UserResolver {
         ],
       }
     }
+    console.log('user uuiod on login:', user)
+    let profile = await Profile.findOne({ where: { userId: user?.uuid } })
+    console.log('profile on login:', profile)
 
     user = {
       ...user,
-      profile: { id: profile?.uuid, username: profile?.username },
+      profile: { uuid: profile?.uuid, username: profile?.username },
     }
 
-    req.session.userId = user.uuid
     req.session.user = user
-    console.log('FSDFSDFDSFSDF:', user)
+    req.session.userId = user.uuid
 
     return {
       user,

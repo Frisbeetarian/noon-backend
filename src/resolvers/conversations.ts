@@ -30,6 +30,7 @@ export class ConversationResolver {
   ): Promise<Conversation | null> {
     const loggedInProfileUuid = req.session.user.profile.uuid
     const objectToSend = []
+    console.log('loggedInProfileUuid:', req.session.user)
 
     try {
       const conversations = await ConversationToProfile.find({
@@ -61,7 +62,7 @@ export class ConversationResolver {
             })
           })
         )
-        // console.log('object to send:', objectToSend)
+        console.log('object to send:', objectToSend)
         return objectToSend
       }
     } catch (e) {
