@@ -321,12 +321,21 @@ const main = async () => {
 
     socket.on(
       'private-chat-message',
-      async ({ content, from, fromUsername, to, toUsername, message }) => {
+      async ({
+        content,
+        from,
+        fromUsername,
+        to,
+        toUsername,
+        message,
+        conversationUuid,
+      }) => {
         const messagePayload = {
           content,
           from: from,
           fromUsername,
           to,
+          conversationUuid,
         }
 
         io.to(to).emit('private-chat-message', {
@@ -336,6 +345,7 @@ const main = async () => {
           to,
           toUsername,
           message,
+          conversationUuid,
         })
 
         try {

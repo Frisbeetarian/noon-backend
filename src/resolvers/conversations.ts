@@ -1,4 +1,13 @@
-import { Resolver, Query, Arg, FieldResolver, Root, Ctx } from 'type-graphql'
+import {
+  Resolver,
+  Query,
+  Arg,
+  FieldResolver,
+  Root,
+  Ctx,
+  Field,
+  Mutation,
+} from 'type-graphql'
 import { Conversation } from '../entities/Conversation'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
@@ -24,6 +33,16 @@ export class ConversationResolver {
     return conversation.messages
   }
 
+  // @FieldResolver(() => Conversation)
+  // unreadMessages(@Root() conversation: Conversation | null) {
+  //   return conversation?.unreadMessages
+  // }
+  //
+  // @FieldResolver(() => ConversationToProfile)
+  // profileThatHasUnreadMessages(@Root() conversation: Conversation | null) {
+  //   return conversation?.profileThatHasUnreadMessages
+  // }
+
   @Query(() => [Conversation], { nullable: true })
   async getConversationForLoggedInUser(
     @Ctx() { req }: MyContext
@@ -45,9 +64,15 @@ export class ConversationResolver {
               where: [{ conversationUuid: conversation.conversationUuid }],
               relations: ['conversation', 'profile'],
             })
-
+            // console.log(
+            //   'conversation object in get conversations:',
+            //   conversationObject
+            // )
             objectToSend.push({
               uuid: conversationObject[0].conversationUuid,
+              unreadMessages: conversationObject[0].unreadMessages,
+              profileThatHasUnreadMessages:
+                conversationObject[0].profileThatHasUnreadMessages,
               profiles: [
                 {
                   uuid: conversationObject[0].profile.uuid,
@@ -71,6 +96,62 @@ export class ConversationResolver {
     }
 
     return objectToSend
+  }
+
+  @Mutation(() => Boolean)
+  async clearUnreadMessagesForConversation(
+    @Arg('profileUuid', () => String) profileUuid: number | string,
+    @Arg('conversationUuid', () => String) conversationUuid: number | string,
+    @Ctx() { req }: MyContext
+  ) {
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .update(ConversationToProfile)
+        .set({
+          unreadMessages: 0,
+          profileThatHasUnreadMessages: [],
+        })
+        .where('conversationUuid = :conversationUuid', {
+          conversationUuid,
+        })
+        .returning('*')
+        .execute()
+
+      return true
+    } catch (e) {
+      return false
+    }
+  }
+
+  @Mutation(() => Boolean)
+  async updateUnreadMessagesForConversation(
+    @Arg('profileUuid', () => String) profileUuid: number | string,
+    @Arg('conversationUuid', () => String) conversationUuid: number | string,
+    @Ctx() { req }: MyContext
+  ) {
+    try {
+      const conversationToProfile = await ConversationToProfile.findOne({
+        where: { conversationUuid: conversationUuid, profileUuid: profileUuid },
+      })
+
+      const result = await getConnection()
+        .createQueryBuilder()
+        .update(ConversationToProfile)
+        .set({
+          unreadMessages: conversationToProfile.unreadMessages + 1,
+          profileThatHasUnreadMessages: profileUuid,
+        })
+        .where('conversationUuid = :conversationUuid', {
+          conversationUuid,
+        })
+        .returning('*')
+        .execute()
+      console.log('result:', result)
+      return true
+    } catch (e) {
+      return false
+    }
   }
 
   @Query(() => Conversation, { nullable: true })

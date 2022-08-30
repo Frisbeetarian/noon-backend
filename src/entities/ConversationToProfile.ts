@@ -31,6 +31,14 @@ export class ConversationToProfile extends BaseEntity {
   @Column()
   public profileUuid!: string
 
+  @Field()
+  @Column({ default: 0 })
+  unreadMessages?: number
+
+  @Field()
+  @Column({ default: [], nullable: true })
+  profileThatHasUnreadMessages!: string
+
   // @Column()
   // public order!: number
 
