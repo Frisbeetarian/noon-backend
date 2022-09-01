@@ -49,7 +49,6 @@ export class ConversationResolver {
   ): Promise<Conversation | null> {
     const loggedInProfileUuid = req.session.user.profile.uuid
     const objectToSend = []
-    console.log('loggedInProfileUuid:', req.session.user)
 
     try {
       const conversations = await ConversationToProfile.find({
@@ -117,7 +116,6 @@ export class ConversationResolver {
         })
         .returning('*')
         .execute()
-
       return true
     } catch (e) {
       return false

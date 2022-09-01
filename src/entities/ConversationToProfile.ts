@@ -5,6 +5,8 @@ import {
   PrimaryGeneratedColumn,
   BaseEntity,
   OneToMany,
+  UpdateDateColumn,
+  CreateDateColumn,
 } from 'typeorm'
 import { Conversation } from './Conversation'
 import { Profile } from './Profile'
@@ -52,4 +54,12 @@ export class ConversationToProfile extends BaseEntity {
   @Field(() => [Profile])
   @ManyToOne(() => Profile, (profile) => profile.conversationToProfiles)
   public profile!: Profile[]
+
+  @Field(() => String)
+  @UpdateDateColumn()
+  updatedAt: Date
+
+  @Field(() => String)
+  @CreateDateColumn()
+  createdAt: Date
 }
