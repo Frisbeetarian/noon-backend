@@ -406,11 +406,43 @@ const main = async () => {
       'check-friend-connection',
       async ({ from, fromUsername, to, toUsername }) => {
         const session = await sessionStore.findSession(to)
+        console.log('session DATA:', session)
 
         io.to(from).emit('check-friend-connection', {
           session: session,
         })
-        console.log('session DATA:', session)
+      }
+    )
+
+    socket.on(
+      'set-ongoing-call-for-conversation',
+      async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
+        // const session = await sessionStore.findSession(to)
+        // console.log('session DATA:', session)
+
+        io.to(to).emit('set-ongoing-call-for-conversation', {
+          from,
+          fromUsername,
+          to,
+          toUsername,
+          conversationUuid,
+        })
+      }
+    )
+
+    socket.on(
+      'cancel-ongoing-call-for-conversation',
+      async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
+        // const session = await sessionStore.findSession(to)
+        // console.log('session DATA:', session)
+
+        io.to(to).emit('set-ongoing-call-for-conversation', {
+          from,
+          fromUsername,
+          to,
+          toUsername,
+          conversationUuid,
+        })
       }
     )
 
@@ -418,6 +450,7 @@ const main = async () => {
     socket.on('disconnect', async () => {
       const matchingSockets = await io.in(socket.userID).allSockets()
       const isDisconnected = matchingSockets.size === 0
+
       if (isDisconnected) {
         // notify other users
         socket.broadcast.emit('user disconnected', socket.userID)

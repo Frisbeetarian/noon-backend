@@ -72,6 +72,19 @@ export class MessageResolver {
             })
             .returning('*')
             .execute()
+        } else {
+          // Get timestamp from client to set on server, otherwise date discrepancies might occur
+          await getConnection()
+            .createQueryBuilder()
+            .update(ConversationToProfile)
+            .set({
+              updatedAt: new Date(),
+            })
+            .where('conversationUuid = :conversationUuid', {
+              conversationUuid,
+            })
+            .returning('*')
+            .execute()
         }
 
         let saveMessage = new Message(

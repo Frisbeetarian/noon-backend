@@ -83,6 +83,8 @@ export class ConversationResolver {
                 },
               ],
               messages: [...conversationObject[0].conversation.messages],
+              updatedAt: conversationObject[0].updatedAt,
+              createdAt: conversationObject[0].createdAt,
             })
           })
         )

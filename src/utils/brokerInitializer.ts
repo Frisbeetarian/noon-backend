@@ -42,6 +42,7 @@ async function initRPCClient() {
 
 async function searchRPCRequest(channel, task, params) {
   await initRPCClient()
+
   try {
     return await client.rpcRequest(channel, task, params)
   } catch (e) {
