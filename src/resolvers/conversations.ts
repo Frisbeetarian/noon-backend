@@ -72,6 +72,8 @@ export class ConversationResolver {
               unreadMessages: conversationObject[0].unreadMessages,
               profileThatHasUnreadMessages:
                 conversationObject[0].profileThatHasUnreadMessages,
+              ongoingCall: conversationObject[0].ongoingCall,
+              pendingCall: conversationObject[0].pendingCall,
               profiles: [
                 {
                   uuid: conversationObject[0].profile.uuid,
@@ -97,6 +99,32 @@ export class ConversationResolver {
     }
 
     return objectToSend
+  }
+
+  @Mutation(() => Boolean)
+  async setPendingCallForConversation(
+    @Arg('conversationUuid', () => String) conversationUuid: number | string,
+    @Arg('pendingCallInitiatorUuid', () => String)
+    pendingCallInitiatorUuid: string,
+    @Ctx() { req }: MyContext
+  ) {
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .update(ConversationToProfile)
+        .set({
+          pendingCall: true,
+          pendingCallProfile: req.session.user.profile.uuid,
+        })
+        .where('conversationUuid = :conversationUuid', {
+          conversationUuid,
+        })
+        .returning('*')
+        .execute()
+      return true
+    } catch (e) {
+      return false
+    }
   }
 
   @Mutation(() => Boolean)

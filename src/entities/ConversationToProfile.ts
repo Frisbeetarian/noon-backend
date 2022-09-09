@@ -7,6 +7,8 @@ import {
   OneToMany,
   UpdateDateColumn,
   CreateDateColumn,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm'
 import { Conversation } from './Conversation'
 import { Profile } from './Profile'
@@ -54,6 +56,23 @@ export class ConversationToProfile extends BaseEntity {
   @Field(() => [Profile])
   @ManyToOne(() => Profile, (profile) => profile.conversationToProfiles)
   public profile!: Profile[]
+
+  // @Field(() => String)
+  @Column({ type: 'varchar', default: false })
+  ongoingCall: boolean | any
+
+  @Column({ type: 'varchar', default: false })
+  pendingCall: boolean | any
+
+  @Column({ nullable: true })
+  pendingCallProfileId?: string
+
+  @OneToOne(() => Profile, (profile) => profile.pendingCall, {
+    cascade: true,
+    nullable: true,
+  })
+  @JoinColumn()
+  pendingCallProfile: Profile
 
   @Field(() => String)
   @UpdateDateColumn()

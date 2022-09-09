@@ -174,7 +174,7 @@ const main = async () => {
   //     cluster.fork()
   //   })
   //   // const httpServer = http.createServer()
-  //
+
   //   setupMaster(httpServer, {
   //     loadBalancingMethod: 'least-connection', // either "random", "round-robin" or "least-connection"
   //   })
@@ -415,6 +415,19 @@ const main = async () => {
     )
 
     socket.on(
+      'set-pending-call-for-conversation',
+      async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
+        io.to(to).emit('set-pending-call-for-conversation', {
+          from,
+          fromUsername,
+          to,
+          toUsername,
+          conversationUuid,
+        })
+      }
+    )
+
+    socket.on(
       'set-ongoing-call-for-conversation',
       async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
         // const session = await sessionStore.findSession(to)
@@ -454,6 +467,7 @@ const main = async () => {
       if (isDisconnected) {
         // notify other users
         socket.broadcast.emit('user disconnected', socket.userID)
+
         // update the connection status of the session
         sessionStore.saveSession(socket.handshake.auth.userSocketUuid, {
           userID: socket.handshake.auth.userSocketUuid,
