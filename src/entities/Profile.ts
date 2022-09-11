@@ -40,11 +40,11 @@ export class Profile extends BaseEntity {
   @OneToOne(() => User, (user) => user.profile)
   user: User
 
-  @OneToOne(
-    () => ConversationToProfile,
-    (conversationToProfile) => conversationToProfile.pendingCallProfile
-  )
-  pendingCall: ConversationToProfile
+  // @OneToOne(
+  //   () => ConversationToProfile,
+  //   (conversationToProfile) => conversationToProfile.pendingCallProfile
+  // )
+  // pendingCall: ConversationToProfile
 
   @OneToMany(() => Post, (post) => post.creator)
   posts: Post[]

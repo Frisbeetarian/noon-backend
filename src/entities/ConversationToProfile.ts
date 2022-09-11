@@ -58,21 +58,6 @@ export class ConversationToProfile extends BaseEntity {
   public profile!: Profile[]
 
   // @Field(() => String)
-  @Column({ type: 'varchar', default: false })
-  ongoingCall: boolean | any
-
-  @Column({ type: 'varchar', default: false })
-  pendingCall: boolean | any
-
-  @Column({ nullable: true })
-  pendingCallProfileId?: string
-
-  @OneToOne(() => Profile, (profile) => profile.pendingCall, {
-    cascade: true,
-    nullable: true,
-  })
-  @JoinColumn()
-  pendingCallProfile: Profile
 
   @Field(() => String)
   @UpdateDateColumn()

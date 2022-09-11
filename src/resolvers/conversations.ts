@@ -37,7 +37,7 @@ export class ConversationResolver {
   // unreadMessages(@Root() conversation: Conversation | null) {
   //   return conversation?.unreadMessages
   // }
-  //
+
   // @FieldResolver(() => ConversationToProfile)
   // profileThatHasUnreadMessages(@Root() conversation: Conversation | null) {
   //   return conversation?.profileThatHasUnreadMessages
@@ -63,6 +63,7 @@ export class ConversationResolver {
               where: [{ conversationUuid: conversation.conversationUuid }],
               relations: ['conversation', 'profile'],
             })
+
             // console.log(
             //   'conversation object in get conversations:',
             //   conversationObject
@@ -90,6 +91,7 @@ export class ConversationResolver {
             })
           })
         )
+
         console.log('object to send:', objectToSend)
         return objectToSend
       }
@@ -109,14 +111,17 @@ export class ConversationResolver {
     @Ctx() { req }: MyContext
   ) {
     try {
+      console.log('pending call conversation uuid:', conversationUuid)
+      console.log('pending call initiating:', pendingCallInitiatorUuid)
+
       await getConnection()
         .createQueryBuilder()
-        .update(ConversationToProfile)
+        .update(Conversation)
         .set({
           pendingCall: true,
           pendingCallProfile: req.session.user.profile.uuid,
         })
-        .where('conversationUuid = :conversationUuid', {
+        .where('uuid = :conversationUuid', {
           conversationUuid,
         })
         .returning('*')
@@ -175,6 +180,7 @@ export class ConversationResolver {
         })
         .returning('*')
         .execute()
+
       console.log('result:', result)
       return true
     } catch (e) {
@@ -214,6 +220,7 @@ export class ConversationResolver {
         ],
         relations: ['conversation', 'profile'],
       })
+
       console.log('CONVERSATION:', conversation.conversation.messages)
 
       if (conversation) {
@@ -245,6 +252,7 @@ export class ConversationResolver {
           ],
           messages: [...conversation.conversation.messages],
         }
+
         console.log('objectToSend:', objectToSend)
         return objectToSend
       }

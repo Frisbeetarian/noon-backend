@@ -3,9 +3,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
@@ -51,6 +53,18 @@ export class Conversation extends BaseEntity {
     (conversationToProfile) => conversationToProfile.conversation
   )
   public conversationToProfiles!: ConversationToProfile[]
+
+  @Column({ type: 'varchar', default: false })
+  ongoingCall: boolean | any
+
+  @Column({ type: 'varchar', default: false })
+  pendingCall: boolean | any
+
+  @OneToOne(() => Profile, {
+    nullable: true,
+  })
+  @JoinColumn()
+  pendingCallProfile: Profile
 
   // @Field(() => String)
   // @Column({ nullable: true })
