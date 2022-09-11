@@ -54,10 +54,12 @@ export class Conversation extends BaseEntity {
   )
   public conversationToProfiles!: ConversationToProfile[]
 
-  @Column({ type: 'varchar', default: false })
+  @Field(() => Boolean)
+  @Column({ type: 'boolean', default: false })
   ongoingCall: boolean | any
 
-  @Column({ type: 'varchar', default: false })
+  @Field(() => Boolean)
+  @Column({ type: 'boolean', default: false })
   pendingCall: boolean | any
 
   @OneToOne(() => Profile, {

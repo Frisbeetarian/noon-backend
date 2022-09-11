@@ -33,6 +33,11 @@ export class ConversationResolver {
     return conversation.messages
   }
 
+  @FieldResolver(() => Profile)
+  pendingCallProfile(@Root() conversation: Conversation | null) {
+    return conversation.pendingCallProfile
+  }
+
   // @FieldResolver(() => Conversation)
   // unreadMessages(@Root() conversation: Conversation | null) {
   //   return conversation?.unreadMessages
@@ -64,17 +69,21 @@ export class ConversationResolver {
               relations: ['conversation', 'profile'],
             })
 
-            // console.log(
-            //   'conversation object in get conversations:',
-            //   conversationObject
-            // )
+            const conversationEntity = await Conversation.findOne({
+              where: [{ uuid: conversation.conversationUuid }],
+              relations: ['pendingCallProfile'],
+            })
+
+            console.log('conversation entity:', conversationEntity)
+
             objectToSend.push({
               uuid: conversationObject[0].conversationUuid,
               unreadMessages: conversationObject[0].unreadMessages,
               profileThatHasUnreadMessages:
                 conversationObject[0].profileThatHasUnreadMessages,
-              ongoingCall: conversationObject[0].ongoingCall,
-              pendingCall: conversationObject[0].pendingCall,
+              ongoingCall: conversationEntity.ongoingCall,
+              pendingCall: conversationEntity.pendingCall,
+              pendingCallProfile: conversationEntity.pendingCallProfile,
               profiles: [
                 {
                   uuid: conversationObject[0].profile.uuid,
@@ -92,7 +101,10 @@ export class ConversationResolver {
           })
         )
 
-        console.log('object to send:', objectToSend)
+        console.log(
+          'object to send fewbfowejbfkwejbfiewubfieuwbfiewubfewiub:',
+          objectToSend
+        )
         return objectToSend
       }
     } catch (e) {
@@ -120,6 +132,33 @@ export class ConversationResolver {
         .set({
           pendingCall: true,
           pendingCallProfile: req.session.user.profile.uuid,
+        })
+        .where('uuid = :conversationUuid', {
+          conversationUuid,
+        })
+        .returning('*')
+        .execute()
+      return true
+    } catch (e) {
+      return false
+    }
+  }
+
+  @Mutation(() => Boolean)
+  async cancelPendingCallForConversation(
+    @Arg('conversationUuid', () => String) conversationUuid: number | string,
+    pendingCallInitiatorUuid: string,
+    @Ctx() { req }: MyContext
+  ) {
+    try {
+      console.log('pending call conversation uuid:', conversationUuid)
+
+      await getConnection()
+        .createQueryBuilder()
+        .update(Conversation)
+        .set({
+          pendingCall: false,
+          pendingCallProfile: null,
         })
         .where('uuid = :conversationUuid', {
           conversationUuid,
