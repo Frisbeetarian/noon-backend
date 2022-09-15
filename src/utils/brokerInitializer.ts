@@ -65,6 +65,22 @@ function search() {
         return null
       }
     },
+    async searchForProfileByUsername({ username }) {
+      try {
+        return await searchRPCRequest(
+          channel,
+          'SEARCH_FOR_PROFILE_BY_USERNAME',
+          {
+            username,
+          }
+        )
+
+        // return response
+      } catch (e) {
+        console.log('error:', e)
+        return null
+      }
+    },
     async searchForProfile({ profileUuid }) {
       try {
         return await searchRPCRequest(channel, 'SEARCH_FOR_PROFILE', {
