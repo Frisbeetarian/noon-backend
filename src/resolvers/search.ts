@@ -14,14 +14,17 @@ const rpcClient = require('../utils/brokerInitializer')
 
 @Resolver(Search)
 export class SearchResolver {
-  @Query(() => Search, { nullable: true })
+  @Query(() => [Search], { nullable: true })
   async searchForProfileByUsername(
     @Arg('username', () => String) username: string
-  ): Promise<Search | null> {
+  ): Promise<Search[] | null> {
     try {
+      console.log('username in serach:', username)
+
       const response = await rpcClient
         .search()
         .searchForProfileByUsername({ username })
+
       console.log('response in resolver:', response)
 
       return response
