@@ -428,6 +428,21 @@ const main = async () => {
     )
 
     socket.on(
+      'cancel-pending-call-for-conversation',
+      async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
+        console.log('cancel pending call for conversation:', to)
+
+        io.to(to).emit('cancel-pending-call-for-conversation', {
+          from,
+          fromUsername,
+          to,
+          toUsername,
+          conversationUuid,
+        })
+      }
+    )
+
+    socket.on(
       'set-ongoing-call-for-conversation',
       async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
         // const session = await sessionStore.findSession(to)
@@ -447,7 +462,6 @@ const main = async () => {
       'cancel-ongoing-call-for-conversation',
       async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
         // const session = await sessionStore.findSession(to)
-        // console.log('session DATA:', session)
 
         io.to(to).emit('set-ongoing-call-for-conversation', {
           from,

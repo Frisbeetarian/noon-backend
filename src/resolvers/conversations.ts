@@ -147,11 +147,10 @@ export class ConversationResolver {
   @Mutation(() => Boolean)
   async cancelPendingCallForConversation(
     @Arg('conversationUuid', () => String) conversationUuid: number | string,
-    pendingCallInitiatorUuid: string,
     @Ctx() { req }: MyContext
   ) {
     try {
-      console.log('pending call conversation uuid:', conversationUuid)
+      // console.log('cancel pending call conversation uuid:', conversationUuid)
 
       await getConnection()
         .createQueryBuilder()

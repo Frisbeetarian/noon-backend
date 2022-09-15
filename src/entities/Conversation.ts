@@ -62,6 +62,7 @@ export class Conversation extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   pendingCall: boolean | any
 
+  @Field(() => Profile, { nullable: true })
   @OneToOne(() => Profile, {
     nullable: true,
   })
