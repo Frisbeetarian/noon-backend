@@ -16,6 +16,7 @@ import {
   getProfileByUsername,
   getProfiles,
   sendFriendRequest,
+  checkFriendship,
 } from '../neo4j/neo4j_calls/neo4j_api'
 import { User } from '../entities/User'
 import { MyContext } from '../types'
@@ -112,14 +113,14 @@ export class ProfileResolver {
       recipientProfile?.username
     )
 
-    await rpcClient.search().updateEntryInIndex({
-      index: 'PROFILES',
-      senderUuid: senderProfile?.uuid,
-      recipientProfile: {
-        uuid: recipientProfile?.uuid,
-        username: recipientProfile?.username,
-      },
-    })
+    // await rpcClient.search().updateEntryInIndex({
+    //   index: 'PROFILES',
+    //   senderUuid: senderProfile?.uuid,
+    //   recipientProfile: {
+    //     uuid: recipientProfile?.uuid,
+    //     username: recipientProfile?.username,
+    //   },
+    // })
 
     return true
   }
@@ -129,49 +130,59 @@ export class ProfileResolver {
     @Ctx() { req }: MyContext,
     @Arg('profileUuid', () => String) profileUuid: number | string
   ) {
+    //TODO reorganize sender/recipient logic, seems to be in reverse
     const recipientProfile = await Profile.findOne({
       where: { userId: req.session.userId },
     })
 
     const senderProfile = await Profile.findOne(profileUuid)
 
-    await acceptFriendRequest(
+    const areFriends = await checkFriendship(
       senderProfile?.uuid,
-      senderProfile?.username,
-      recipientProfile?.uuid,
-      recipientProfile?.username
+      recipientProfile?.uuid
     )
 
-    // const profile1 = await Profile.findOne(senderProfile?.uuid)
-    // const profile2 = await Profile.findOne(recipientProfile?.uuid)
-    // let conversation = await Conversation.create().save()
-    const conversationRepository = getConnection().getRepository(Conversation)
-    const conversationProfileRepository = getConnection().getRepository(
-      ConversationToProfile
-    )
+    console.log('are friends check: ', areFriends)
 
-    let conversation = new Conversation()
-    await conversationRepository.save(conversation)
+    if (!areFriends) {
+      await acceptFriendRequest(
+        senderProfile?.uuid,
+        senderProfile?.username,
+        recipientProfile?.uuid,
+        recipientProfile?.username
+      )
 
-    const conversationToProfile = new ConversationToProfile(
-      conversation,
-      recipientProfile
-    )
-    await conversationProfileRepository.save(conversationToProfile)
+      // const profile1 = await Profile.findOne(senderProfile?.uuid)
+      // const profile2 = await Profile.findOne(recipientProfile?.uuid)
+      // let conversation = await Conversation.create().save()
+      const conversationRepository = getConnection().getRepository(Conversation)
+      const conversationProfileRepository = getConnection().getRepository(
+        ConversationToProfile
+      )
 
-    const conversationToProfile2 = new ConversationToProfile(
-      conversation,
-      senderProfile
-    )
-    await conversationProfileRepository.save(conversationToProfile2)
-    // await conversationRepository.save(conversation)
+      let conversation = new Conversation()
+      await conversationRepository.save(conversation)
 
-    // await getConnection().manager.save(conversation)
+      const conversationToProfile = new ConversationToProfile(
+        conversation,
+        recipientProfile
+      )
+      await conversationProfileRepository.save(conversationToProfile)
 
-    // conversation.profiles = [profile2]
-    // await getConnection().manager.save(conversation)
-    console.log('conversation:', conversation.profiles)
+      const conversationToProfile2 = new ConversationToProfile(
+        conversation,
+        senderProfile
+      )
+      await conversationProfileRepository.save(conversationToProfile2)
+      // await conversationRepository.save(conversation)
 
-    return conversation
+      // await getConnection().manager.save(conversation)
+
+      // conversation.profiles = [profile2]
+      // await getConnection().manager.save(conversation)
+      console.log('conversation:', conversation.profiles)
+
+      return conversation
+    }
   }
 }

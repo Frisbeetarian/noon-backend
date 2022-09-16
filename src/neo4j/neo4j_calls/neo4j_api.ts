@@ -109,6 +109,37 @@ export const getFriendsForProfile = async function (profileUuid) {
   return friends
 }
 
+export const checkFriendship = async function (profile1Uuid, profile2Uuid) {
+  let session = driver.session()
+  let check = null
+  await session
+    .run(
+      'MATCH (p1:Profile {uuid: $profile1Uuid})' +
+        'MATCH (p2:Profile {uuid: $profile2Uuid})' +
+        // ' OPTIONAL MATCH (p)-[friendRequests:FRIEND_REQUEST]->(l)' +
+        // ' OPTIONAL MATCH (p)<-[reverseFriendRequest:FRIEND_REQUEST]-(l)' +
+        ' return [(p1)-[f:FRIENDS]-(p2) | f] AS friends',
+      {
+        profile1Uuid,
+        profile2Uuid,
+      }
+    )
+    .then((results) => {
+      // console.log('check friendship results:', results)
+      // console.log('check friendship results:', results.records)
+      check = results.records[0]._fields[0].length > 0
+      // console.log('check friendship results:', results.records[0]._fields[0])
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+    .then(() => {
+      session.close()
+    })
+
+  return check
+}
+
 export const getFriendRequestsForProfile = async function (profileUuid) {
   let session = driver.session()
   let friendRequests = []
@@ -127,6 +158,7 @@ export const getFriendRequestsForProfile = async function (profileUuid) {
     )
     .then((results) => {
       console.log('results.records:', results.records)
+
       results.records.forEach((record) => {
         console.log('results.records fields[0]:', record._fields[1])
 
@@ -149,26 +181,6 @@ export const getFriendRequestsForProfile = async function (profileUuid) {
             friendRequests.push(incomingFriendRequests.properties)
           })
         }
-        // if (record._fields[0]?.properties !== undefined) {
-        //   record._fields[0]?.properties = {
-        //     ...record._fields[0]?.properties,
-        //     reverse: false,
-        //   }
-        //   friendRequests.push(record._fields[0]?.properties)
-        // }
-
-        // console.log(
-        //   'record._fields[1]?.properties:',
-        //   record._fields[1]?.properties
-        // )
-
-        // if (record._fields[1]?.properties !== undefined) {
-        //   record._fields[1]?.properties = {
-        //     ...record._fields[1]?.properties,
-        //     reverse: true,
-        //   }
-        //   friendRequests.push(record._fields[1]?.properties)
-        // }
       })
     })
     .catch((error) => {
