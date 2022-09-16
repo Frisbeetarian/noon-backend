@@ -65,6 +65,17 @@ function search() {
         return null
       }
     },
+    async updateEntryInIndex({ index, senderUuid, recipientProfile }) {
+      try {
+        return await searchRPCRequest(channel, 'UPDATE_PROFILE', {
+          index,
+          senderUuid,
+          recipientProfile,
+        })
+      } catch (e) {
+        console.log(e)
+      }
+    },
     async searchForProfileByUsername({ username }) {
       try {
         return await searchRPCRequest(

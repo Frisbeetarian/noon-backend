@@ -24,6 +24,7 @@ import { FriendshipRequest } from '../entities/FriendshipRequest'
 import { Conversation } from '../entities/Conversation'
 import { getConnection } from 'typeorm'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
+import rpcClient from '../utils/brokerInitializer'
 
 // @InputType()
 // class ProfileInput {
@@ -104,12 +105,21 @@ export class ProfileResolver {
 
     const recipientProfile = await Profile.findOne(profileUuid)
 
-    const response = await sendFriendRequest(
+    await sendFriendRequest(
       senderProfile?.uuid,
       senderProfile?.username,
-      recipientProfile.uuid,
-      recipientProfile.username
+      recipientProfile?.uuid,
+      recipientProfile?.username
     )
+
+    await rpcClient.search().updateEntryInIndex({
+      index: 'PROFILES',
+      senderUuid: senderProfile?.uuid,
+      recipientProfile: {
+        uuid: recipientProfile?.uuid,
+        username: recipientProfile?.username,
+      },
+    })
 
     return true
   }

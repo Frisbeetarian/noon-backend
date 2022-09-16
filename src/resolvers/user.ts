@@ -93,6 +93,7 @@ export class UserResolver {
       .where('user.uuid = :id', { id: req.session.userId })
       .leftJoinAndSelect('user.profile', 'profile')
       .getOne()
+
     const friendsArray = await getFriendsForProfile(user?.profile?.uuid)
     const friendRequestsArray = await getFriendRequestsForProfile(
       user?.profile?.uuid

@@ -112,35 +112,63 @@ export const getFriendsForProfile = async function (profileUuid) {
 export const getFriendRequestsForProfile = async function (profileUuid) {
   let session = driver.session()
   let friendRequests = []
+  // 'MATCH (p:Profile {uuid: $profileUuid}) RETURN [(p)-[fr:FRIEND_REQUEST]->() | fr] AS outgoingFriendRequests, [(p)<-[fr:FRIEND_REQUEST]-() | fr] AS incomingFriendRequests',
 
   await session
     .run(
       'MATCH (p:Profile {uuid: $profileUuid})' +
-        ' OPTIONAL MATCH (p)-[friendRequests:FRIEND_REQUEST]->(u)' +
-        ' OPTIONAL MATCH (p)<-[reverseFriendRequest:FRIEND_REQUEST]-(l)' +
-        ' return u, reverseFriendRequest, l',
+        // ' OPTIONAL MATCH (p)-[friendRequests:FRIEND_REQUEST]->(l)' +
+        // ' OPTIONAL MATCH (p)<-[reverseFriendRequest:FRIEND_REQUEST]-(l)' +
+        ' return [(p)-[fr:FRIEND_REQUEST]->() | fr] AS outgoingFriendRequests,' +
+        '       [(p)<-[fr:FRIEND_REQUEST]-(l) | l] AS l',
       {
         profileUuid,
       }
     )
     .then((results) => {
+      console.log('results.records:', results.records)
       results.records.forEach((record) => {
-        // console.log('user friend requests:', record)
-        if (record._fields[0]?.properties !== undefined) {
-          record._fields[0]?.properties = {
-            ...record._fields[0]?.properties,
-            reverse: false,
-          }
-          friendRequests.push(record._fields[0]?.properties)
+        console.log('results.records fields[0]:', record._fields[1])
+
+        if (record._fields[0]) {
+          record._fields[0].forEach((outgoingFriendRequest) => {
+            outgoingFriendRequest.properties = {
+              ...outgoingFriendRequest.properties,
+              reverse: false,
+            }
+            friendRequests.push(outgoingFriendRequest.properties)
+          })
         }
 
-        if (record._fields[1]?.properties !== undefined) {
-          record._fields[2]?.properties = {
-            ...record._fields[2]?.properties,
-            reverse: true,
-          }
-          friendRequests.push(record._fields[2]?.properties)
+        if (record._fields[1]) {
+          record._fields[1].forEach((incomingFriendRequests) => {
+            incomingFriendRequests.properties = {
+              ...incomingFriendRequests.properties,
+              reverse: true,
+            }
+            friendRequests.push(incomingFriendRequests.properties)
+          })
         }
+        // if (record._fields[0]?.properties !== undefined) {
+        //   record._fields[0]?.properties = {
+        //     ...record._fields[0]?.properties,
+        //     reverse: false,
+        //   }
+        //   friendRequests.push(record._fields[0]?.properties)
+        // }
+
+        // console.log(
+        //   'record._fields[1]?.properties:',
+        //   record._fields[1]?.properties
+        // )
+
+        // if (record._fields[1]?.properties !== undefined) {
+        //   record._fields[1]?.properties = {
+        //     ...record._fields[1]?.properties,
+        //     reverse: true,
+        //   }
+        //   friendRequests.push(record._fields[1]?.properties)
+        // }
       })
     })
     .catch((error) => {
