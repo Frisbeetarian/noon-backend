@@ -27,7 +27,7 @@ export class SearchResolver {
 
       console.log('response in resolver:', response)
 
-      return response
+      return [response]
     } catch (e) {
       console.log('error:', e)
       return null

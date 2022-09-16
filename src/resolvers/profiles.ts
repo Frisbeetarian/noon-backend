@@ -155,6 +155,7 @@ export class ProfileResolver {
       // const profile1 = await Profile.findOne(senderProfile?.uuid)
       // const profile2 = await Profile.findOne(recipientProfile?.uuid)
       // let conversation = await Conversation.create().save()
+
       const conversationRepository = getConnection().getRepository(Conversation)
       const conversationProfileRepository = getConnection().getRepository(
         ConversationToProfile
@@ -173,6 +174,7 @@ export class ProfileResolver {
         conversation,
         senderProfile
       )
+
       await conversationProfileRepository.save(conversationToProfile2)
       // await conversationRepository.save(conversation)
 
