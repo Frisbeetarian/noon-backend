@@ -339,5 +339,105 @@ export const acceptFriendRequest = async function (
         session.close()
         // driver.close()
       })
-  } catch (e) {}
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const refuseFriendRequest = async function (
+  senderProfileUuid,
+  senderProfileUsername,
+  recipientProfileUuid,
+  recipientProfileUsername
+) {
+  let session = driver.session()
+  const tx = session.beginTransaction()
+
+  console.log('refuse friend request: ', {
+    senderProfileUuid,
+    senderProfileUsername,
+    recipientProfileUuid,
+    recipientProfileUsername,
+  })
+  try {
+    tx.run(
+      'Match (p1:Profile {uuid: $sUuid}) ' +
+        ' Match (p2:Profile {uuid: $rUuid})' +
+        ' Match (p1)-[fr:FRIEND_REQUEST]-(p2)' +
+        ' DELETE fr' +
+        ' RETURN p1, fr, p2',
+      {
+        sUuid: senderProfileUuid,
+        rUuid: recipientProfileUuid,
+      }
+    )
+      .then((result) => {
+        console.log(result)
+
+        result.records.forEach(async (record) => {
+          console.log(record)
+        })
+        return tx.commit()
+      })
+      .then(() => {
+        session.close()
+        // driver.close()
+      })
+      .catch((exception) => {
+        console.log(exception)
+        session.close()
+        // driver.close()
+      })
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const cancelFriendRequest = async function (
+  senderProfileUuid,
+  senderProfileUsername,
+  recipientProfileUuid,
+  recipientProfileUsername
+) {
+  let session = driver.session()
+  const tx = session.beginTransaction()
+
+  console.log('cancel friend request: ', {
+    senderProfileUuid,
+    senderProfileUsername,
+    recipientProfileUuid,
+    recipientProfileUsername,
+  })
+  try {
+    tx.run(
+      'Match (p1:Profile {uuid: $sUuid}) ' +
+        ' Match (p2:Profile {uuid: $rUuid})' +
+        ' Match (p1)-[fr:FRIEND_REQUEST]-(p2)' +
+        ' DELETE fr' +
+        ' RETURN p1, fr, p2',
+      {
+        sUuid: senderProfileUuid,
+        rUuid: recipientProfileUuid,
+      }
+    )
+      .then((result) => {
+        console.log(result)
+
+        result.records.forEach(async (record) => {
+          console.log(record)
+        })
+        return tx.commit()
+      })
+      .then(() => {
+        session.close()
+        // driver.close()
+      })
+      .catch((exception) => {
+        console.log(exception)
+        session.close()
+        // driver.close()
+      })
+  } catch (e) {
+    console.log(e)
+  }
 }

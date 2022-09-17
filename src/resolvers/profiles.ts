@@ -17,7 +17,10 @@ import {
   getProfiles,
   sendFriendRequest,
   checkFriendship,
+  refuseFriendRequest,
+  cancelFriendRequest,
 } from '../neo4j/neo4j_calls/neo4j_api'
+
 import { User } from '../entities/User'
 import { MyContext } from '../types'
 import { Friend } from '../entities/Friend'
@@ -130,7 +133,7 @@ export class ProfileResolver {
     @Ctx() { req }: MyContext,
     @Arg('profileUuid', () => String) profileUuid: number | string
   ) {
-    //TODO reorganize sender/recipient logic, seems to be in reverse
+    //TODO reorganize sender/recipient logic, seems to be in reverse (no since recipient and actor on request is the one logged in)
     const recipientProfile = await Profile.findOne({
       where: { userId: req.session.userId },
     })
@@ -185,6 +188,56 @@ export class ProfileResolver {
       console.log('conversation:', conversation.profiles)
 
       return conversation
+    }
+  }
+
+  @Mutation(() => Boolean)
+  async cancelFriendRequest(
+    @Ctx() { req }: MyContext,
+    @Arg('profileUuid', () => String) profileUuid: number | string
+  ) {
+    const recipientProfile = await Profile.findOne({
+      where: { userId: req.session.userId },
+    })
+
+    const senderProfile = await Profile.findOne(profileUuid)
+
+    try {
+      await cancelFriendRequest(
+        senderProfile?.uuid,
+        senderProfile?.username,
+        recipientProfile?.uuid,
+        recipientProfile?.username
+      )
+      return true
+    } catch (e) {
+      console.log(e)
+      return false
+    }
+  }
+
+  @Mutation(() => Boolean)
+  async refuseFriendRequest(
+    @Ctx() { req }: MyContext,
+    @Arg('profileUuid', () => String) profileUuid: number | string
+  ) {
+    const recipientProfile = await Profile.findOne({
+      where: { userId: req.session.userId },
+    })
+
+    const senderProfile = await Profile.findOne(profileUuid)
+
+    try {
+      await refuseFriendRequest(
+        senderProfile?.uuid,
+        senderProfile?.username,
+        recipientProfile?.uuid,
+        recipientProfile?.username
+      )
+      return true
+    } catch (e) {
+      console.log(e)
+      return false
     }
   }
 }
