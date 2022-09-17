@@ -19,6 +19,7 @@ import {
   checkFriendship,
   refuseFriendRequest,
   cancelFriendRequest,
+  unfriend,
 } from '../neo4j/neo4j_calls/neo4j_api'
 
 import { User } from '../entities/User'
@@ -240,6 +241,50 @@ export class ProfileResolver {
         senderProfile?.username,
         recipientProfile?.uuid,
         recipientProfile?.username
+      )
+      return true
+    } catch (e) {
+      console.log(e)
+      return false
+    }
+  }
+
+  @Mutation(() => Boolean)
+  async unfriend(
+    @Ctx() { req }: MyContext,
+    @Arg('profileUuid', () => String) profileUuid: number | string,
+    @Arg('conversationUuid', () => String) conversationUuid: number | string
+  ) {
+    const initiatorProfile = await Profile.findOne({
+      where: { userId: req.session.userId },
+    })
+
+    const targetProfile = await Profile.findOne(profileUuid)
+
+    await getConnection()
+      .createQueryBuilder()
+      .delete()
+      .from(ConversationToProfile)
+      .where('conversationUuid = :conversationUuid', {
+        conversationUuid,
+      })
+      .execute()
+
+    await getConnection()
+      .createQueryBuilder()
+      .delete()
+      .from(Conversation)
+      .where('uuid = :conversationUuid', {
+        conversationUuid,
+      })
+      .execute()
+
+    try {
+      await unfriend(
+        initiatorProfile?.uuid,
+        initiatorProfile?.username,
+        targetProfile?.uuid,
+        targetProfile?.username
       )
       return true
     } catch (e) {

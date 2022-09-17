@@ -382,7 +382,7 @@ const main = async () => {
 
     socket.on(
       'friendship-request-accepted',
-      ({ content, from, fromUsername, to, toUsername }) => {
+      ({ content, from, fromUsername, to, toUsername, conversation }) => {
         const message = {
           content,
           from: from,
@@ -396,6 +396,7 @@ const main = async () => {
           fromUsername,
           to,
           toUsername,
+          conversation,
         })
 
         messageStore.saveMessage(message)

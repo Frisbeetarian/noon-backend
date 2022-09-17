@@ -441,3 +441,52 @@ export const cancelFriendRequest = async function (
     console.log(e)
   }
 }
+
+export const unfriend = async function (
+  initiatorProfileUuid,
+  initiatorProfileUsername,
+  targetProfileUuid,
+  targetProfileUsername
+) {
+  let session = driver.session()
+  const tx = session.beginTransaction()
+
+  console.log('cancel friend request: ', {
+    initiatorProfileUuid,
+    initiatorProfileUsername,
+    targetProfileUuid,
+    targetProfileUsername,
+  })
+  try {
+    tx.run(
+      'Match (p1:Profile {uuid: $iUuid}) ' +
+        ' Match (p2:Profile {uuid: $tUuid})' +
+        ' Match (p1)-[f:FRIENDS]-(p2)' +
+        ' DELETE f' +
+        ' RETURN p1, f, p2',
+      {
+        iUuid: initiatorProfileUuid,
+        tUuid: targetProfileUuid,
+      }
+    )
+      .then((result) => {
+        console.log(result)
+
+        result.records.forEach(async (record) => {
+          console.log(record)
+        })
+        return tx.commit()
+      })
+      .then(() => {
+        session.close()
+        // driver.close()
+      })
+      .catch((exception) => {
+        console.log(exception)
+        session.close()
+        // driver.close()
+      })
+  } catch (e) {
+    console.log(e)
+  }
+}
