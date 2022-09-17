@@ -128,7 +128,7 @@ export class ProfileResolver {
     return true
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Conversation)
   async acceptFriendRequest(
     @Ctx() { req }: MyContext,
     @Arg('profileUuid', () => String) profileUuid: number | string
@@ -145,8 +145,6 @@ export class ProfileResolver {
       recipientProfile?.uuid
     )
 
-    console.log('are friends check: ', areFriends)
-
     if (!areFriends) {
       await acceptFriendRequest(
         senderProfile?.uuid,
@@ -154,10 +152,6 @@ export class ProfileResolver {
         recipientProfile?.uuid,
         recipientProfile?.username
       )
-
-      // const profile1 = await Profile.findOne(senderProfile?.uuid)
-      // const profile2 = await Profile.findOne(recipientProfile?.uuid)
-      // let conversation = await Conversation.create().save()
 
       const conversationRepository = getConnection().getRepository(Conversation)
       const conversationProfileRepository = getConnection().getRepository(
@@ -179,13 +173,26 @@ export class ProfileResolver {
       )
 
       await conversationProfileRepository.save(conversationToProfile2)
-      // await conversationRepository.save(conversation)
 
-      // await getConnection().manager.save(conversation)
-
-      // conversation.profiles = [profile2]
-      // await getConnection().manager.save(conversation)
-      console.log('conversation:', conversation.profiles)
+      conversation = {
+        ...conversation,
+        unreadMessages: 0,
+        messages: [],
+        ongoingCall: false,
+        pendingCall: false,
+        pendingCallProfile: null,
+        profiles: [
+          {
+            uuid: senderProfile?.uuid,
+            username: senderProfile?.username,
+          },
+          {
+            uuid: recipientProfile?.uuid,
+            username: recipientProfile?.username,
+          },
+        ],
+      }
+      console.log('conversation in accept conversation:', conversation)
 
       return conversation
     }
