@@ -249,6 +249,11 @@ const main = async () => {
       socket.handshake.auth.sessionID
     )
 
+    console.log(
+      'socket.handshake.auth.userSocketUuid:',
+      socket.handshake.auth.userSocketUuid
+    )
+
     if (socket.handshake.auth.userSocketUuid) {
       // persist session
       sessionStore.saveSession(socket.handshake.auth.userSocketUuid, {
@@ -263,82 +268,66 @@ const main = async () => {
         sessionID: socket.handshake.auth.userSocketUuid,
         userID: socket.handshake.auth.userID,
       })
-    }
 
-    // join the "userID" room
-    // console.log('user join room id:', socket.userID)
-    socket.join(socket.handshake.auth.userID)
+      // join the "userID" room
+      // console.log('user join room id:', socket.userID)
+      socket.join(socket.handshake.auth.userID)
 
-    // fetch existing users
-    const users = []
-    const [messages, sessions] = await Promise.all([
-      messageStore.findMessagesForUser(socket.userID),
-      sessionStore.findAllSessions(),
-    ])
+      // fetch existing users
+      const users = []
+      const [messages, sessions] = await Promise.all([
+        messageStore.findMessagesForUser(socket.userID),
+        sessionStore.findAllSessions(),
+      ])
 
-    const messagesPerUser = new Map()
+      const messagesPerUser = new Map()
 
-    messages.forEach((message) => {
-      const { from, to } = message
-      const otherUser = socket.userID === from ? to : from
+      messages.forEach((message) => {
+        const { from, to } = message
+        const otherUser = socket.userID === from ? to : from
 
-      if (messagesPerUser.has(otherUser)) {
-        messagesPerUser.get(otherUser).push(message)
-      } else {
-        messagesPerUser.set(otherUser, [message])
-      }
-    })
-
-    sessions.forEach((session) => {
-      users.push({
-        userID: session.userID,
-        username: session.username,
-        connected: session.connected,
-        messages: messagesPerUser.get(session.userID) || [],
-      })
-    })
-
-    // socket.emit('users', users)
-
-    // notify existing users
-    // socket.broadcast.emit('user connected', {
-    //   userID: socket.userID,
-    //   username: socket.username,
-    //   connected: true,
-    //   messages: [],
-    // })
-
-    const friends = await getFriendsForProfile(socket.handshake.auth.sessionID)
-
-    // socket.on('friend-connected', async ({}) => {
-    friends.map((friend) => {
-      io.to(friend.uuid).emit('friend-connected', {
-        username: socket.handshake.auth.username,
-        uuid: socket.handshake.auth.sessionID,
-      })
-    })
-    // })
-
-    socket.on(
-      'private-chat-message',
-      async ({
-        content,
-        from,
-        fromUsername,
-        to,
-        toUsername,
-        message,
-        conversationUuid,
-      }) => {
-        const messagePayload = {
-          content,
-          from: from,
-          fromUsername,
-          to,
-          conversationUuid,
+        if (messagesPerUser.has(otherUser)) {
+          messagesPerUser.get(otherUser).push(message)
+        } else {
+          messagesPerUser.set(otherUser, [message])
         }
+      })
 
-        io.to(to).emit('private-chat-message', {
+      sessions.forEach((session) => {
+        users.push({
+          userID: session.userID,
+          username: session.username,
+          connected: session.connected,
+          messages: messagesPerUser.get(session.userID) || [],
+        })
+      })
+
+      // socket.emit('users', users)
+
+      // notify existing users
+      // socket.broadcast.emit('user connected', {
+      //   userID: socket.userID,
+      //   username: socket.username,
+      //   connected: true,
+      //   messages: [],
+      // })
+
+      const friends = await getFriendsForProfile(
+        socket.handshake.auth.sessionID
+      )
+
+      // socket.on('friend-connected', async ({}) => {
+      friends.map((friend) => {
+        io.to(friend.uuid).emit('friend-connected', {
+          username: socket.handshake.auth.username,
+          uuid: socket.handshake.auth.sessionID,
+        })
+      })
+      // })
+
+      socket.on(
+        'private-chat-message',
+        async ({
           content,
           from,
           fromUsername,
@@ -346,170 +335,188 @@ const main = async () => {
           toUsername,
           message,
           conversationUuid,
-        })
+        }) => {
+          const messagePayload = {
+            content,
+            from: from,
+            fromUsername,
+            to,
+            conversationUuid,
+          }
 
-        try {
-        } catch (e) {
-          console.log('ERROR SAVING CONVERSATION:', e)
-        }
-
-        messageStore.saveMessage(messagePayload)
-      }
-    )
-
-    // forward the private message to the right recipient (and to other tabs of the sender)
-    socket.on(
-      'private message',
-      ({ content, from, fromUsername, to, toUsername }) => {
-        const message = {
-          content,
-          from: from,
-          fromUsername,
-          to,
-        }
-
-        io.to(to).emit('private message', {
-          content,
-          from,
-          fromUsername,
-          to,
-          toUsername,
-        })
-
-        messageStore.saveMessage(message)
-      }
-    )
-
-    socket.on(
-      'friendship-request-accepted',
-      ({ content, from, fromUsername, to, toUsername, conversation }) => {
-        const message = {
-          content,
-          from: from,
-          fromUsername,
-          to,
-        }
-
-        io.to(to).emit('friendship-request-accepted', {
-          content,
-          from,
-          fromUsername,
-          to,
-          toUsername,
-          conversation,
-        })
-
-        messageStore.saveMessage(message)
-      }
-    )
-
-    socket.on(
-      'check-friend-connection',
-      async ({ from, fromUsername, to, toUsername }) => {
-        const session = await sessionStore.findSession(to)
-        console.log('session DATA:', session)
-
-        io.to(from).emit('check-friend-connection', {
-          session: session,
-        })
-      }
-    )
-
-    socket.on(
-      'set-pending-call-for-conversation',
-      async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
-        io.to(to).emit('set-pending-call-for-conversation', {
-          from,
-          fromUsername,
-          to,
-          toUsername,
-          conversationUuid,
-        })
-      }
-    )
-
-    socket.on(
-      'cancel-pending-call-for-conversation',
-      async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
-        console.log('cancel pending call for conversation:', to)
-
-        io.to(to).emit('cancel-pending-call-for-conversation', {
-          from,
-          fromUsername,
-          to,
-          toUsername,
-          conversationUuid,
-        })
-      }
-    )
-
-    socket.on(
-      'set-ongoing-call-for-conversation',
-      async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
-        // const session = await sessionStore.findSession(to)
-        // console.log('session DATA:', session)
-
-        io.to(to).emit('set-ongoing-call-for-conversation', {
-          from,
-          fromUsername,
-          to,
-          toUsername,
-          conversationUuid,
-        })
-      }
-    )
-
-    socket.on(
-      'cancel-ongoing-call-for-conversation',
-      async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
-        // const session = await sessionStore.findSession(to)
-
-        io.to(to).emit('set-ongoing-call-for-conversation', {
-          from,
-          fromUsername,
-          to,
-          toUsername,
-          conversationUuid,
-        })
-      }
-    )
-
-    // notify users upon disconnection
-    socket.on('disconnect', async () => {
-      const matchingSockets = await io.in(socket.userID).allSockets()
-      const isDisconnected = matchingSockets.size === 0
-
-      if (isDisconnected) {
-        // notify other users
-        socket.broadcast.emit('user disconnected', socket.userID)
-
-        // update the connection status of the session
-        sessionStore.saveSession(socket.handshake.auth.userSocketUuid, {
-          userID: socket.handshake.auth.userSocketUuid,
-          username: socket.handshake.auth.userID,
-          connected: false,
-          userSocketUuid: socket.handshake.auth.userSocketUuid,
-        })
-
-        console.log(
-          'socket.handshake.auth.userSocketUuid on disconnect:',
-          socket.handshake.auth.sessionID
-        )
-
-        const friends = await getFriendsForProfile(
-          socket.handshake.auth.sessionID
-        )
-
-        friends.map((friend) => {
-          io.to(friend.uuid).emit('friend-disconnected', {
-            username: socket.handshake.auth.username,
-            uuid: socket.handshake.auth.sessionID,
+          io.to(to).emit('private-chat-message', {
+            content,
+            from,
+            fromUsername,
+            to,
+            toUsername,
+            message,
+            conversationUuid,
           })
-        })
 
-        console.log('friends on disconnect:', friends)
-      }
-    })
+          try {
+          } catch (e) {
+            console.log('ERROR SAVING CONVERSATION:', e)
+          }
+
+          messageStore.saveMessage(messagePayload)
+        }
+      )
+
+      // forward the private message to the right recipient (and to other tabs of the sender)
+      socket.on(
+        'send-friend-request',
+        ({ content, from, fromUsername, to, toUsername }) => {
+          const message = {
+            content,
+            from: from,
+            fromUsername,
+            to,
+          }
+
+          io.to(to).emit('send-friend-request', {
+            content,
+            from,
+            fromUsername,
+            to,
+            toUsername,
+          })
+
+          messageStore.saveMessage(message)
+        }
+      )
+
+      socket.on(
+        'friendship-request-accepted',
+        ({ content, from, fromUsername, to, toUsername, conversation }) => {
+          const message = {
+            content,
+            from: from,
+            fromUsername,
+            to,
+          }
+
+          io.to(to).emit('friendship-request-accepted', {
+            content,
+            from,
+            fromUsername,
+            to,
+            toUsername,
+            conversation,
+          })
+
+          messageStore.saveMessage(message)
+        }
+      )
+
+      socket.on(
+        'check-friend-connection',
+        async ({ from, fromUsername, to, toUsername }) => {
+          const session = await sessionStore.findSession(to)
+          console.log('session DATA:', session)
+
+          io.to(from).emit('check-friend-connection', {
+            session: session,
+          })
+        }
+      )
+
+      socket.on(
+        'set-pending-call-for-conversation',
+        async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
+          io.to(to).emit('set-pending-call-for-conversation', {
+            from,
+            fromUsername,
+            to,
+            toUsername,
+            conversationUuid,
+          })
+        }
+      )
+
+      socket.on(
+        'cancel-pending-call-for-conversation',
+        async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
+          console.log('cancel pending call for conversation:', to)
+
+          io.to(to).emit('cancel-pending-call-for-conversation', {
+            from,
+            fromUsername,
+            to,
+            toUsername,
+            conversationUuid,
+          })
+        }
+      )
+
+      socket.on(
+        'set-ongoing-call-for-conversation',
+        async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
+          // const session = await sessionStore.findSession(to)
+          // console.log('session DATA:', session)
+
+          io.to(to).emit('set-ongoing-call-for-conversation', {
+            from,
+            fromUsername,
+            to,
+            toUsername,
+            conversationUuid,
+          })
+        }
+      )
+
+      socket.on(
+        'cancel-ongoing-call-for-conversation',
+        async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
+          // const session = await sessionStore.findSession(to)
+
+          io.to(to).emit('set-ongoing-call-for-conversation', {
+            from,
+            fromUsername,
+            to,
+            toUsername,
+            conversationUuid,
+          })
+        }
+      )
+
+      // notify users upon disconnection
+      socket.on('disconnect', async () => {
+        const matchingSockets = await io.in(socket.userID).allSockets()
+        const isDisconnected = matchingSockets.size === 0
+
+        if (isDisconnected) {
+          // notify other users
+          socket.broadcast.emit('user disconnected', socket.userID)
+
+          // update the connection status of the session
+          sessionStore.saveSession(socket.handshake.auth.userSocketUuid, {
+            userID: socket.handshake.auth.userSocketUuid,
+            username: socket.handshake.auth.userID,
+            connected: false,
+            userSocketUuid: socket.handshake.auth.userSocketUuid,
+          })
+
+          console.log(
+            'socket.handshake.auth.userSocketUuid on disconnect:',
+            socket.handshake.auth.sessionID
+          )
+
+          const friends = await getFriendsForProfile(
+            socket.handshake.auth.sessionID
+          )
+
+          friends.map((friend) => {
+            io.to(friend.uuid).emit('friend-disconnected', {
+              username: socket.handshake.auth.username,
+              uuid: socket.handshake.auth.sessionID,
+            })
+          })
+
+          console.log('friends on disconnect:', friends)
+        }
+      })
+    }
   })
 
   const { RPCServer } = require('@noon/rabbit-mq-rpc/server')

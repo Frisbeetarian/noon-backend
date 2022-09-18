@@ -157,10 +157,10 @@ export const getFriendRequestsForProfile = async function (profileUuid) {
       }
     )
     .then((results) => {
-      console.log('results.records:', results.records)
+      // console.log('results.records:', results.records)
 
       results.records.forEach((record) => {
-        console.log('results.records fields[0]:', record._fields[1])
+        // console.log('results.records fields[0]:', record._fields[1])
 
         if (record._fields[0]) {
           record._fields[0].forEach((outgoingFriendRequest) => {

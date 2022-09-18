@@ -118,7 +118,7 @@ export class UserResolver {
         friendshipRequests: [],
       }
     }
-    console.log('UAWER:', user)
+    // console.log('UAWER:', user)
 
     // console.log('USER 238ORH239UB392823923BF9UF: ', user)
     return user
