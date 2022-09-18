@@ -367,13 +367,6 @@ const main = async () => {
       socket.on(
         'send-friend-request',
         ({ content, from, fromUsername, to, toUsername }) => {
-          const message = {
-            content,
-            from: from,
-            fromUsername,
-            to,
-          }
-
           io.to(to).emit('send-friend-request', {
             content,
             from,
@@ -381,8 +374,33 @@ const main = async () => {
             to,
             toUsername,
           })
+        }
+      )
 
-          messageStore.saveMessage(message)
+      socket.on(
+        'cancel-friend-request',
+        ({ content, from, fromUsername, to, toUsername }) => {
+          io.to(to).emit('cancel-friend-request', {
+            content,
+            from,
+            fromUsername,
+            to,
+            toUsername,
+          })
+        }
+      )
+
+      socket.on(
+        'unfriend',
+        ({ content, from, fromUsername, to, toUsername, conversationUuid }) => {
+          io.to(to).emit('unfriend', {
+            content,
+            from,
+            fromUsername,
+            to,
+            toUsername,
+            conversationUuid,
+          })
         }
       )
 
