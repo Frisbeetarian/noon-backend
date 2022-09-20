@@ -25,6 +25,9 @@ import {
 } from '../neo4j/neo4j_calls/neo4j_api'
 import { Friend } from '../entities/Friend'
 import { FriendshipRequest } from '../entities/FriendshipRequest'
+// import rpcClient from '../utils/brokerInitializer'
+const rpcClient = require('../utils/brokerInitializer')
+
 const uuidv4 = require('uuid').v4
 
 declare module 'express-session' {
@@ -265,6 +268,15 @@ export class UserResolver {
 
     req.session.user = user
     req.session.userId = user.uuid
+
+    const token = v4()
+
+    const response = await rpcClient
+      .relay()
+      .sendEmail({
+        email: user.email,
+        html: `<a href="http://localhost:3000/change-password/${token}">reset password</a>`,
+      })
 
     console.log('user in register:', req.session.user)
     console.log('user in register:', req.session.userId)

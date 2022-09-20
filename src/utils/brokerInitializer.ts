@@ -15,6 +15,10 @@ const QUEUES = {
     channel: 'search',
     queue: 'rpc_queue.noon.search',
   },
+  RELAY_SERVER: {
+    channel: 'relay',
+    queue: 'rpc_queue.noon.relay',
+  },
 }
 
 const client = new RPCClient({
@@ -40,6 +44,17 @@ async function initRPCClient() {
   rpcClientInitialized = true
 }
 
+async function relayRPCRequest(channel, task, params) {
+  await initRPCClient()
+
+  try {
+    return await client.rpcRequest(channel, task, params)
+  } catch (e) {
+    console.log('error:', e)
+    return null
+  }
+}
+
 async function searchRPCRequest(channel, task, params) {
   await initRPCClient()
 
@@ -48,6 +63,22 @@ async function searchRPCRequest(channel, task, params) {
   } catch (e) {
     console.log('error:', e)
     return null
+  }
+}
+
+function relay() {
+  const channel = QUEUES.RELAY_SERVER.channel
+
+  return {
+    async sendEmail({ email, html }) {
+      try {
+        console.log('fewnfkenkekkkkkkk')
+        return await relayRPCRequest(channel, 'SEND_EMAIL', { email, html })
+      } catch (e) {
+        console.log('error:', e)
+        return null
+      }
+    },
   }
 }
 
@@ -85,8 +116,6 @@ function search() {
             username,
           }
         )
-
-        // return response
       } catch (e) {
         console.log('error:', e)
         return null
@@ -97,8 +126,6 @@ function search() {
         return await searchRPCRequest(channel, 'SEARCH_FOR_PROFILE', {
           profileUuid,
         })
-
-        // return response
       } catch (e) {
         console.log('error:', e)
         return null
@@ -108,3 +135,4 @@ function search() {
 }
 
 module.exports.search = search
+module.exports.relay = relay
