@@ -4,6 +4,12 @@ const router = express.Router()
 
 import multer from 'multer'
 const upload = multer()
+const rpcClient = require('../utils/brokerInitializer')
+import { Message } from '../entities/Message'
+import { Profile } from '../entities/Profile'
+import { Conversation } from '../entities/Conversation'
+import { getConnection } from 'typeorm'
+
 // const neo4j_calls = require('./../neo4j_calls/neo4j_api')
 // import { get_num_nodes, create_user } from '../neo4j_calls/neo4j_api'
 
@@ -25,8 +31,25 @@ router.post(
   async function (req, res, next) {
     let { image } = req.body
 
-    console.log('image:', req.file)
-    return res.status(200)
+    console.log('conversation uuid in upload image:', req.body)
+
+    const response = await rpcClient.media().sendImage({
+      task: 'upload-image',
+      image: req.file,
+    })
+
+    console.log('MEDIA RESPONSE in upload image:', response)
+    const conversation = await Conversation.findOne(req.body.conversationUuid)
+    const sender = await Profile.findOne(req.body.senderUuid)
+    const messageRepository = getConnection().getRepository(Message)
+
+    let type = 'image'
+    let src = response
+    let saveMessage = new Message(conversation, sender, response, type, src)
+
+    const message = await messageRepository.save(saveMessage)
+
+    return res.status(200).send(message)
     //   return res.status(200).send('User named ' + string + ' created')
   }
 )

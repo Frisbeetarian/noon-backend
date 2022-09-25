@@ -19,6 +19,10 @@ const QUEUES = {
     channel: 'relay',
     queue: 'rpc_queue.noon.relay',
   },
+  MEDIA_SERVER: {
+    channel: 'media',
+    queue: 'rpc_queue.noon.media',
+  },
 }
 
 const client = new RPCClient({
@@ -55,6 +59,17 @@ async function relayRPCRequest(channel, task, params) {
   }
 }
 
+async function mediaRPCRequest(channel, task, params) {
+  await initRPCClient()
+
+  try {
+    return await client.rpcRequest(channel, task, params)
+  } catch (e) {
+    console.log('error:', e)
+    return null
+  }
+}
+
 async function searchRPCRequest(channel, task, params) {
   await initRPCClient()
 
@@ -79,6 +94,26 @@ function relay() {
           task,
           subject,
         })
+      } catch (e) {
+        console.log('error:', e)
+        return null
+      }
+    },
+  }
+}
+
+function media() {
+  const channel = QUEUES.MEDIA_SERVER.channel
+
+  return {
+    async sendImage({ image, task }) {
+      try {
+        const mediaResponse = await mediaRPCRequest(channel, 'UPLOAD_IMAGE', {
+          image,
+          task,
+        })
+
+        return mediaResponse
       } catch (e) {
         console.log('error:', e)
         return null
@@ -141,3 +176,4 @@ function search() {
 
 module.exports.search = search
 module.exports.relay = relay
+module.exports.media = media
