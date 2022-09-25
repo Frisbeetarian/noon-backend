@@ -70,10 +70,15 @@ function relay() {
   const channel = QUEUES.RELAY_SERVER.channel
 
   return {
-    async sendEmail({ email, html }) {
+    async sendEmail({ from, email, html, task, subject }) {
       try {
-        console.log('fewnfkenkekkkkkkk')
-        return await relayRPCRequest(channel, 'SEND_EMAIL', { email, html })
+        return await relayRPCRequest(channel, 'SEND_EMAIL', {
+          from,
+          email,
+          html,
+          task,
+          subject,
+        })
       } catch (e) {
         console.log('error:', e)
         return null

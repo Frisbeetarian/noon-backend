@@ -3,21 +3,21 @@ import { __prod__ } from './constants'
 import express from 'express'
 import { ApolloServer } from 'apollo-server-express'
 import { buildSchema } from 'type-graphql'
-import { HelloResolver } from './resolvers/hello'
 import { PostResolver } from './resolvers/post'
+
 import { UserResolver } from './resolvers/user'
 import { EventResolver } from './resolvers/events'
 import Redis from 'ioredis'
 import session from 'express-session'
 import connectRedis from 'connect-redis'
 import cors from 'cors'
-import { createConnection, getConnection } from 'typeorm'
+import { createConnection } from 'typeorm'
 import { User } from './entities/User'
 import path from 'path'
 import { Updoot } from './entities/Updoot'
+
 import { createUserLoader } from './utils/createUserLoader'
 import { createUpdootLoader } from './utils/createUpdootLoader'
-
 import { Post } from './entities/Post'
 import { Profile } from './entities/Profile'
 import { Friend } from './entities/Friend'
@@ -31,11 +31,11 @@ import { CommunityParticipant } from './entities/CommunityParticipant'
 import { CommunityParticipantsResolver } from './resolvers/communityParticipants'
 
 import bodyParser from 'body-parser'
-import router from './neo4j/routes/router'
+// import router from './neo4j/routes/router'
+import mediaRouter from './media/router'
 import * as http from 'http'
 
 const app = express()
-// const server = http.createServer(app)
 let socketIo = require('socket.io')
 const { instrument } = require('@socket.io/admin-ui')
 const { setupWorker, setupMaster } = require('@socket.io/sticky')
@@ -53,6 +53,7 @@ import { ConversationToProfile } from './entities/ConversationToProfile'
 import { MessageResolver } from './resolvers/messages'
 import { ConversationProfileResolver } from './resolvers/conversationProfile'
 import { getFriendsForProfile } from './neo4j/neo4j_calls/neo4j_api'
+// const { graphqlUploadExpress } = require('graphql-upload-minimal')
 
 const main = async () => {
   await createConnection({
@@ -143,16 +144,21 @@ const main = async () => {
       userLoader: createUserLoader(),
       updootLoader: createUpdootLoader(),
     }),
+    uploads: false,
   })
+
+  // app.use(graphqlUploadExpress())
+  // app.use(graphqlUploadExpress({ maxFileSize: 10000000000, maxFiles: 10 }))
 
   apolloServer.applyMiddleware({
     app,
     cors: false,
   })
 
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
-  app.use('/test_api', router)
+  app.use(express.json())
+  app.use(express.urlencoded({ extended: true }))
+
+  app.use('/media_api', mediaRouter)
 
   // create_user('lokman')
   // const server = http.createServer(app)

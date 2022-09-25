@@ -15,8 +15,11 @@ import { MyContext } from '../types'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
 import { Message } from '../entities/Message'
 import { Post } from '../entities/Post'
+// import { GraphQLUpload, FileUpload } from 'graphql-upload'
+const { GraphQLUpload, FileUpload } = require('graphql-upload-minimal')
 
 import Redis from 'ioredis'
+// import { FileUpload } from '../../../reddit-clone-web/src/pages/noon/FileUpload';
 const redis = new Redis()
 
 const { RedisSessionStore } = require('./../socketio/sessionStore')
@@ -32,6 +35,19 @@ export class MessageResolver {
   @FieldResolver(() => [ConversationToProfile])
   conversations(@Root() profile: Profile | null) {
     return profile.conversationToProfiles
+  }
+
+  @Mutation(() => Message)
+  async uploadImage(
+    @Arg('profileUuid', () => String) profileUuid: string,
+    @Arg('conversationUuid', () => String) conversationUuid: string,
+    @Arg('file', () => GraphQLUpload, { nullable: true }) file: FileUpload,
+    @Ctx() { req }: MyContext
+  ) {
+    console.log('GREGERGERGERGERGRE')
+    if (file) {
+      console.log('file:', file)
+    }
   }
 
   @Mutation(() => Message)

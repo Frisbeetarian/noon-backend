@@ -257,8 +257,8 @@ export class UserResolver {
         }
       }
     }
-    console.log('user in register:', user)
 
+    console.log('user in register:', user)
     let profile = await Profile.findOne({ where: { userId: user?.uuid } })
 
     user = {
@@ -269,17 +269,19 @@ export class UserResolver {
     req.session.user = user
     req.session.userId = user.uuid
 
-    const token = v4()
-
-    const response = await rpcClient
-      .relay()
-      .sendEmail({
-        email: user.email,
-        html: `<a href="http://localhost:3000/change-password/${token}">reset password</a>`,
-      })
-
     console.log('user in register:', req.session.user)
     console.log('user in register:', req.session.userId)
+
+    const token = v4()
+
+    const response = rpcClient.relay().sendEmail({
+      from: 'info@noon.com',
+      email: 'mohamad.sleimanhaidar@gmail.com',
+      task: 'send-welcome-email',
+      subject: 'Registration done',
+      html: `<a href="http://localhost:3000/change-password/${token}">reset password</a>`,
+    })
+
     return { user }
   }
 
