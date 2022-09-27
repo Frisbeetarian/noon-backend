@@ -54,5 +54,34 @@ router.post(
   }
 )
 
+router.post(
+  '/upload_audio_recording',
+  upload.single('file'),
+  async function (req, res, next) {
+    let { image } = req.body
+
+    console.log('conversation uuid in upload audio recording:', req.file)
+
+    const response = await rpcClient.media().sendImage({
+      task: 'upload-image',
+      image: req.file,
+    })
+
+    console.log('MEDIA RESPONSE in upload audio recording:', response)
+    // const conversation = await Conversation.findOne(req.body.conversationUuid)
+    // const sender = await Profile.findOne(req.body.senderUuid)
+    // const messageRepository = getConnection().getRepository(Message)
+
+    // let type = 'audio'
+    // let src = response
+    // let saveMessage = new Message(conversation, sender, response, type, src)
+
+    // const message = await messageRepository.save(saveMessage)
+
+    // return res.status(200).send(message)
+    //   return res.status(200).send('User named ' + string + ' created')
+  }
+)
+
 // module.exports = router
 export default router
