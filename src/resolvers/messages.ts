@@ -55,6 +55,8 @@ export class MessageResolver {
     @Arg('message', () => String) message: string,
     @Arg('to', () => String) to: string,
     @Arg('conversationUuid', () => String) conversationUuid: string,
+    @Arg('type', () => String) type: string,
+    @Arg('src', () => String) src: string,
     @Ctx() { req }: MyContext
   ): Promise<Message | null> {
     try {
@@ -106,7 +108,9 @@ export class MessageResolver {
         let saveMessage = new Message(
           conversation,
           req.session.user.profile,
-          message
+          message,
+          type,
+          src
         )
 
         await messageRepository.save(saveMessage)

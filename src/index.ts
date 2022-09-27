@@ -341,6 +341,8 @@ const main = async () => {
           toUsername,
           message,
           conversationUuid,
+          type,
+          src,
         }) => {
           const messagePayload = {
             content,
@@ -348,6 +350,8 @@ const main = async () => {
             fromUsername,
             to,
             conversationUuid,
+            type,
+            src,
           }
 
           io.to(to).emit('private-chat-message', {
@@ -358,6 +362,8 @@ const main = async () => {
             toUsername,
             message,
             conversationUuid,
+            type,
+            src,
           })
 
           try {
