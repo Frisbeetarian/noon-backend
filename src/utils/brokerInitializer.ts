@@ -119,6 +119,23 @@ function media() {
         return null
       }
     },
+    async sendAudioRecording({ file, task }) {
+      try {
+        const mediaResponse = await mediaRPCRequest(
+          channel,
+          'UPLOAD_AUDIO_RECORDING',
+          {
+            file,
+            task,
+          }
+        )
+
+        return mediaResponse
+      } catch (e) {
+        console.log('error:', e)
+        return null
+      }
+    },
   }
 }
 
