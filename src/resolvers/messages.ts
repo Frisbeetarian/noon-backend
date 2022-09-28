@@ -148,6 +148,7 @@ export class MessageResolver {
 
         let saveMessage = new Message(
           conversation,
+          // conversation.uuid,
           req.session.user.profile,
           message,
           type,

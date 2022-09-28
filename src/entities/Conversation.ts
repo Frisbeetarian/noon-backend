@@ -30,7 +30,7 @@ export class Conversation extends BaseEntity {
 
   @OneToMany(() => Message, (message) => message.conversation, {
     cascade: true,
-    eager: true,
+    // eager: true,
   })
   messages: Message[]
 

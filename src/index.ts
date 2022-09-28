@@ -53,6 +53,7 @@ import { ConversationToProfile } from './entities/ConversationToProfile'
 import { MessageResolver } from './resolvers/messages'
 import { ConversationProfileResolver } from './resolvers/conversationProfile'
 import { getFriendsForProfile } from './neo4j/neo4j_calls/neo4j_api'
+import { createMessageLoader } from './utils/createMessageLoader'
 // const { graphqlUploadExpress } = require('graphql-upload-minimal')
 
 const main = async () => {
@@ -143,6 +144,7 @@ const main = async () => {
       redis,
       userLoader: createUserLoader(),
       updootLoader: createUpdootLoader(),
+      messageLoader: createMessageLoader(),
     }),
     uploads: false,
   })

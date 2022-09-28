@@ -18,6 +18,7 @@ import { Conversation } from './Conversation'
 export class Message extends BaseEntity {
   constructor(
     conversation: Conversation,
+    // conversationUuid: string,
     sender: Profile,
     content: string,
     type: string,
@@ -25,6 +26,7 @@ export class Message extends BaseEntity {
   ) {
     super()
     this.conversation = conversation
+    // this.conversationUuid = conversationUuid
     this.sender = sender
     this.content = content
     this.type = type
@@ -53,6 +55,10 @@ export class Message extends BaseEntity {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   src?: string
+
+  // @Field(() => String)
+  // @Column()
+  // conversationUuid: string
 
   @ManyToOne(() => Conversation, (Conversation) => Conversation.messages)
   conversation: Conversation

@@ -29,9 +29,19 @@ export class ConversationResolver {
   }
 
   @FieldResolver(() => [Message])
-  messages(@Root() conversation: Conversation | null) {
-    return conversation.messages
+  messages(
+    @Root() conversation: Conversation,
+    @Ctx() { messageLoader }: MyContext
+  ) {
+    // if (conversation.uuid) {
+    return messageLoader.load(conversation)
+    // }
   }
+
+  // @FieldResolver(() => [Message])
+  // messages(@Root() conversation: Conversation | null) {
+  // return conversation.messages
+  // }
 
   @FieldResolver(() => Profile)
   pendingCallProfile(@Root() conversation: Conversation | null) {
@@ -71,10 +81,11 @@ export class ConversationResolver {
 
             const conversationEntity = await Conversation.findOne({
               where: [{ uuid: conversation.conversationUuid }],
-              relations: ['pendingCallProfile'],
+              relations: ['pendingCallProfile', 'messages'],
             })
 
-            console.log('conversation entity:', conversationEntity)
+            // console.log('conversation entity:', conversationEntity)
+            // console.log('conversationObject:', conversationObject)
 
             objectToSend.push({
               uuid: conversationObject[0].conversationUuid,
@@ -94,17 +105,17 @@ export class ConversationResolver {
                   username: conversationObject[1].profile.username,
                 },
               ],
-              messages: [...conversationObject[0].conversation.messages],
+              messages: conversationEntity.messages,
               updatedAt: conversationObject[0].updatedAt,
               createdAt: conversationObject[0].createdAt,
             })
           })
         )
 
-        console.log(
-          'object to send fewbfowejbfkwejbfiewubfieuwbfiewubfewiub:',
-          objectToSend
-        )
+        // console.log(
+        //   'object to send fewbfowejbfkwejbfiewubfieuwbfiewubfewiub:',
+        //   objectToSend
+        // )
         return objectToSend
       }
     } catch (e) {
