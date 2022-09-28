@@ -3,9 +3,12 @@ import {
   Query,
   Arg,
   FieldResolver,
+  Int,
   Root,
   Ctx,
   Mutation,
+  ObjectType,
+  Field,
 } from 'type-graphql'
 import { Conversation } from '../entities/Conversation'
 import { getConnection } from 'typeorm'
@@ -25,6 +28,13 @@ const redis = new Redis()
 const { RedisSessionStore } = require('./../socketio/sessionStore')
 const sessionStore = new RedisSessionStore(redis)
 
+@ObjectType()
+class PaginatedMessages {
+  @Field(() => [Message])
+  messages: Message[]
+  @Field()
+  hasMore: boolean
+}
 @Resolver(Conversation)
 export class MessageResolver {
   @FieldResolver(() => [Profile])
@@ -35,6 +45,37 @@ export class MessageResolver {
   @FieldResolver(() => [ConversationToProfile])
   conversations(@Root() profile: Profile | null) {
     return profile.conversationToProfiles
+  }
+
+  @Query(() => PaginatedMessages)
+  async getMessagesForConversation(
+    @Arg('limit', () => Int) limit: number,
+    @Arg('cursor', () => String) cursor: string | null,
+    @Ctx() {}: MyContext
+  ): Promise<PaginatedMessages> {
+    const realLimit = Math.min(5, limit)
+    const realLimitPlusOne = realLimit + 1
+    const replacements: any[] = [realLimitPlusOne]
+
+    if (cursor) {
+      replacements.push(new Date(parseInt(cursor)))
+    }
+
+    const messages = await getConnection().query(
+      `
+      select m.*
+      from message m
+      ${cursor ? `where m."createdAt" < $2` : ''}
+      order by m."createdAt" DESC
+      limit $1
+      `,
+      replacements
+    )
+
+    return {
+      messages: messages.slice(0, realLimit),
+      hasMore: messages.length === realLimitPlusOne,
+    }
   }
 
   @Mutation(() => Message)
