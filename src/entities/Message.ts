@@ -8,9 +8,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
+
 import { Field, ObjectType } from 'type-graphql'
 import { Profile } from './Profile'
-
 import { Conversation } from './Conversation'
 
 @ObjectType()

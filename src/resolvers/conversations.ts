@@ -28,20 +28,20 @@ export class ConversationResolver {
     return profile.conversationToProfiles
   }
 
-  @FieldResolver(() => [Message])
-  messages(
-    @Root() conversation: Conversation,
-    @Ctx() { messageLoader }: MyContext
-  ) {
-    // if (conversation.uuid) {
-    return messageLoader.load(conversation)
-    // }
-  }
-
   // @FieldResolver(() => [Message])
-  // messages(@Root() conversation: Conversation | null) {
-  // return conversation.messages
+  // messages(
+  //   @Root() conversation: Conversation,
+  //   @Ctx() { messageLoader }: MyContext
+  // ) {
+  //   // if (conversation.uuid) {
+  //   return messageLoader.load(conversation)
+  //   // }
   // }
+
+  @FieldResolver(() => [Message])
+  messages(@Root() conversation: Conversation | null) {
+    return conversation.messages
+  }
 
   @FieldResolver(() => Profile)
   pendingCallProfile(@Root() conversation: Conversation | null) {
@@ -64,6 +64,7 @@ export class ConversationResolver {
   ): Promise<Conversation | null> {
     const loggedInProfileUuid = req.session.user.profile.uuid
     const objectToSend = []
+    let cursor = null
 
     try {
       const conversations = await ConversationToProfile.find({
@@ -74,6 +75,8 @@ export class ConversationResolver {
       if (conversations) {
         await Promise.all(
           conversations.map(async (conversation) => {
+            const replacements: any[] = [5]
+
             const conversationObject = await ConversationToProfile.find({
               where: [{ conversationUuid: conversation.conversationUuid }],
               relations: ['conversation', 'profile'],
@@ -84,8 +87,58 @@ export class ConversationResolver {
               relations: ['pendingCallProfile', 'messages'],
             })
 
-            // console.log('conversation entity:', conversationEntity)
+            replacements.push(conversationEntity.uuid)
+            console.log('conversation entity:', conversationEntity)
             // console.log('conversationObject:', conversationObject)
+            // console.log('replacements:', replacements)
+
+            const messages = await getConnection().query(
+              `
+            select profile.uuid, profile.username, message.*
+            from profile
+            LEFT JOIN message ON message."senderUuid" = profile.uuid
+            ${`where message."conversationUuid" = $2`}
+            order by message."createdAt" DESC
+            limit $1
+            `,
+              replacements
+            )
+
+            let messagesToSend = []
+            messages.forEach((message) => {
+              messagesToSend.push({
+                uuid: message.uuid,
+                content: message.content,
+                type: message.type,
+                src: message.src,
+                updatedAt: message.updatedAt,
+                createdAt: message.createdAt,
+                sender: {
+                  uuid: message.senderUuid,
+                  username: message.username,
+                },
+              })
+            })
+
+            // SELECT `settings`.*, `character_settings`.`value`
+            // FROM (`settings`)
+            // LEFT OUTER JOIN `character_settings`
+            // ON `character_settings`.`setting_id` = `settings`.`id`
+            // WHERE `character_settings`.`character_id` = '1' OR
+            // `character_settings`.character_id is NULL
+
+            // const messages = await getConnection()
+            //   .getRepository(Message)
+            //   .createQueryBuilder('m')
+            //   .leftJoinAndSelect(
+            //     'm.conversation',
+            //     'c',
+            //     'm."conversationUuid" = c.uuid'
+            //   )
+            //   .orderBy('m."createdAt"', 'DESC')
+            //   .take(5)
+
+            console.log('MESSAGE FROM QUERY BUILDer:', messages)
 
             objectToSend.push({
               uuid: conversationObject[0].conversationUuid,
@@ -105,7 +158,7 @@ export class ConversationResolver {
                   username: conversationObject[1].profile.username,
                 },
               ],
-              messages: conversationEntity.messages,
+              messages: messagesToSend,
               updatedAt: conversationObject[0].updatedAt,
               createdAt: conversationObject[0].createdAt,
             })
