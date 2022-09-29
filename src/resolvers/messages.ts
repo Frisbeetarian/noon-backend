@@ -51,33 +51,55 @@ export class MessageResolver {
   async getMessagesForConversation(
     @Arg('conversationUuid', () => String) conversationUuid: string,
     @Arg('limit', () => Int) limit: number,
-    @Arg('cursor', () => String) cursor: string | null,
+    @Arg('cursor', () => String, { nullable: true }) cursor: string | null,
     @Ctx() {}: MyContext
   ): Promise<PaginatedMessages> {
     const realLimit = Math.min(5, limit)
     const realLimitPlusOne = realLimit + 1
     const replacements: any[] = [realLimitPlusOne]
-    replacements.push(conversationUuid)
 
     if (cursor) {
       replacements.push(new Date(parseInt(cursor)))
     }
+    replacements.push(conversationUuid)
 
+    console.log('cursor:', cursor)
+
+    console.log('replacements:', replacements)
     const messages = await getConnection().query(
       `
       select profile.uuid, profile.username, message.*
       from profile
       LEFT JOIN message ON message."senderUuid" = profile.uuid
-      ${`where message."conversationUuid" = $3`}
-      and ${cursor ? `where message."createdAt" < $2` : ''}
+      ${
+        cursor
+          ? `where message."conversationUuid" = $3 and message."createdAt" < $2`
+          : `where message."conversationUuid" = $2`
+      }
       order by message."createdAt" DESC
       limit $1
       `,
       replacements
     )
 
+    let messagesToSend = []
+    messages.forEach((message) => {
+      messagesToSend.push({
+        uuid: message.uuid,
+        content: message.content,
+        type: message.type,
+        src: message.src,
+        updatedAt: message.updatedAt,
+        createdAt: message.createdAt,
+        sender: {
+          uuid: message.senderUuid,
+          username: message.username,
+        },
+      })
+    })
+
     return {
-      messages: messages.slice(0, realLimit),
+      messages: messagesToSend,
       hasMore: messages.length === realLimitPlusOne,
     }
   }
