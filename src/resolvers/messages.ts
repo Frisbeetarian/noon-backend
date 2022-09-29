@@ -49,6 +49,7 @@ export class MessageResolver {
 
   @Query(() => PaginatedMessages)
   async getMessagesForConversation(
+    @Arg('conversationUuid', () => String) conversationUuid: string,
     @Arg('limit', () => Int) limit: number,
     @Arg('cursor', () => String) cursor: string | null,
     @Ctx() {}: MyContext
@@ -56,6 +57,7 @@ export class MessageResolver {
     const realLimit = Math.min(5, limit)
     const realLimitPlusOne = realLimit + 1
     const replacements: any[] = [realLimitPlusOne]
+    replacements.push(conversationUuid)
 
     if (cursor) {
       replacements.push(new Date(parseInt(cursor)))
@@ -63,10 +65,12 @@ export class MessageResolver {
 
     const messages = await getConnection().query(
       `
-      select m.*
-      from message m
-      ${cursor ? `where m."createdAt" < $2` : ''}
-      order by m."createdAt" DESC
+      select profile.uuid, profile.username, message.*
+      from profile
+      LEFT JOIN message ON message."senderUuid" = profile.uuid
+      ${`where message."conversationUuid" = $3`}
+      and ${cursor ? `where message."createdAt" < $2` : ''}
+      order by message."createdAt" DESC
       limit $1
       `,
       replacements
