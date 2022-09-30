@@ -61,11 +61,11 @@ export class MessageResolver {
     if (cursor) {
       replacements.push(new Date(parseInt(cursor)))
     }
+
     replacements.push(conversationUuid)
-
     console.log('cursor:', cursor)
-
     console.log('replacements:', replacements)
+
     const messages = await getConnection().query(
       `
       select profile.uuid, profile.username, message.*
@@ -83,6 +83,7 @@ export class MessageResolver {
     )
 
     let messagesToSend = []
+
     messages.forEach((message) => {
       messagesToSend.push({
         uuid: message.uuid,
