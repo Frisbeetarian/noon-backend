@@ -92,33 +92,33 @@ export class ConversationResolver {
             // console.log('conversationObject:', conversationObject)
             // console.log('replacements:', replacements)
 
-            // const messages = await getConnection().query(
-            //   `
-            // select profile.uuid, profile.username, message.*
-            // from profile
-            // LEFT JOIN message ON message."senderUuid" = profile.uuid
-            // ${`where message."conversationUuid" = $2`}
-            // order by message."createdAt" DESC
-            // limit $1
-            // `,
-            //   replacements
-            // )
+            const messages = await getConnection().query(
+              `
+            select profile.uuid, profile.username, message.*
+            from profile
+            LEFT JOIN message ON message."senderUuid" = profile.uuid
+            ${`where message."conversationUuid" = $2`}
+            order by message."createdAt" DESC
+            limit $1
+            `,
+              replacements
+            )
 
-            // let messagesToSend = []
-            // messages.forEach((message) => {
-            //   messagesToSend.push({
-            //     uuid: message.uuid,
-            //     content: message.content,
-            //     type: message.type,
-            //     src: message.src,
-            //     updatedAt: message.updatedAt,
-            //     createdAt: message.createdAt,
-            //     sender: {
-            //       uuid: message.senderUuid,
-            //       username: message.username,
-            //     },
-            //   })
-            // })
+            let messagesToSend = []
+            messages.forEach((message) => {
+              messagesToSend.push({
+                uuid: message.uuid,
+                content: message.content,
+                type: message.type,
+                src: message.src,
+                updatedAt: message.updatedAt,
+                createdAt: message.createdAt,
+                sender: {
+                  uuid: message.senderUuid,
+                  username: message.username,
+                },
+              })
+            })
 
             // SELECT `settings`.*, `character_settings`.`value`
             // FROM (`settings`)
@@ -158,7 +158,7 @@ export class ConversationResolver {
                   username: conversationObject[1].profile.username,
                 },
               ],
-              // messages: messagesToSend,
+              messages: messagesToSend,
               updatedAt: conversationObject[0].updatedAt,
               createdAt: conversationObject[0].createdAt,
             })

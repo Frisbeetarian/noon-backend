@@ -35,6 +35,7 @@ class PaginatedMessages {
   @Field()
   hasMore: boolean
 }
+
 @Resolver(Conversation)
 export class MessageResolver {
   @FieldResolver(() => [Profile])
@@ -54,6 +55,13 @@ export class MessageResolver {
     @Arg('cursor', () => String, { nullable: true }) cursor: string | null,
     @Ctx() {}: MyContext
   ): Promise<PaginatedMessages> {
+    if (conversationUuid === null) {
+      return {
+        messages: [],
+        hasMore: false,
+      }
+    }
+
     const realLimit = Math.min(5, limit)
     const realLimitPlusOne = realLimit + 1
     const replacements: any[] = [realLimitPlusOne]
@@ -81,6 +89,8 @@ export class MessageResolver {
       `,
       replacements
     )
+
+    console.log('messages:', messages)
 
     let messagesToSend = []
 
