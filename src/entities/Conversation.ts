@@ -41,6 +41,10 @@ export class Conversation extends BaseEntity {
   @Field()
   @Column({ default: '', nullable: true })
   profileThatHasUnreadMessages?: string
+
+  @Field(() => Boolean)
+  @Column({ default: false })
+  hasMore?: boolean
   // @OneToMany(() => Profile, (profile) => profile.conversations)
   // profiles: Profile[]
 

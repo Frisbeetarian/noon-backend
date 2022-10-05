@@ -56,9 +56,9 @@ export class Message extends BaseEntity {
   @Column({ nullable: true })
   src?: string
 
-  // @Field(() => String)
-  // @Column()
-  // conversationUuid: string
+  @Field(() => String)
+  @Column()
+  conversationUuid: string
 
   @ManyToOne(() => Conversation, (Conversation) => Conversation.messages)
   conversation: Conversation

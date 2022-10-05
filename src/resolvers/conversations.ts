@@ -8,6 +8,7 @@ import {
   Field,
   Mutation,
 } from 'type-graphql'
+
 import { Conversation } from '../entities/Conversation'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
@@ -48,6 +49,11 @@ export class ConversationResolver {
     return conversation.pendingCallProfile
   }
 
+  // @FieldResolver(() => Boolean)
+  // hasMore(@Root() conversation: Conversation | null) {
+  //   return conversation.hasMore
+  // }
+
   // @FieldResolver(() => Conversation)
   // unreadMessages(@Root() conversation: Conversation | null) {
   //   return conversation?.unreadMessages
@@ -58,12 +64,36 @@ export class ConversationResolver {
   //   return conversation?.profileThatHasUnreadMessages
   // }
 
+  @Query(() => Boolean)
+  async checkIfConversationHasMoreMessages(
+    @Arg('conversationUuid', () => String) conversationUuid: number | string,
+    @Ctx() { req }: MyContext
+  ): Promise<Boolean> {
+    console.log('count in check conversation')
+    try {
+      const [count] = await Promise.all([
+        Message.count({ where: { conversationUuid } }),
+      ])
+
+      console.log('count in check conversation:', count)
+      return count > 20 ? true : false
+    } catch (e) {
+      console.log('error:', e)
+      return false
+    }
+
+    // if(count > 20) return true else return false
+  }
+
   @Query(() => [Conversation], { nullable: true })
   async getConversationForLoggedInUser(
     @Ctx() { req }: MyContext
   ): Promise<Conversation | null> {
     const loggedInProfileUuid = req.session.user.profile.uuid
     const objectToSend = []
+
+    const realLimit = 20
+    const realLimitPlusOne = realLimit + 1
     let cursor = null
 
     try {
@@ -75,7 +105,7 @@ export class ConversationResolver {
       if (conversations) {
         await Promise.all(
           conversations.map(async (conversation) => {
-            const replacements: any[] = [5]
+            const replacements: any[] = [20]
 
             const conversationObject = await ConversationToProfile.find({
               where: [{ conversationUuid: conversation.conversationUuid }],
@@ -88,7 +118,7 @@ export class ConversationResolver {
             })
 
             replacements.push(conversationEntity.uuid)
-            console.log('conversation entity:', conversationEntity)
+            // console.log('conversation entity:', conversationEntity)
             // console.log('conversationObject:', conversationObject)
             // console.log('replacements:', replacements)
 
@@ -137,7 +167,6 @@ export class ConversationResolver {
             //   )
             //   .orderBy('m."createdAt"', 'DESC')
             //   .take(5)
-
             // console.log('MESSAGE FROM QUERY BUILDer:', messages)
 
             objectToSend.push({
@@ -159,16 +188,15 @@ export class ConversationResolver {
                 },
               ],
               messages: messagesToSend,
+              hasMore: messages.length === realLimitPlusOne,
               updatedAt: conversationObject[0].updatedAt,
               createdAt: conversationObject[0].createdAt,
             })
+
+            // console.log('messages.length:', messagesToSend.length)
           })
         )
 
-        // console.log(
-        //   'object to send fewbfowejbfkwejbfiewubfieuwbfiewubfewiub:',
-        //   objectToSend
-        // )
         return objectToSend
       }
     } catch (e) {

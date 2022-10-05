@@ -62,7 +62,7 @@ export class MessageResolver {
       }
     }
 
-    const realLimit = Math.min(5, limit)
+    const realLimit = Math.min(20, limit)
     const realLimitPlusOne = realLimit + 1
     const replacements: any[] = [realLimitPlusOne]
 
@@ -91,7 +91,6 @@ export class MessageResolver {
     )
 
     console.log('messages:', messages)
-
     let messagesToSend = []
 
     messages.forEach((message) => {
