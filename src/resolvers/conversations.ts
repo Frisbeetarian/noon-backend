@@ -70,6 +70,7 @@ export class ConversationResolver {
     @Ctx() { req }: MyContext
   ): Promise<Boolean> {
     console.log('count in check conversation')
+
     try {
       const [count] = await Promise.all([
         Message.count({ where: { conversationUuid } }),
@@ -188,12 +189,13 @@ export class ConversationResolver {
                 },
               ],
               messages: messagesToSend,
-              hasMore: messages.length === realLimitPlusOne,
+              hasMore: messages.length === realLimit,
               updatedAt: conversationObject[0].updatedAt,
               createdAt: conversationObject[0].createdAt,
             })
 
-            // console.log('messages.length:', messagesToSend.length)
+            console.log('messages.length:', messages.length)
+            console.log('realLimitPlusOne:', realLimitPlusOne)
           })
         )
 
