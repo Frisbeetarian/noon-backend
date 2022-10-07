@@ -7,6 +7,7 @@ import {
   Ctx,
   Field,
   Mutation,
+  InputType,
 } from 'type-graphql'
 
 import { Conversation } from '../entities/Conversation'
@@ -16,6 +17,14 @@ import { Friend } from '../entities/Friend'
 import { MyContext } from '../types'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
 import { Message } from '../entities/Message'
+
+@InputType()
+class GroupInput {
+  @Field()
+  name: string
+  @Field()
+  description: string
+}
 
 @Resolver(Conversation)
 export class ConversationResolver {
@@ -207,6 +216,16 @@ export class ConversationResolver {
     }
 
     return objectToSend
+  }
+
+  @Mutation(() => Conversation)
+  async createGroupConversation(
+    @Arg('input') input: GroupInput,
+    @Arg('participants', () => [String]) participants: [string],
+    @Ctx() { req }: MyContext
+  ) {
+    console.log('input in create group function:', participants)
+    console.log('participants in create group function:', participants)
   }
 
   @Mutation(() => Boolean)
