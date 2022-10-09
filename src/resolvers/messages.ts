@@ -128,6 +128,83 @@ export class MessageResolver {
   }
 
   @Mutation(() => Message)
+  async saveGroupMessage(
+    @Arg('message', () => String) message: string,
+    @Arg('conversationUuid', () => String) conversationUuid: string,
+    @Arg('type', () => String) type: string,
+    @Arg('src', () => String) src: string,
+    @Ctx() { req }: MyContext
+  ): Promise<Message | null> {
+    try {
+      const messageRepository = getConnection().getRepository(Message)
+      const conversation = await Conversation.findOne(conversationUuid)
+
+      const conversationToProfiles = await ConversationToProfile.find({
+        where: { conversationUuid },
+      })
+
+      console.log(
+        'conversationToProfiles on save message:',
+        conversationToProfiles
+      )
+
+      if (conversation) {
+        conversationToProfiles.map(async (conversationToProfile) => {
+          const session = await sessionStore.findSession(
+            conversationToProfile.profileUuid
+          )
+
+          if (!session.connected) {
+            await getConnection()
+              .createQueryBuilder()
+              .update(ConversationToProfile)
+              .set({
+                unreadMessages: conversationToProfile.unreadMessages + 1,
+                profileThatHasUnreadMessages: conversationToProfile.profileUuid,
+              })
+              .where('conversationUuid = :conversationUuid', {
+                conversationUuid,
+              })
+              .returning('*')
+              .execute()
+          } else {
+            // Get timestamp from client to set on server, otherwise date discrepancies might occur
+            await getConnection()
+              .createQueryBuilder()
+              .update(ConversationToProfile)
+              .set({
+                updatedAt: new Date(),
+              })
+              .where('conversationUuid = :conversationUuid', {
+                conversationUuid,
+              })
+              .returning('*')
+              .execute()
+          }
+
+          let saveMessage = new Message(
+            conversation,
+            // conversation.uuid,
+            req.session.user.profile,
+            message,
+            type,
+            src
+          )
+
+          await messageRepository.save(saveMessage)
+        })
+      }
+
+      return null
+    } catch (e) {
+      console.log('error:', e)
+      return null
+    }
+
+    return null
+  }
+
+  @Mutation(() => Message)
   async saveMessage(
     @Arg('message', () => String) message: string,
     @Arg('to', () => String) to: string,
