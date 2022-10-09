@@ -13,6 +13,7 @@ import {
 import { Conversation } from '../entities/Conversation'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
+
 import { Friend } from '../entities/Friend'
 import { MyContext } from '../types'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
@@ -24,6 +25,8 @@ class GroupInput {
   name: string
   @Field()
   description: string
+  @Field()
+  type: string
 }
 
 @Resolver(Conversation)
@@ -106,11 +109,52 @@ export class ConversationResolver {
     const realLimitPlusOne = realLimit + 1
     let cursor = null
 
+    const conversationReplacements: any[] = [loggedInProfileUuid, 20]
+
     try {
-      const conversations = await ConversationToProfile.find({
-        where: [{ profileUuid: loggedInProfileUuid }],
-        relations: ['conversation', 'profile'],
-      })
+      // const conversations = await ConversationToProfile.find({
+      //   where: [{ profileUuid: loggedInProfileUuid }],
+      //   relations: ['conversation', 'profile'],
+      // })
+
+      // const conversations = await Conversation
+      // const conversationsOnJoin = await getConnection().query(
+      //   `
+      // select conversation.uuid, conversation_profile.*
+      // from conversation
+      // LEFT JOIN conversation_profile ON conversation_profile."conversationUuid" = conversation.uuid
+      // ${`where conversation_profile."profileUuid" = $1`}
+      // order by conversation_profile."createdAt" DESC
+      // limit $2
+      // `,
+      //   conversationReplacements
+      // )
+
+      const conversations = await getConnection().query(
+        `
+        select conversation_profile.*, conversation.*
+        from conversation_profile
+        LEFT JOIN conversation ON conversation_profile."conversationUuid" = conversation.uuid
+        ${`where conversation_profile."profileUuid" = $1`}
+        order by conversation_profile."createdAt" DESC
+        limit $2
+      `,
+        conversationReplacements
+      )
+
+      // const messages = await getConnection().query(
+      //   `
+      // select profile.uuid, profile.username, message.*
+      // from profile
+      // LEFT JOIN message ON message."senderUuid" = profile.uuid
+      // ${`where message."conversationUuid" = $2`}
+      // order by message."createdAt" DESC
+      // limit $1
+      // `,
+      //   replacements
+      // )
+
+      console.log('conversations:', conversations)
 
       if (conversations) {
         await Promise.all(
@@ -127,7 +171,9 @@ export class ConversationResolver {
               relations: ['pendingCallProfile', 'messages'],
             })
 
+            console.log('conversation object:', conversationObject)
             replacements.push(conversationEntity.uuid)
+
             // console.log('conversation entity:', conversationEntity)
             // console.log('conversationObject:', conversationObject)
             // console.log('replacements:', replacements)
@@ -180,13 +226,13 @@ export class ConversationResolver {
             // console.log('MESSAGE FROM QUERY BUILDer:', messages)
 
             objectToSend.push({
-              uuid: conversationObject[0].conversationUuid,
-              unreadMessages: conversationObject[0].unreadMessages,
+              uuid: conversation.conversationUuid,
+              unreadMessages: conversation.unreadMessages,
               profileThatHasUnreadMessages:
-                conversationObject[0].profileThatHasUnreadMessages,
-              ongoingCall: conversationEntity.ongoingCall,
-              pendingCall: conversationEntity.pendingCall,
-              pendingCallProfile: conversationEntity.pendingCallProfile,
+                conversation.profileThatHasUnreadMessages,
+              ongoingCall: conversation.ongoingCall,
+              pendingCall: conversation.pendingCall,
+              pendingCallProfile: conversation.pendingCallProfile,
               profiles: [
                 {
                   uuid: conversationObject[0].profile.uuid,
@@ -197,14 +243,17 @@ export class ConversationResolver {
                   username: conversationObject[1].profile.username,
                 },
               ],
+              type: conversation.type,
+              name: conversation.name,
+              description: conversation.description,
               messages: messagesToSend,
               hasMore: messages.length === realLimit,
-              updatedAt: conversationObject[0].updatedAt,
-              createdAt: conversationObject[0].createdAt,
+              updatedAt: conversation.updatedAt,
+              createdAt: conversation.createdAt,
             })
 
-            console.log('messages.length:', messages.length)
-            console.log('realLimitPlusOne:', realLimitPlusOne)
+            // console.log('messages.length:', messages.length)
+            // console.log('realLimitPlusOne:', realLimitPlusOne)
           })
         )
 
@@ -223,9 +272,60 @@ export class ConversationResolver {
     @Arg('input') input: GroupInput,
     @Arg('participants', () => [String]) participants: [string],
     @Ctx() { req }: MyContext
-  ) {
+  ): Promise<Conversation> {
     console.log('input in create group function:', participants)
     console.log('participants in create group function:', participants)
+
+    try {
+      // const conversationRepository = getConnection().getRepository(Conversation)
+      const conversationProfileRepository = getConnection().getRepository(
+        ConversationToProfile
+      )
+
+      let conversation = await Conversation.create({
+        ...input,
+      }).save()
+
+      // let conversation = new Conversation()
+      // await conversationRepository.save(conversation)
+
+      let participantsArray = []
+
+      // const [count] = await Promise.all([
+      //   Message.count({ where: { conversationUuid } }),
+      // ])
+
+      await Promise.all(
+        participants.map(async (participant) => {
+          const profile = await Profile.findOne(participant)
+
+          participantsArray.push({
+            uuid: profile?.uuid,
+            username: profile?.username,
+          })
+
+          const conversationToProfile = new ConversationToProfile(
+            conversation,
+            profile
+          )
+
+          await conversationProfileRepository.save(conversationToProfile)
+        })
+      )
+
+      return (conversation = {
+        ...conversation,
+        unreadMessages: 0,
+        messages: [],
+        ongoingCall: false,
+        pendingCall: false,
+        pendingCallProfile: null,
+        profiles: participantsArray,
+      })
+    } catch (e) {
+      console.log(e)
+      return null
+    }
   }
 
   @Mutation(() => Boolean)

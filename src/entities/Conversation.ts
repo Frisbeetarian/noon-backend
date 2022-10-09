@@ -38,9 +38,21 @@ export class Conversation extends BaseEntity {
   @Column({ default: 0 })
   unreadMessages?: number
 
+  @Field(() => String)
+  @Column({ default: 'pm' })
+  type: string
+
   @Field()
   @Column({ default: '', nullable: true })
   profileThatHasUnreadMessages?: string
+
+  @Field(() => String, { nullable: true })
+  @Column({ default: null, nullable: true })
+  name?: string
+
+  @Field(() => String, { nullable: true })
+  @Column({ default: null, nullable: true })
+  description?: string
 
   @Field(() => Boolean)
   @Column({ default: false })
@@ -52,6 +64,7 @@ export class Conversation extends BaseEntity {
   // @JoinTable()
   // profiles: Profile[]
 
+  @Field(() => [ConversationToProfile])
   @OneToMany(
     () => ConversationToProfile,
     (conversationToProfile) => conversationToProfile.conversation
