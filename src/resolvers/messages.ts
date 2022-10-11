@@ -181,18 +181,18 @@ export class MessageResolver {
               .returning('*')
               .execute()
           }
-
-          let saveMessage = new Message(
-            conversation,
-            // conversation.uuid,
-            req.session.user.profile,
-            message,
-            type,
-            src
-          )
-
-          await messageRepository.save(saveMessage)
         })
+
+        let saveMessage = new Message(
+          conversation,
+          // conversation.uuid,
+          req.session.user.profile,
+          message,
+          type,
+          src
+        )
+
+        await messageRepository.save(saveMessage)
       }
 
       return null
