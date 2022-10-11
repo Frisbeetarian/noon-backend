@@ -331,7 +331,12 @@ const main = async () => {
           uuid: socket.handshake.auth.sessionID,
         })
       })
-      // })
+
+      socket.on('group-created', async ({ groupUuid, participants }) => {
+        participants.map((participant) => {
+          socket.join(groupUuid)
+        })
+      })
 
       socket.on(
         'private-chat-message',

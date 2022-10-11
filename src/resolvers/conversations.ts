@@ -274,7 +274,6 @@ export class ConversationResolver {
     console.log('participants in create group function:', participants)
 
     try {
-      // const conversationRepository = getConnection().getRepository(Conversation)
       const conversationProfileRepository = getConnection().getRepository(
         ConversationToProfile
       )
