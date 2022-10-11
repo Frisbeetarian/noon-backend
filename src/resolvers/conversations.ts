@@ -154,7 +154,7 @@ export class ConversationResolver {
       //   replacements
       // )
 
-      console.log('conversations:', conversations)
+      // console.log('conversations:', conversations)
 
       if (conversations) {
         await Promise.all(
@@ -171,7 +171,6 @@ export class ConversationResolver {
               relations: ['pendingCallProfile', 'messages'],
             })
 
-            console.log('conversation object:', conversationObject)
             replacements.push(conversationEntity.uuid)
 
             // console.log('conversation entity:', conversationEntity)
@@ -189,6 +188,13 @@ export class ConversationResolver {
             `,
               replacements
             )
+            let profilesToSend = []
+
+            conversationObject.map((object) => {
+              console.log('conversation profile object:', object.profile)
+
+              profilesToSend.push(object.profile)
+            })
 
             let messagesToSend = []
             messages.forEach((message) => {
@@ -233,16 +239,7 @@ export class ConversationResolver {
               ongoingCall: conversation.ongoingCall,
               pendingCall: conversation.pendingCall,
               pendingCallProfile: conversation.pendingCallProfile,
-              profiles: [
-                {
-                  uuid: conversationObject[0].profile.uuid,
-                  username: conversationObject[0].profile.username,
-                },
-                {
-                  uuid: conversationObject[1].profile.uuid,
-                  username: conversationObject[1].profile.username,
-                },
-              ],
+              profiles: profilesToSend,
               type: conversation.type,
               name: conversation.name,
               description: conversation.description,

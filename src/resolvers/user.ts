@@ -224,7 +224,9 @@ export class UserResolver {
     }
     const hashedPassword = await argon2.hash(options.password)
     let user
+
     console.log('ENTER REGISTER')
+
     try {
       const result = await getConnection()
         .createQueryBuilder()
@@ -237,7 +239,6 @@ export class UserResolver {
         })
         .returning('*')
         .execute()
-      // user = result.raw[0]
 
       user = await User.findOne(result.raw[0].uuid)
       console.log('user in register:', user)
