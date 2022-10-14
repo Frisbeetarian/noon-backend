@@ -30,6 +30,7 @@ import { Conversation } from '../entities/Conversation'
 import { getConnection } from 'typeorm'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
 import rpcClient from '../utils/brokerInitializer'
+import { Message } from '../entities/Message'
 
 // @InputType()
 // class ProfileInput {
@@ -265,6 +266,15 @@ export class ProfileResolver {
       .createQueryBuilder()
       .delete()
       .from(ConversationToProfile)
+      .where('conversationUuid = :conversationUuid', {
+        conversationUuid,
+      })
+      .execute()
+
+    await getConnection()
+      .createQueryBuilder()
+      .delete()
+      .from(Message)
       .where('conversationUuid = :conversationUuid', {
         conversationUuid,
       })

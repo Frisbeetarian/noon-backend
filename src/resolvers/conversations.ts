@@ -270,7 +270,7 @@ export class ConversationResolver {
     @Arg('participants', () => [String]) participants: [string],
     @Ctx() { req }: MyContext
   ): Promise<Conversation> {
-    console.log('input in create group function:', participants)
+    console.log('input in create group function:', input)
     console.log('participants in create group function:', participants)
 
     try {
