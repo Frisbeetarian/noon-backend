@@ -343,19 +343,16 @@ const main = async () => {
         }) => {
           participants.map((participant) => {
             // figure out way to send messages to groups
-            // socket.join(groupUuid)
-            // fromUuid: loggedInUser.user?.profile?.uuid,
-            //   fromUsername: loggedInUser.user?.profile?.username,
-            //   groupUuid: conversation.data?.createGroupConversation.uuid,
-            //   conversation: conversation.data?.createGroupConversation,
-            //   participants: participantsToSend,
-            io.to(participant).emit('invited-to-group', {
-              fromUuid,
-              fromUsername,
-              conversation,
-              groupUuid,
-              participants,
-            })
+
+            if (participant !== fromUuid) {
+              io.to(participant).emit('invited-to-group', {
+                fromUuid,
+                fromUsername,
+                conversation,
+                groupUuid,
+                participants,
+              })
+            }
           })
         }
       )
