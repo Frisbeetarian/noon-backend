@@ -332,11 +332,33 @@ const main = async () => {
         })
       })
 
-      socket.on('group-created', async ({ groupUuid, participants }) => {
-        participants.map((participant) => {
-          socket.join(groupUuid)
-        })
-      })
+      socket.on(
+        'group-created',
+        async ({
+          fromUuid,
+          fromUsername,
+          conversation,
+          groupUuid,
+          participants,
+        }) => {
+          participants.map((participant) => {
+            // figure out way to send messages to groups
+            // socket.join(groupUuid)
+            // fromUuid: loggedInUser.user?.profile?.uuid,
+            //   fromUsername: loggedInUser.user?.profile?.username,
+            //   groupUuid: conversation.data?.createGroupConversation.uuid,
+            //   conversation: conversation.data?.createGroupConversation,
+            //   participants: participantsToSend,
+            io.to(participant).emit('invited-to-group', {
+              fromUuid,
+              fromUsername,
+              conversation,
+              groupUuid,
+              participants,
+            })
+          })
+        }
+      )
 
       socket.on(
         'private-chat-message',
@@ -374,11 +396,10 @@ const main = async () => {
           })
 
           try {
+            messageStore.saveMessage(messagePayload)
           } catch (e) {
             console.log('ERROR SAVING CONVERSATION:', e)
           }
-
-          messageStore.saveMessage(messagePayload)
         }
       )
 

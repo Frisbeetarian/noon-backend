@@ -218,6 +218,7 @@ export class ProfileResolver {
         recipientProfile?.uuid,
         recipientProfile?.username
       )
+
       return true
     } catch (e) {
       console.log(e)
@@ -243,6 +244,7 @@ export class ProfileResolver {
         recipientProfile?.uuid,
         recipientProfile?.username
       )
+
       return true
     } catch (e) {
       console.log(e)
