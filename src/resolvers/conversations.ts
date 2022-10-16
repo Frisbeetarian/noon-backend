@@ -264,6 +264,43 @@ export class ConversationResolver {
     return objectToSend
   }
 
+  @Mutation(() => Boolean)
+  async leaveGroup(
+    @Arg('groupUuid', () => String) groupUuid: string,
+    @Ctx() { req }: MyContext
+  ): Promise<Boolean> {
+    try {
+      const profile = await Profile.findOne({
+        where: { uuid: req.session.userId },
+      })
+
+      // .where('id = :id and "creatorId" = :creatorId', {
+      //   id,
+      //   creatorId: req.session.userId,
+      // })
+      if (profile) {
+        await getConnection()
+          .createQueryBuilder()
+          .delete()
+          .from(ConversationToProfile)
+          .where(
+            'conversationUuid = :conversationUuid and profileUuid = :profileUuid',
+            {
+              groupUuid,
+              profileUuid: profile.uuid,
+            }
+          )
+          .execute()
+      }
+
+      return true
+    } catch (e) {
+      console.log('error:', e)
+      return false
+    }
+    return false
+  }
+
   @Mutation(() => Conversation)
   async createGroupConversation(
     @Arg('input') input: GroupInput,
