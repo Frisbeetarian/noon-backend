@@ -270,28 +270,26 @@ export class ConversationResolver {
     @Ctx() { req }: MyContext
   ): Promise<Boolean> {
     try {
-      const profile = await Profile.findOne({
-        where: { uuid: req.session.userId },
-      })
+      // const profile = await Profile.findOne({
+      //   where: { uuid: req.session.userId },
+      // })
 
       // .where('id = :id and "creatorId" = :creatorId', {
       //   id,
       //   creatorId: req.session.userId,
       // })
-      if (profile) {
-        await getConnection()
-          .createQueryBuilder()
-          .delete()
-          .from(ConversationToProfile)
-          .where(
-            'conversationUuid = :conversationUuid and profileUuid = :profileUuid',
-            {
-              groupUuid,
-              profileUuid: profile.uuid,
-            }
-          )
-          .execute()
-      }
+
+      // if (profile) {
+      await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(ConversationToProfile)
+        .where('conversationUuid = :groupUuid and profileUuid = :profileUuid', {
+          groupUuid,
+          profileUuid: req.session.user.profile.uuid,
+        })
+        .execute()
+      // }
 
       return true
     } catch (e) {

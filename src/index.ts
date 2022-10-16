@@ -361,11 +361,12 @@ const main = async () => {
       // loggedInUser.user?.profile?.username,
       //   conversationUuid: conversation.uuid,
       //   participants: participantsToSend,
+
       socket.on(
         'left-group',
         async ({ fromUuid, fromUsername, conversationUuid, participants }) => {
           participants.map((participant) => {
-            // figure out way to send messages to groups
+            // TODO figure out way to send messages to groups
 
             io.to(participant).emit('left-group', {
               fromUuid,
