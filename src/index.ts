@@ -356,6 +356,25 @@ const main = async () => {
           })
         }
       )
+      // from: loggedInUser.user?.profile?.uuid,
+      //   fromUsername:
+      // loggedInUser.user?.profile?.username,
+      //   conversationUuid: conversation.uuid,
+      //   participants: participantsToSend,
+      socket.on(
+        'left-group',
+        async ({ fromUuid, fromUsername, conversationUuid, participants }) => {
+          participants.map((participant) => {
+            // figure out way to send messages to groups
+
+            io.to(participant).emit('left-group', {
+              fromUuid,
+              fromUsername,
+              conversationUuid,
+            })
+          })
+        }
+      )
 
       socket.on(
         'private-chat-message',
