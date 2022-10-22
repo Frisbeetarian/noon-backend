@@ -154,7 +154,7 @@ export class MessageResolver {
             conversationToProfile.profileUuid
           )
 
-          if (!session.connected) {
+          if (!session?.connected) {
             await getConnection()
               .createQueryBuilder()
               .update(ConversationToProfile)
@@ -231,7 +231,7 @@ export class MessageResolver {
         const session = await sessionStore.findSession(to)
         console.log('session on save message:', session)
 
-        if (!session.connected) {
+        if (!session?.connected) {
           await getConnection()
             .createQueryBuilder()
             .update(ConversationToProfile)

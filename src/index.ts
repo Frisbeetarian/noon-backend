@@ -356,6 +356,7 @@ const main = async () => {
           })
         }
       )
+
       // from: loggedInUser.user?.profile?.uuid,
       //   fromUsername:
       // loggedInUser.user?.profile?.username,
@@ -367,7 +368,6 @@ const main = async () => {
         async ({ fromUuid, fromUsername, conversationUuid, participants }) => {
           participants.map((participant) => {
             // TODO figure out way to send messages to groups
-
             io.to(participant).emit('left-group', {
               fromUuid,
               fromUsername,
