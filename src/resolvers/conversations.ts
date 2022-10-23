@@ -41,6 +41,11 @@ export class ConversationResolver {
     return profile.conversationToProfiles
   }
 
+  @FieldResolver(() => [ConversationToProfile])
+  calls(@Root() conversation: Conversation | null) {
+    return conversation.calls
+  }
+
   // @FieldResolver(() => [Message])
   // messages(
   //   @Root() conversation: Conversation,
@@ -154,7 +159,7 @@ export class ConversationResolver {
       //   replacements
       // )
 
-      // console.log('conversations:', conversations)
+      console.log('conversations newnew:', conversations)
 
       if (conversations) {
         await Promise.all(
@@ -174,7 +179,7 @@ export class ConversationResolver {
             replacements.push(conversationEntity.uuid)
 
             // console.log('conversation entity:', conversationEntity)
-            // console.log('conversationObject:', conversationObject)
+            console.log('conversationObject:', conversationObject)
             // console.log('replacements:', replacements)
 
             const messages = await getConnection().query(
@@ -189,10 +194,15 @@ export class ConversationResolver {
               replacements
             )
             let profilesToSend = []
+            let calls = []
 
             conversationObject.map((object) => {
-              console.log('conversation profile object:', object.profile)
-
+              // console.log('conversation profile object:', object.profile)
+              calls.push({
+                profileUuid: object.profile.uuid,
+                pendingCall: object.pendingCall,
+                ongoingCall: object.ongoingCall,
+              })
               profilesToSend.push(object.profile)
             })
 
@@ -239,6 +249,7 @@ export class ConversationResolver {
               ongoingCall: conversation.ongoingCall,
               pendingCall: conversation.pendingCall,
               pendingCallProfile: conversation.pendingCallProfile,
+              calls: calls,
               profiles: profilesToSend,
               type: conversation.type,
               name: conversation.name,
@@ -362,24 +373,27 @@ export class ConversationResolver {
   @Mutation(() => Boolean)
   async setPendingCallForConversation(
     @Arg('conversationUuid', () => String) conversationUuid: number | string,
-    @Arg('pendingCallInitiatorUuid', () => String)
-    pendingCallInitiatorUuid: string,
+    @Arg('profileUuid', () => String)
+    profileUuid: string,
     @Ctx() { req }: MyContext
   ) {
     try {
       console.log('pending call conversation uuid:', conversationUuid)
-      console.log('pending call initiating:', pendingCallInitiatorUuid)
+      console.log('pending call initiating:', profileUuid)
 
       await getConnection()
         .createQueryBuilder()
-        .update(Conversation)
+        .update(ConversationToProfile)
         .set({
           pendingCall: true,
-          pendingCallProfile: req.session.user.profile.uuid,
         })
-        .where('uuid = :conversationUuid', {
-          conversationUuid,
-        })
+        .where(
+          'conversationUuid = :conversationUuid and profileUuid = :profileUuid',
+          {
+            conversationUuid,
+            profileUuid,
+          }
+        )
         .returning('*')
         .execute()
       return true
@@ -391,6 +405,8 @@ export class ConversationResolver {
   @Mutation(() => Boolean)
   async cancelPendingCallForConversation(
     @Arg('conversationUuid', () => String) conversationUuid: number | string,
+    @Arg('profileUuid', () => String)
+    profileUuid: string,
     @Ctx() { req }: MyContext
   ) {
     try {
@@ -398,14 +414,17 @@ export class ConversationResolver {
 
       await getConnection()
         .createQueryBuilder()
-        .update(Conversation)
+        .update(ConversationToProfile)
         .set({
           pendingCall: false,
-          pendingCallProfile: null,
         })
-        .where('uuid = :conversationUuid', {
-          conversationUuid,
-        })
+        .where(
+          'conversationUuid = :conversationUuid and profileUuid = :profileUuid',
+          {
+            conversationUuid,
+            profileUuid,
+          }
+        )
         .returning('*')
         .execute()
       return true

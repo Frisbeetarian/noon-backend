@@ -71,13 +71,13 @@ export class Conversation extends BaseEntity {
   )
   public conversationToProfiles!: ConversationToProfile[]
 
-  @Field(() => Boolean)
-  @Column({ type: 'boolean', default: false })
-  ongoingCall: boolean | any
-
-  @Field(() => Boolean)
-  @Column({ type: 'boolean', default: false })
-  pendingCall: boolean | any
+  // @Field(() => Boolean)
+  // @Column({ type: 'boolean', default: false })
+  // ongoingCall: boolean | any
+  //
+  // @Field(() => Boolean)
+  // @Column({ type: 'boolean', default: false })
+  // pendingCall: boolean | any
 
   @Field(() => Profile, { nullable: true })
   @OneToOne(() => Profile, {

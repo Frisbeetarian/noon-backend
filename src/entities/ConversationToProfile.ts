@@ -43,6 +43,14 @@ export class ConversationToProfile extends BaseEntity {
   @Column({ default: [], nullable: true })
   profileThatHasUnreadMessages!: string
 
+  @Field(() => Boolean)
+  @Column({ type: 'boolean', default: false })
+  ongoingCall: boolean | any
+
+  @Field(() => Boolean)
+  @Column({ type: 'boolean', default: false })
+  pendingCall: boolean | any
+
   // @Column()
   // public order!: number
 
