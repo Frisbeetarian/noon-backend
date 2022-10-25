@@ -359,6 +359,7 @@ export class ConversationResolver {
         ...conversation,
         unreadMessages: 0,
         messages: [],
+        calls: [],
         ongoingCall: false,
         pendingCall: false,
         pendingCallProfile: null,

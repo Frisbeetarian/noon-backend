@@ -74,7 +74,7 @@ export class Conversation extends BaseEntity {
   // @Field(() => Boolean)
   // @Column({ type: 'boolean', default: false })
   // ongoingCall: boolean | any
-  //
+
   // @Field(() => Boolean)
   // @Column({ type: 'boolean', default: false })
   // pendingCall: boolean | any
