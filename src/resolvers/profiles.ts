@@ -180,6 +180,18 @@ export class ProfileResolver {
         ...conversation,
         unreadMessages: 0,
         messages: [],
+        calls: [
+          {
+            profileUuid: senderProfile?.uuid,
+            pendingCall: false,
+            ongoingCall: false,
+          },
+          {
+            profileUuid: recipientProfile?.uuid,
+            pendingCall: false,
+            ongoingCall: false,
+          },
+        ],
         ongoingCall: false,
         pendingCall: false,
         pendingCallProfile: null,

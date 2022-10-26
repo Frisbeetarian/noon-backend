@@ -210,6 +210,7 @@ export class UserResolver {
       email,
       `<a href="http://localhost:3000/change-password/${token}">reset password</a>`
     )
+
     return true
   }
 
