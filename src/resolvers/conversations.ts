@@ -200,6 +200,7 @@ export class ConversationResolver {
               // console.log('conversation profile object:', object.profile)
               calls.push({
                 profileUuid: object.profile.uuid,
+                profileUsername: object.profile.username,
                 pendingCall: object.pendingCall,
                 ongoingCall: object.ongoingCall,
               })
@@ -332,6 +333,7 @@ export class ConversationResolver {
       // await conversationRepository.save(conversation)
 
       let participantsArray = []
+      let calls = []
 
       // const [count] = await Promise.all([
       //   Message.count({ where: { conversationUuid } }),
@@ -344,6 +346,13 @@ export class ConversationResolver {
           participantsArray.push({
             uuid: profile?.uuid,
             username: profile?.username,
+          })
+
+          calls.push({
+            profileUuid: profile?.uuid,
+            profileUsername: profile?.username,
+            pendingCall: false,
+            ongoingCall: false,
           })
 
           const conversationToProfile = new ConversationToProfile(
@@ -359,7 +368,7 @@ export class ConversationResolver {
         ...conversation,
         unreadMessages: 0,
         messages: [],
-        calls: [],
+        calls,
         ongoingCall: false,
         pendingCall: false,
         pendingCallProfile: null,

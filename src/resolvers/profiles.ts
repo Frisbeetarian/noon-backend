@@ -183,11 +183,13 @@ export class ProfileResolver {
         calls: [
           {
             profileUuid: senderProfile?.uuid,
+            profileUsername: senderProfile?.username,
             pendingCall: false,
             ongoingCall: false,
           },
           {
             profileUuid: recipientProfile?.uuid,
+            profileUsername: recipientProfile?.username,
             pendingCall: false,
             ongoingCall: false,
           },
