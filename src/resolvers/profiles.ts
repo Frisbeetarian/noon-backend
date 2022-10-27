@@ -135,7 +135,7 @@ export class ProfileResolver {
     @Ctx() { req }: MyContext,
     @Arg('profileUuid', () => String) profileUuid: number | string
   ) {
-    //TODO reorganize sender/recipient logic, seems to be in reverse (no since recipient and actor on request is the one logged in)
+    // TODO reorganize sender/recipient logic, seems to be in reverse (no since recipient and actor on request is the one logged in)
     const recipientProfile = await Profile.findOne({
       where: { userId: req.session.userId },
     })
@@ -165,13 +165,15 @@ export class ProfileResolver {
 
       const conversationToProfile = new ConversationToProfile(
         conversation,
-        recipientProfile
+        recipientProfile,
+        recipientProfile?.username
       )
-      await conversationProfileRepository.save(conversationToProfile)
 
+      await conversationProfileRepository.save(conversationToProfile)
       const conversationToProfile2 = new ConversationToProfile(
         conversation,
-        senderProfile
+        senderProfile,
+        senderProfile?.username
       )
 
       await conversationProfileRepository.save(conversationToProfile2)

@@ -17,10 +17,15 @@ import { Field, ObjectType } from 'type-graphql'
 @ObjectType()
 @Entity('conversation_profile')
 export class ConversationToProfile extends BaseEntity {
-  constructor(conversation: Conversation, profile: Profile[]) {
+  constructor(
+    conversation: Conversation,
+    profile: Profile[],
+    profileUsername: string
+  ) {
     super()
     this.conversation = conversation
     this.profile = profile
+    this.profileUsername = profileUsername
   }
 
   @Field(() => String)
@@ -34,6 +39,10 @@ export class ConversationToProfile extends BaseEntity {
   @Field(() => String)
   @Column()
   public profileUuid!: string
+
+  @Field(() => String)
+  @Column()
+  public profileUsername!: string
 
   @Field()
   @Column({ default: 0 })
