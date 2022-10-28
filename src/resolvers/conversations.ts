@@ -357,7 +357,8 @@ export class ConversationResolver {
 
           const conversationToProfile = new ConversationToProfile(
             conversation,
-            profile
+            profile,
+            profile?.username
           )
 
           await conversationProfileRepository.save(conversationToProfile)

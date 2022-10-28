@@ -50,7 +50,7 @@ class UserResponse {
   @Field(() => [FieldError], { nullable: true })
   errors?: FieldError[]
 
-  @Field(() => User, { nullable: false })
+  @Field(() => User, { nullable: true })
   user?: User
 }
 
@@ -85,6 +85,7 @@ export class UserResolver {
   @Query(() => User, { nullable: true })
   async me(@Ctx() { req }: MyContext) {
     // console.log('session: ' + JSON.stringify(req.session))
+
     if (!req.session.userId) {
       return null
     }
@@ -121,8 +122,8 @@ export class UserResolver {
         friendshipRequests: [],
       }
     }
-    // console.log('UAWER:', user)
 
+    // console.log('UAWER:', user)
     // console.log('USER 238ORH239UB392823923BF9UF: ', user)
     return user
   }
@@ -174,6 +175,7 @@ export class UserResolver {
 
     // user.password = await argon2.hash(newPassword)
     // await em.persistAndFlush(user)
+
     await User.update(
       { uuid: userIdNum },
       { password: await argon2.hash(newPassword) }
@@ -220,12 +222,13 @@ export class UserResolver {
     @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
     const errors = validateRegister(options)
+
     if (errors) {
       return { errors }
     }
+
     const hashedPassword = await argon2.hash(options.password)
     let user
-
     console.log('ENTER REGISTER')
 
     try {
@@ -276,13 +279,13 @@ export class UserResolver {
 
     const token = v4()
 
-    const response = rpcClient.relay().sendEmail({
-      from: 'info@noon.com',
-      email: 'mohamad.sleimanhaidar@gmail.com',
-      task: 'send-welcome-email',
-      subject: 'Registration done',
-      html: `<a href="http://localhost:3000/change-password/${token}">reset password</a>`,
-    })
+    // const response = rpcClient.relay().sendEmail({
+    //   from: 'info@noon.com',
+    //   email: 'mohamad.sleimanhaidar@gmail.com',
+    //   task: 'send-welcome-email',
+    //   subject: 'Registration done',
+    //   html: `<a href="http://localhost:3000/change-password/${token}">reset password</a>`,
+    // })
 
     return { user }
   }
@@ -322,7 +325,8 @@ export class UserResolver {
         ],
       }
     }
-    console.log('user uuiod on login:', user)
+
+    console.log('user uuid on login:', user)
     let profile = await Profile.findOne({ where: { userId: user?.uuid } })
     console.log('profile on login:', profile)
 
