@@ -207,7 +207,6 @@ export class MessageResolver {
   @Mutation(() => Message)
   async deleteMessage(
     @Arg('messageUuid', () => String) messageUuid: string,
-    @Arg('to', () => String) to: string,
     @Arg('conversationUuid', () => String) conversationUuid: string,
     @Arg('type', () => String) type: string,
     @Arg('src', () => String) src: string,
@@ -228,13 +227,14 @@ export class MessageResolver {
             deleted: true,
             content: 'Message has been deleted.',
           })
-          .where('messageUuid = :messageUuid', {
+          .where('uuid = :messageUuid', {
             messageUuid,
           })
           .returning('*')
           .execute()
       }
 
+      console.log('message has been deleted')
       return {
         uuid: messageUuid,
         content: 'Message has been deleted.',
