@@ -56,6 +56,10 @@ export class Message extends BaseEntity {
   @Column({ nullable: true })
   src?: string
 
+  @Field(() => Boolean)
+  @Column({ default: false })
+  deleted: boolean
+
   @Field(() => String)
   @Column()
   conversationUuid: string

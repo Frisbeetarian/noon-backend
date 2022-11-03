@@ -205,6 +205,48 @@ export class MessageResolver {
   }
 
   @Mutation(() => Message)
+  async deleteMessage(
+    @Arg('messageUuid', () => String) messageUuid: string,
+    @Arg('to', () => String) to: string,
+    @Arg('conversationUuid', () => String) conversationUuid: string,
+    @Arg('type', () => String) type: string,
+    @Arg('src', () => String) src: string,
+    @Arg('from', () => String) from: string,
+    @Ctx() { req }: MyContext
+  ): Promise<Message | null> {
+    try {
+      const conversation = await Conversation.findOne(conversationUuid)
+
+      if (conversation && from === req.session.user.profile.uuid) {
+        // const messageRepository = getConnection().getRepository(Message)
+        // const message = await Message.findOne(messageUuid)
+
+        await getConnection()
+          .createQueryBuilder()
+          .update(Message)
+          .set({
+            deleted: true,
+            content: 'Message has been deleted.',
+          })
+          .where('messageUuid = :messageUuid', {
+            messageUuid,
+          })
+          .returning('*')
+          .execute()
+      }
+
+      return {
+        uuid: messageUuid,
+        content: 'Message has been deleted.',
+      }
+    } catch (e) {
+      console.log('error:', e)
+      return false
+    }
+    return false
+  }
+
+  @Mutation(() => Message)
   async saveMessage(
     @Arg('message', () => String) message: string,
     @Arg('to', () => String) to: string,
