@@ -193,7 +193,7 @@ export class MessageResolver {
           src
         )
 
-        await messageRepository.save(saveMessage)
+        return await messageRepository.save(saveMessage)
       }
 
       return null
@@ -201,8 +201,6 @@ export class MessageResolver {
       console.log('error:', e)
       return null
     }
-
-    return null
   }
 
   @Mutation(() => Message)
