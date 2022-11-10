@@ -318,7 +318,7 @@ export class MessageResolver {
           src
         )
 
-        await messageRepository.save(saveMessage)
+        return await messageRepository.save(saveMessage)
       }
 
       return null

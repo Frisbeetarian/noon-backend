@@ -153,6 +153,7 @@ function search() {
         return null
       }
     },
+
     async updateEntryInIndex({ index, senderUuid, recipientProfile }) {
       try {
         return await searchRPCRequest(channel, 'UPDATE_PROFILE', {
@@ -164,6 +165,7 @@ function search() {
         console.log(e)
       }
     },
+
     async searchForProfileByUsername({ username }) {
       try {
         return await searchRPCRequest(
@@ -178,6 +180,7 @@ function search() {
         return null
       }
     },
+
     async searchForProfile({ profileUuid }) {
       try {
         return await searchRPCRequest(channel, 'SEARCH_FOR_PROFILE', {

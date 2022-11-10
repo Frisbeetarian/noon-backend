@@ -385,6 +385,7 @@ const main = async () => {
           fromUsername,
           to,
           toUsername,
+          messageUuid,
           message,
           conversationUuid,
           type,
@@ -406,6 +407,7 @@ const main = async () => {
             fromUsername,
             to,
             toUsername,
+            messageUuid,
             message,
             conversationUuid,
             type,
@@ -417,6 +419,27 @@ const main = async () => {
           } catch (e) {
             console.log('ERROR SAVING CONVERSATION:', e)
           }
+        }
+      )
+
+      socket.on(
+        'message-deleted',
+        ({
+          messageUuid,
+          to,
+          toUsername,
+          from,
+          fromUsername,
+          conversationUuid,
+        }) => {
+          io.to(to).emit('send-friend-request', {
+            messageUuid,
+            to,
+            toUsername,
+            from,
+            fromUsername,
+            conversationUuid,
+          })
         }
       )
 
