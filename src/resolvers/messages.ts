@@ -101,6 +101,7 @@ export class MessageResolver {
         src: message.src,
         updatedAt: message.updatedAt,
         createdAt: message.createdAt,
+        deleted: message.deleted,
         sender: {
           uuid: message.senderUuid,
           username: message.username,
@@ -215,11 +216,18 @@ export class MessageResolver {
   ): Promise<Message | null> {
     try {
       const conversation = await Conversation.findOne(conversationUuid)
+      console.log('conversation:', conversation)
+      console.log('from:', from)
+      console.log(
+        'req.session.user.profile.uuid:',
+        req.session.user.profile.uuid
+      )
+      console.log('messageUuid:', messageUuid)
 
       if (conversation && from === req.session.user.profile.uuid) {
         // const messageRepository = getConnection().getRepository(Message)
         // const message = await Message.findOne(messageUuid)
-
+        console.log('entered update')
         await getConnection()
           .createQueryBuilder()
           .update(Message)

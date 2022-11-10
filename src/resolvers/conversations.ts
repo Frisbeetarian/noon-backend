@@ -159,7 +159,7 @@ export class ConversationResolver {
       //   replacements
       // )
 
-      console.log('conversations newnew:', conversations)
+      // console.log('conversations newnew:', conversations)
 
       if (conversations) {
         await Promise.all(
@@ -179,7 +179,7 @@ export class ConversationResolver {
             replacements.push(conversationEntity.uuid)
 
             // console.log('conversation entity:', conversationEntity)
-            console.log('conversationObject:', conversationObject)
+            // console.log('conversationObject:', conversationObject)
             // console.log('replacements:', replacements)
 
             const messages = await getConnection().query(
@@ -214,6 +214,7 @@ export class ConversationResolver {
                 content: message.content,
                 type: message.type,
                 src: message.src,
+                deleted: message.deleted,
                 updatedAt: message.updatedAt,
                 createdAt: message.createdAt,
                 sender: {
