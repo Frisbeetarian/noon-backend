@@ -432,7 +432,7 @@ const main = async () => {
           fromUsername,
           conversationUuid,
         }) => {
-          io.to(to).emit('send-friend-request', {
+          io.to(to).emit('message-deleted', {
             messageUuid,
             to,
             toUsername,

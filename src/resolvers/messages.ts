@@ -228,7 +228,7 @@ export class MessageResolver {
         // const messageRepository = getConnection().getRepository(Message)
         // const message = await Message.findOne(messageUuid)
         console.log('entered update')
-        await getConnection()
+        const message = await getConnection()
           .createQueryBuilder()
           .update(Message)
           .set({
@@ -240,12 +240,13 @@ export class MessageResolver {
           })
           .returning('*')
           .execute()
-      }
+        console.log('message has been deleted')
 
-      console.log('message has been deleted')
-      return {
-        uuid: messageUuid,
-        content: 'Message has been deleted.',
+        return {
+          uuid: messageUuid,
+          content: 'Message has been deleted.',
+          deleted: true,
+        }
       }
     } catch (e) {
       console.log('error:', e)
