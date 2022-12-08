@@ -1,5 +1,5 @@
 {
-  "name": "noon",
+  "name": "noon-server",
   "version": "0.0.3",
   "description": "Social platform with video conferencing.",
   "main": "index.js",

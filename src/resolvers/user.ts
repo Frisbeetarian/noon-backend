@@ -8,6 +8,7 @@ import {
   Resolver,
   FieldResolver,
   Root,
+  UseMiddleware,
 } from 'type-graphql'
 import { MyContext } from '../types'
 import { User } from '../entities/User'
@@ -25,9 +26,9 @@ import {
 } from '../neo4j/neo4j_calls/neo4j_api'
 import { Friend } from '../entities/Friend'
 import { FriendshipRequest } from '../entities/FriendshipRequest'
+import { isAuth } from '../middleware/isAuth'
 // import rpcClient from '../utils/brokerInitializer'
 const rpcClient = require('../utils/brokerInitializer')
-
 const uuidv4 = require('uuid').v4
 
 declare module 'express-session' {
@@ -83,9 +84,10 @@ export class UserResolver {
   }
 
   @Query(() => User, { nullable: true })
+  @UseMiddleware(isAuth)
   async me(@Ctx() { req }: MyContext) {
     // console.log('session: ' + JSON.stringify(req.session))
-
+    console.log('Fewlfknweklfnwelfknwelfknewklfnlweknflkewnfl')
     if (!req.session.userId) {
       return null
     }
@@ -274,7 +276,7 @@ export class UserResolver {
     req.session.user = user
     req.session.userId = user.uuid
 
-    console.log('user in register:', req.session.user)
+    console.log('user in regssister:', req.session.user)
     console.log('user in register:', req.session.userId)
 
     const token = v4()
@@ -292,21 +294,22 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async login(
-    @Arg('usernameOrEmail') usernameOrEmail: string,
+    @Arg('username') username: string,
     @Arg('password') password: string,
     @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
+    console.log('FSDFSDFSDF')
     let user = await User.findOne(
-      usernameOrEmail.includes('@')
-        ? { where: { email: usernameOrEmail } }
-        : { where: { username: usernameOrEmail } }
+      username.includes('@')
+        ? { where: { email: username } }
+        : { where: { username: username } }
     )
 
     if (!user) {
       return {
         errors: [
           {
-            field: 'usernameOrEmail',
+            field: 'username',
             message: 'that usernaaaaaame doesnt exist',
           },
         ],

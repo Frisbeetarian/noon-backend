@@ -582,7 +582,7 @@ const main = async () => {
       socket.on('disconnect', async () => {
         const matchingSockets = await io.in(socket.userID).allSockets()
         const isDisconnected = matchingSockets.size === 0
-
+        console.log('username on disconnect:', socket.handshake.auth.username)
         if (isDisconnected) {
           // notify other users
           socket.broadcast.emit('user disconnected', socket.userID)

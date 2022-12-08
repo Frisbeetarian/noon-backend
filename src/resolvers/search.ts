@@ -8,13 +8,17 @@ import {
   Root,
   Ctx,
   Mutation,
+  UseMiddleware,
 } from 'type-graphql'
 import { Search } from '../entities/Search'
+import { MyContext } from '../types'
+import { isAuth } from '../middleware/isAuth'
 const rpcClient = require('../utils/brokerInitializer')
 
 @Resolver(Search)
 export class SearchResolver {
   @Query(() => [Search], { nullable: true })
+  @UseMiddleware(isAuth)
   async searchForProfileByUsername(
     @Arg('username', () => String) username: string
   ): Promise<Search[] | null> {

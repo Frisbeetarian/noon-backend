@@ -40,21 +40,26 @@ class RedisSessionStore extends SessionStore {
   }
 
   saveSession(id, { userID, username, connected, userSocketUuid }) {
-    this.redisClient
-      .multi()
-      .hset(
-        `session:${id}`,
-        'userID',
-        userID,
-        'username',
-        username,
-        'userSocketUuid',
-        userSocketUuid,
-        'connected',
-        connected
-      )
-      .expire(`session:${id}`, SESSION_TTL)
-      .exec()
+    console.log('id in save session:', id)
+    try {
+      this.redisClient
+        .multi()
+        .hset(
+          `session:${id}`,
+          'userID',
+          userID,
+          'username',
+          username,
+          'userSocketUuid',
+          userSocketUuid,
+          'connected',
+          connected
+        )
+        .expire(`session:${id}`, SESSION_TTL)
+        .exec()
+    } catch (e) {
+      console.log('error in save session:', e)
+    }
   }
 
   async findAllSessions() {
