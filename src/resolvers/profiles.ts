@@ -82,14 +82,7 @@ export class ProfileResolver {
 
   @Query(() => [Profile])
   async getProfiles(@Ctx() { req }: MyContext) {
-    // console.log('FERWFERFERFre:', req.session.user)
-
     let profiles = await getProfiles(req.session.user?.profile.uuid)
-    // profiles = profiles.filter(
-    //   (profile) => profile.user.uuid != req.session.userId
-    // )
-
-    // console.log('Profiles in getprofiles33: ', profiles)
     return profiles
   }
 
@@ -210,7 +203,6 @@ export class ProfileResolver {
           },
         ],
       }
-      console.log('conversation in accept conversation:', conversation)
 
       return conversation
     }

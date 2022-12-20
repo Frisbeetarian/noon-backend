@@ -121,6 +121,21 @@ const main = async () => {
     })
   )
 
+  let server = app.listen(4020, () =>
+    console.log(`server listening at http://localhost:${4020}`)
+  )
+
+  const io = socketIo(server, {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST'],
+    },
+    adapter: require('socket.io-redis')({
+      pubClient: redis,
+      subClient: redis.duplicate(),
+    }),
+  }) // < Interesting!
+
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
       resolvers: [
@@ -142,6 +157,7 @@ const main = async () => {
       req,
       res,
       redis,
+      io,
       userLoader: createUserLoader(),
       updootLoader: createUpdootLoader(),
       messageLoader: createMessageLoader(),
@@ -166,9 +182,6 @@ const main = async () => {
   // const server = http.createServer(app)
   // let httpServer = http.createServer()
   // const WORKERS_COUNT = 4
-  let server = app.listen(4020, () =>
-    console.log(`server listening at http://localhost:${4020}`)
-  )
 
   // if (cluster.isMaster) {
   //   console.log(`Master ${process.pid} is running`)
@@ -195,16 +208,6 @@ const main = async () => {
   // app.listen(4020, () => {
   //   console.log('server start on localhost:4020')
   // })
-  const io = socketIo(server, {
-    cors: {
-      origin: '*',
-      methods: ['GET', 'POST'],
-    },
-    adapter: require('socket.io-redis')({
-      pubClient: redis,
-      subClient: redis.duplicate(),
-    }),
-  }) // < Interesting!
 
   instrument(io, {
     auth: false,
@@ -218,14 +221,14 @@ const main = async () => {
   //   //   socket.handshake.auth.userSocketUuid
   //   // )
   //   // console.log()
-  //
+
   //   // if (sessionID === undefined) {
   //   //   sessionID = socket.sessionID
   //   // }
-  //
+
   //   if (sessionID) {
   //     const session = await sessionStore.findSession(sessionID)
-  //
+
   //     if (session) {
   //       socket.sessionID = sessionID
   //       socket.userID = session.userId
@@ -234,7 +237,7 @@ const main = async () => {
   //       return next()
   //     }
   //   }
-  //
+
   //   const username = socket.handshake.auth.username
   //
   //   if (!username) {
