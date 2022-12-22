@@ -31,7 +31,7 @@
     "@elastic/elasticsearch": "^8.2.1",
     "@neo4j/graphql": "^2.5.9",
     "@noon/rabbit-mq-rpc": "^0.0.19",
-    "@socket.io/admin-ui": "^0.4.0",
+    "@socket.io/admin-ui": "^0.5.1",
     "@socket.io/sticky": "^1.0.0",
     "amqp-connection-manager": "^4.1.6",
     "amqplib": "^0.10.2",

@@ -169,7 +169,7 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@mapbox/node-pre-gyp@^1.0.0", "@mapbox/node-pre-gyp@^1.0.1":
+"@mapbox/node-pre-gyp@^1.0.1":
   version "1.0.9"
   resolved "https://registry.npmjs.org/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.9.tgz"
   integrity sha512-aDF3S3rK9Q2gey/WAttUlISduDItz5BU3306M9Eyv6/oS40aMprnopshtlKTykxRNIBEZuRMaZAnbrQ4QtKGyw==
@@ -310,13 +310,13 @@
   resolved "https://registry.npmjs.org/@redis/time-series/-/time-series-1.0.3.tgz"
   integrity sha512-OFp0q4SGrTH0Mruf6oFsHGea58u8vS/iI5+NpYdicaM+7BgqBZH8FFvNZ8rYYLrUO/QRqMq72NpXmxLVNcdmjA==
 
-"@socket.io/admin-ui@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.npmjs.org/@socket.io/admin-ui/-/admin-ui-0.4.0.tgz"
-  integrity sha512-ZidOoJdlqtL0cP/fdD0KygoobJty/eVKGGtlPff/oZpyskEMvFXZbOhV1e4aQamRptO6l0/qG+TWCCXmXRtG5A==
+"@socket.io/admin-ui@^0.5.1":
+  version "0.5.1"
+  resolved "http://localhost:4873/@socket.io%2fadmin-ui/-/admin-ui-0.5.1.tgz#8091ba571a5262de214b58522a3c03541de1f274"
+  integrity sha512-1dlGL2FGm6T+uL1e6iDvbo2eCINwvW7iVbjIblwh5kPPRM1SP8lmZrbFZf4QNJ/cqQ+JLcx49eXGM9WAB4TK7w==
   dependencies:
-    "@types/bcrypt" "~3.0.0"
-    bcrypt "~5.0.1"
+    "@types/bcryptjs" "^2.4.2"
+    bcryptjs "^2.4.3"
     debug "~4.3.1"
 
 "@socket.io/sticky@^1.0.0":
@@ -356,10 +356,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/bcrypt@~3.0.0":
-  version "3.0.1"
-  resolved "https://registry.npmjs.org/@types/bcrypt/-/bcrypt-3.0.1.tgz"
-  integrity sha512-SwBrq5wb6jXP0o3O3jStdPWbKpimTImfdFD/OZE3uW+jhGpds/l5wMX9lfYOTDOa5Bod2QmOgo9ln+tMp2XP/w==
+"@types/bcryptjs@^2.4.2":
+  version "2.4.2"
+  resolved "http://localhost:4873/@types%2fbcryptjs/-/bcryptjs-2.4.2.tgz#e3530eac9dd136bfdfb0e43df2c4c5ce1f77dfae"
+  integrity sha512-LiMQ6EOPob/4yUL66SZzu6Yh77cbzJFYll+ZfaPiPPFswtIlA/Fs1MzdKYA7JApHU49zQTbJGX3PDmCpIdDBRQ==
 
 "@types/body-parser@*":
   version "1.19.2"
@@ -947,14 +947,6 @@ base64id@2.0.0, base64id@~2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/base64id/-/base64id-2.0.0.tgz"
   integrity sha512-lGe34o6EHj9y3Kts9R4ZYs/Gr+6N7MCaMlIFA3F1R2O5/m7K06AxfSeO5530PEERE6/WyEg3lsuyw4GHlPZHog==
-
-bcrypt@~5.0.1:
-  version "5.0.1"
-  resolved "https://registry.npmjs.org/bcrypt/-/bcrypt-5.0.1.tgz"
-  integrity sha512-9BTgmrhZM2t1bNuDtrtIMVSmmxZBrJ71n8Wg+YgdjHuIWYF7SjjmCPZFB+/5i/o/PIeRpwVJR3P+NrpIItUjqw==
-  dependencies:
-    "@mapbox/node-pre-gyp" "^1.0.0"
-    node-addon-api "^3.1.0"
 
 bcryptjs@^2.4.3:
   version "2.4.3"
@@ -2465,7 +2457,7 @@ no-case@^3.0.4:
     lower-case "^2.0.2"
     tslib "^2.0.3"
 
-node-addon-api@^3.0.2, node-addon-api@^3.1.0:
+node-addon-api@^3.0.2:
   version "3.2.1"
   resolved "https://registry.npmjs.org/node-addon-api/-/node-addon-api-3.2.1.tgz"
   integrity sha512-mmcei9JghVNDYydghQmeDX8KoAm0FAiYyIcUt/N4nhyAipB17pllZQDOJD2fotxABnt4Mdz+dKTO7eftLg4d0A==

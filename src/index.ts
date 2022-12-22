@@ -210,7 +210,11 @@ const main = async () => {
   // })
 
   instrument(io, {
-    auth: false,
+    auth: {
+      type: 'basic',
+      username: 'admin',
+      password: 'admin',
+    },
   })
 
   // io.use(async (socket, next) => {
