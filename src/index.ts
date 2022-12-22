@@ -1,5 +1,6 @@
 // @ts-nocheck
 import 'reflect-metadata'
+import 'dotenv-safe/config'
 import { __prod__ } from './constants'
 import express from 'express'
 import { ApolloServer } from 'apollo-server-express'
@@ -61,7 +62,7 @@ const main = async () => {
     username: process.env.POSTGRESQL_USERNAME,
     password: process.env.POSTGRESQL_PASSWORD,
     logging: true,
-    synchronize: true,
+    synchronize: !__prod__,
     migrations: [path.join(__dirname, './migrations/*')],
     entities: [
       User,
@@ -85,17 +86,18 @@ const main = async () => {
 
   // let RedisStore = require('connect-redis')(session);
   const RedisStore = connectRedis(session)
-  const redis = new Redis()
+  const redis = new Redis(process.env.REDIS_URL)
 
   const { RedisSessionStore } = require('./socketio/sessionStore')
   const sessionStore = new RedisSessionStore(redis)
 
   const { RedisMessageStore } = require('./socketio/messageStore')
   const messageStore = new RedisMessageStore(redis)
+  app.set('proxy', 1)
 
   app.use(
     cors({
-      origin: 'http://localhost:3000',
+      origin: process.env.CORS_ORIGIN,
       credentials: true,
     })
   )
@@ -111,7 +113,8 @@ const main = async () => {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
         httpOnly: true,
         sameSite: 'lax', // csrf
-        secure: false, // cookie only works in https
+        secure: __prod__, // cookie only works in https
+        domain: __prod__ ? '.noon.tube' : undefined,
       },
       saveUninitialized: false,
       secret: process.env.SESSION_SECRET,
@@ -119,7 +122,7 @@ const main = async () => {
     })
   )
 
-  let server = app.listen(process.env.PORT, () =>
+  let server = app.listen(parseInt(process.env.PORT), () =>
     console.log(`server listening at http://localhost:${process.env.PORT}`)
   )
 

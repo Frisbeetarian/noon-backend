@@ -12,6 +12,7 @@ declare global {
       SESSION_SECRET: string;
       SOCKET_INSTRUMENT_USERNAME: string
       SOCKET_INSTRUMENT_PASSWORD: string
+      CORS_ORIGIN: string;
     }
   }
 }
