@@ -4,8 +4,6 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -15,7 +13,6 @@ import { Field, ObjectType } from 'type-graphql'
 import { Message } from './Message'
 import { Profile } from './Profile'
 import { ConversationToProfile } from './ConversationToProfile'
-import { Community } from './Community'
 
 @ObjectType()
 @Entity()

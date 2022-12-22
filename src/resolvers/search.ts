@@ -1,17 +1,5 @@
-import {
-  Resolver,
-  Query,
-  Arg,
-  Int,
-  InputType,
-  FieldResolver,
-  Root,
-  Ctx,
-  Mutation,
-  UseMiddleware,
-} from 'type-graphql'
+import { Resolver, Query, Arg, UseMiddleware } from 'type-graphql'
 import { Search } from '../entities/Search'
-import { MyContext } from '../types'
 import { isAuth } from '../middleware/isAuth'
 const rpcClient = require('../utils/brokerInitializer')
 

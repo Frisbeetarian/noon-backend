@@ -1,3 +1,4 @@
+// @ts-nocheck
 import DataLoader from 'dataloader'
 import { Message } from '../entities/Message'
 import { Conversation } from '../entities/Conversation'

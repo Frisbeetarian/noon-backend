@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { MyContext } from 'src/types'
 import {
   Arg,

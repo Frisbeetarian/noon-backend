@@ -1,3 +1,4 @@
+// @ts-nocheck
 import DataLoader from 'dataloader'
 import { User } from '../entities/User'
 

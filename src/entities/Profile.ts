@@ -1,11 +1,9 @@
-import { Field, Int, ObjectType } from 'type-graphql'
+import { Field, ObjectType } from 'type-graphql'
 import {
   BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -16,7 +14,6 @@ import { Post } from './Post'
 import { Updoot } from './Updoot'
 import { User } from './User'
 import { CommunityParticipant } from './CommunityParticipant'
-import { Conversation } from './Conversation'
 import { ConversationToProfile } from './ConversationToProfile'
 import { Message } from './Message'
 

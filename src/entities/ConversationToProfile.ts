@@ -4,11 +4,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   BaseEntity,
-  OneToMany,
   UpdateDateColumn,
   CreateDateColumn,
-  OneToOne,
-  JoinColumn,
 } from 'typeorm'
 import { Conversation } from './Conversation'
 import { Profile } from './Profile'

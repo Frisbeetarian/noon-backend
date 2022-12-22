@@ -1,10 +1,10 @@
+// @ts-nocheck
 import 'reflect-metadata'
 import { __prod__ } from './constants'
 import express from 'express'
 import { ApolloServer } from 'apollo-server-express'
 import { buildSchema } from 'type-graphql'
 import { PostResolver } from './resolvers/post'
-
 import { UserResolver } from './resolvers/user'
 import { EventResolver } from './resolvers/events'
 import Redis from 'ioredis'
@@ -30,18 +30,16 @@ import { CommunityResolver } from './resolvers/communities'
 import { CommunityParticipant } from './entities/CommunityParticipant'
 import { CommunityParticipantsResolver } from './resolvers/communityParticipants'
 
-import bodyParser from 'body-parser'
-// import router from './neo4j/routes/router'
 import mediaRouter from './media/router'
-import * as http from 'http'
 
 const app = express()
 let socketIo = require('socket.io')
 const { instrument } = require('@socket.io/admin-ui')
-const { setupWorker, setupMaster } = require('@socket.io/sticky')
-const crypto = require('crypto')
-const randomId = () => crypto.randomBytes(8).toString('hex')
-const cluster = require('cluster')
+
+// const { setupWorker, setupMaster } = require('@socket.io/sticky')
+// const crypto = require('crypto')
+// const randomId = () => crypto.randomBytes(8).toString('hex')
+// const cluster = require('cluster')
 
 import { RedisSessionStore } from './socketio/sessionStore'
 import { SearchResolver } from './resolvers/search'
@@ -60,8 +58,8 @@ const main = async () => {
   await createConnection({
     type: 'postgres',
     database: 'reddit2',
-    username: __prod__ ? process.env.POSTGRESQL_USERNAME : 'kozbara',
-    password: __prod__ ? process.env.POSTGRESQL_PASSWORD : 'admin',
+    username: process.env.POSTGRESQL_USERNAME,
+    password: process.env.POSTGRESQL_PASSWORD,
     logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, './migrations/*')],
@@ -116,13 +114,13 @@ const main = async () => {
         secure: false, // cookie only works in https
       },
       saveUninitialized: false,
-      secret: __prod__ ? process.env.SECRET : 'fkewblfkewbfliqwjdlnbfewu',
+      secret: process.env.SESSION_SECRET,
       resave: false,
     })
   )
 
-  let server = app.listen(4020, () =>
-    console.log(`server listening at http://localhost:${4020}`)
+  let server = app.listen(process.env.PORT, () =>
+    console.log(`server listening at http://localhost:${process.env.PORT}`)
   )
 
   const io = socketIo(server, {
@@ -212,8 +210,8 @@ const main = async () => {
   instrument(io, {
     auth: {
       type: 'basic',
-      username: __prod__ ? process.env.SOCKET_INSTRUMENT_USERNAME : 'admin',
-      password: __prod__ ? process.env.SOCKET_INSTRUMENT_PASSWORD : 'admin',
+      username: process.env.SOCKET_INSTRUMENT_USERNAME,
+      password: process.env.SOCKET_INSTRUMENT_PASSWORD,
     },
   })
 

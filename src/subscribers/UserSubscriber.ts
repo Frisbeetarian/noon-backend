@@ -6,10 +6,7 @@ import {
 } from 'typeorm'
 import { User } from '../entities/User'
 import { Profile } from '../entities/Profile'
-import {
-  create_user,
-  createUserAndAssociateWithProfile,
-} from '../neo4j/neo4j_calls/neo4j_api'
+import { createUserAndAssociateWithProfile } from '../neo4j/neo4j_calls/neo4j_api'
 
 const rpcClient = require('../utils/brokerInitializer')
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* abstract */ class SessionStore {
   findSession(id) {}
   saveSession(id, session) {}

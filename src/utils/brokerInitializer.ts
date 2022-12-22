@@ -1,3 +1,4 @@
+// @ts-nocheck
 const { RPCClient } = require('@noon/rabbit-mq-rpc/client')
 
 const connectionObject = {

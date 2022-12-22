@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* abstract */ class MessageStore {
   saveMessage(message) {}
   findMessagesForUser(userID) {}

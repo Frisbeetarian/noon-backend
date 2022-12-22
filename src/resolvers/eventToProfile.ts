@@ -1,4 +1,4 @@
-import { Arg, Int, Query, Resolver } from 'type-graphql'
+import { Resolver } from 'type-graphql'
 import { EventToProfile } from '../entities/EventToProfile'
 // import { MyContext } from '../types'
 // import { getConnection, Repository } from 'typeorm'

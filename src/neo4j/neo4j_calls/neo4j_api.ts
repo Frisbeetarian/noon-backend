@@ -1,3 +1,4 @@
+// @ts-nocheck
 import neo4j from 'neo4j-driver'
 import { parse, stringify, toJSON, fromJSON } from 'flatted'
 import { Profile } from '../../entities/Profile'
@@ -6,7 +7,7 @@ import { getConnection } from 'typeorm'
 
 var driver = neo4j.driver(
   'bolt://localhost:7687',
-  neo4j.auth.basic('neo4j', 'test')
+  neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD)
 )
 
 export const getProfiles = async function (loggedInProfileUuid) {
