@@ -60,8 +60,8 @@ const main = async () => {
   await createConnection({
     type: 'postgres',
     database: 'reddit2',
-    username: 'kozbara',
-    password: 'admin',
+    username: __prod__ ? process.env.POSTGRESQL_USERNAME : 'kozbara',
+    password: __prod__ ? process.env.POSTGRESQL_PASSWORD : 'admin',
     logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, './migrations/*')],
@@ -116,7 +116,7 @@ const main = async () => {
         secure: false, // cookie only works in https
       },
       saveUninitialized: false,
-      secret: 'fkewblfkewbfliqwjdlnbfewu',
+      secret: __prod__ ? process.env.SECRET : 'fkewblfkewbfliqwjdlnbfewu',
       resave: false,
     })
   )
@@ -212,8 +212,8 @@ const main = async () => {
   instrument(io, {
     auth: {
       type: 'basic',
-      username: 'admin',
-      password: 'admin',
+      username: __prod__ ? process.env.SOCKET_INSTRUMENT_USERNAME : 'admin',
+      password: __prod__ ? process.env.SOCKET_INSTRUMENT_PASSWORD : 'admin',
     },
   })
 
