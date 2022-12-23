@@ -5,6 +5,7 @@ declare global {
       NEO4J_PASSWORD: string
       NEO4J_URI: string
       NODE_ENV: string
+      POSTGRESQL_DATABASE: string;
       POSTGRESQL_USERNAME: string
       POSTGRESQL_PASSWORD: string
       REDIS_URL: string

@@ -59,7 +59,7 @@ const main = async () => {
   try {
     await createConnection({
       type: 'postgres',
-      database: 'reddit2',
+      database: process.env.POSTGRESQL_DATABASE,
       username: process.env.POSTGRESQL_USERNAME,
       password: process.env.POSTGRESQL_PASSWORD,
       logging: true,
