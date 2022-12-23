@@ -1,21 +1,17 @@
 // @ts-nocheck
 import 'reflect-metadata'
 import 'dotenv-safe/config'
-import { __prod__ } from './constants'
 import express from 'express'
 import { ApolloServer } from 'apollo-server-express'
 import { buildSchema } from 'type-graphql'
-import { PostResolver } from './resolvers/post'
-import { UserResolver } from './resolvers/user'
-import { EventResolver } from './resolvers/events'
 import Redis from 'ioredis'
 import session from 'express-session'
 import connectRedis from 'connect-redis'
 import cors from 'cors'
 import { createConnection } from 'typeorm'
-import { User } from './entities/User'
 import path from 'path'
-import { Updoot } from './entities/Updoot'
+let socketIo = require('socket.io')
+const { instrument } = require('@socket.io/admin-ui')
 
 import { createUserLoader } from './utils/createUserLoader'
 import { createUpdootLoader } from './utils/createUpdootLoader'
@@ -30,21 +26,9 @@ import { Community } from './entities/Community'
 import { CommunityResolver } from './resolvers/communities'
 import { CommunityParticipant } from './entities/CommunityParticipant'
 import { CommunityParticipantsResolver } from './resolvers/communityParticipants'
-
-import mediaRouter from './media/router'
-
-const app = express()
-let socketIo = require('socket.io')
-const { instrument } = require('@socket.io/admin-ui')
-
-// const { setupWorker, setupMaster } = require('@socket.io/sticky')
-// const crypto = require('crypto')
-// const randomId = () => crypto.randomBytes(8).toString('hex')
-// const cluster = require('cluster')
-
+import { RPCServer } from '@noon/rabbit-mq-rpc/server'
 import { RedisSessionStore } from './socketio/sessionStore'
 import { SearchResolver } from './resolvers/search'
-import { RPCServer } from '@noon/rabbit-mq-rpc/server'
 import { Conversation } from './entities/Conversation'
 import { Message } from './entities/Message'
 import { ConversationResolver } from './resolvers/conversations'
@@ -53,42 +37,54 @@ import { MessageResolver } from './resolvers/messages'
 import { ConversationProfileResolver } from './resolvers/conversationProfile'
 import { getFriendsForProfile } from './neo4j/neo4j_calls/neo4j_api'
 import { createMessageLoader } from './utils/createMessageLoader'
-// const { graphqlUploadExpress } = require('graphql-upload-minimal')
+import { __prod__ } from './constants'
+import { PostResolver } from './resolvers/post'
+import { UserResolver } from './resolvers/user'
+import { EventResolver } from './resolvers/events'
+import { User } from './entities/User'
+import { Updoot } from './entities/Updoot'
+import mediaRouter from './media/router'
+
+const app = express()
 
 const main = async () => {
-  try {
-    await createConnection({
-      type: 'postgres',
-      database: process.env.POSTGRESQL_DATABASE,
-      username: process.env.POSTGRESQL_USERNAME,
-      password: process.env.POSTGRESQL_PASSWORD,
-      logging: true,
-      synchronize: !__prod__,
-      migrations: [path.join(__dirname, './migrations/*')],
-      entities: [
-        User,
-        Post,
-        Updoot,
-        Profile,
-        Friend,
-        Event,
-        EventToProfile,
-        Community,
-        CommunityParticipant,
-        Conversation,
-        Message,
-        ConversationToProfile,
-      ],
-      subscribers: [path.join(__dirname, './subscribers/*')],
-    })
-  } catch (e) {
-    console.log('error connecting to postgres db:', e)
+  let retries = 5
+
+  while (retries) {
+    try {
+      await createConnection({
+        type: 'postgres',
+        database: process.env.POSTGRESQL_DATABASE,
+        username: process.env.POSTGRESQL_USERNAME,
+        password: process.env.POSTGRESQL_PASSWORD,
+        // url: process.env.POSTGRESQL_URL,
+        logging: true,
+        synchronize: !__prod__,
+        migrations: [path.join(__dirname, './migrations/*')],
+        entities: [
+          User,
+          Post,
+          Updoot,
+          Profile,
+          Friend,
+          Event,
+          EventToProfile,
+          Community,
+          CommunityParticipant,
+          Conversation,
+          Message,
+          ConversationToProfile,
+        ],
+        subscribers: [path.join(__dirname, './subscribers/*')],
+      })
+      break
+    } catch (e) {
+      retries -= 1
+      console.log('error connecting to postgres db:', e, retries)
+      await new Promise((res) => setTimeout(res, 5000))
+    }
   }
-
   // await conn.runMigrations()
-  // await Post.delete({})
-
-  // let RedisStore = require('connect-redis')(session);
   const RedisStore = connectRedis(session)
   const redis = new Redis(process.env.REDIS_URL)
 
@@ -97,7 +93,10 @@ const main = async () => {
 
   const { RedisMessageStore } = require('./socketio/messageStore')
   const messageStore = new RedisMessageStore(redis)
-  app.set('proxy', 1)
+
+  if (__prod__) {
+    app.set('proxy', 1)
+  }
 
   app.use(
     cors({
@@ -116,8 +115,8 @@ const main = async () => {
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
         httpOnly: true,
-        sameSite: 'lax', // csrf
-        secure: __prod__, // cookie only works in https
+        sameSite: 'lax',
+        secure: __prod__,
         domain: __prod__ ? '.noon.tube' : undefined,
       },
       saveUninitialized: false,
@@ -139,7 +138,7 @@ const main = async () => {
       pubClient: redis,
       subClient: redis.duplicate(),
     }),
-  }) // < Interesting!
+  })
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
@@ -275,7 +274,6 @@ const main = async () => {
     )
 
     if (socket.handshake.auth.userSocketUuid) {
-      // persist session
       sessionStore.saveSession(socket.handshake.auth.userSocketUuid, {
         userID: socket.handshake.auth.userSocketUuid,
         username: socket.handshake.auth.username,
@@ -283,17 +281,12 @@ const main = async () => {
         userSocketUuid: socket.handshake.auth.userSocketUuid,
       })
 
-      // emit session details
       socket.emit('session', {
         sessionID: socket.handshake.auth.userSocketUuid,
         userID: socket.handshake.auth.userID,
       })
 
-      // join the "userID" room
-      // console.log('user join room id:', socket.userID)
       socket.join(socket.handshake.auth.userID)
-
-      // fetch existing users
       const users = []
       const [messages, sessions] = await Promise.all([
         messageStore.findMessagesForUser(socket.userID),
