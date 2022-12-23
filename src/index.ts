@@ -56,30 +56,34 @@ import { createMessageLoader } from './utils/createMessageLoader'
 // const { graphqlUploadExpress } = require('graphql-upload-minimal')
 
 const main = async () => {
-  await createConnection({
-    type: 'postgres',
-    database: 'reddit2',
-    username: process.env.POSTGRESQL_USERNAME,
-    password: process.env.POSTGRESQL_PASSWORD,
-    logging: true,
-    synchronize: !__prod__,
-    migrations: [path.join(__dirname, './migrations/*')],
-    entities: [
-      User,
-      Post,
-      Updoot,
-      Profile,
-      Friend,
-      Event,
-      EventToProfile,
-      Community,
-      CommunityParticipant,
-      Conversation,
-      Message,
-      ConversationToProfile,
-    ],
-    subscribers: [path.join(__dirname, './subscribers/*')],
-  })
+  try {
+    await createConnection({
+      type: 'postgres',
+      database: 'reddit2',
+      username: process.env.POSTGRESQL_USERNAME,
+      password: process.env.POSTGRESQL_PASSWORD,
+      logging: true,
+      synchronize: !__prod__,
+      migrations: [path.join(__dirname, './migrations/*')],
+      entities: [
+        User,
+        Post,
+        Updoot,
+        Profile,
+        Friend,
+        Event,
+        EventToProfile,
+        Community,
+        CommunityParticipant,
+        Conversation,
+        Message,
+        ConversationToProfile,
+      ],
+      subscribers: [path.join(__dirname, './subscribers/*')],
+    })
+  } catch (e) {
+    console.log('error connecting to postgres db:', e)
+  }
 
   // await conn.runMigrations()
   // await Post.delete({})
