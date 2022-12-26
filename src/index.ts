@@ -99,7 +99,7 @@ const main = async () => {
   const messageStore = new RedisMessageStore(redis)
 console.log("is prod:", __prod__)
   if (__prod__) {
-    app.set('proxy', 1)
+    app.set('trust proxy', 1)
   }
 
   app.use(
