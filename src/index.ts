@@ -120,7 +120,7 @@ console.log("is prod:", __prod__)
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
         httpOnly: true,
         sameSite: 'lax',
-        secure: !__prod__,
+        secure: __prod__,
         domain: __prod__ ? '.noon.tube' : undefined,
       },
       saveUninitialized: false,
