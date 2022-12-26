@@ -1,6 +1,10 @@
 // @ts-nocheck
 import 'reflect-metadata'
-import 'dotenv-safe/config'
+// import 'dotenv-safe/config'
+
+// const dotenv = require('dotenv')
+const dotenv = require('dotenv-safe').config({silent: true})
+
 import express from 'express'
 import { ApolloServer } from 'apollo-server-express'
 import { buildSchema } from 'type-graphql'
@@ -93,7 +97,7 @@ const main = async () => {
 
   const { RedisMessageStore } = require('./socketio/messageStore')
   const messageStore = new RedisMessageStore(redis)
-
+console.log("is prod:", __prod__)
   if (__prod__) {
     app.set('proxy', 1)
   }
