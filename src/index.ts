@@ -98,9 +98,9 @@ const main = async () => {
   const { RedisMessageStore } = require('./socketio/messageStore')
   const messageStore = new RedisMessageStore(redis)
   console.log('is prod:', __prod__)
-  if (__prod__) {
-    app.set('trust proxy', 1)
-  }
+  // if (__prod__) {
+  app.set('trust proxy', 1)
+  // }
 
   app.use(
     cors({
