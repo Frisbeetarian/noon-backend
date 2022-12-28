@@ -117,7 +117,7 @@ const main = async () => {
       }),
       cookie: {
         maxAge: 60 * 60 * 24 * 1000,
-        domain: __prod__ ? '.noon.tube' : undefined,
+        domain: __prod__ ? 'www.noon.tube' : undefined,
         secure: __prod__,
         httpOnly: true,
         sameSite: 'none',
