@@ -1,3 +1,4 @@
+// @ts-ignore
 import 'reflect-metadata'
 // import 'dotenv-safe/config'
 
