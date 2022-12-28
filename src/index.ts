@@ -61,7 +61,6 @@ const main = async () => {
         database: process.env.POSTGRESQL_DATABASE,
         username: process.env.POSTGRESQL_USERNAME,
         password: process.env.POSTGRESQL_PASSWORD,
-        // url: process.env.POSTGRESQL_URL,
         logging: true,
         synchronize: !__prod__,
         migrations: [path.join(__dirname, './migrations/*')],
@@ -118,7 +117,7 @@ const main = async () => {
       }),
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
-        httpOnly: true,
+        httpOnly: false,
         sameSite: 'lax',
         secure: __prod__,
         domain: __prod__ ? '.noon.tube' : undefined,
