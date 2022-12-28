@@ -116,7 +116,7 @@ const main = async () => {
         disableTouch: true,
       }),
       cookie: {
-        maxAge: 60 * 60 * 24 * 1000
+        maxAge: 60 * 60 * 24 * 1000,
         domain: __prod__ ? '.noon.tube' : undefined,
         secure: __prod__,
         httpOnly: true,
