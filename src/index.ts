@@ -1,9 +1,8 @@
-// @ts-nocheck
 import 'reflect-metadata'
 // import 'dotenv-safe/config'
 
 // const dotenv = require('dotenv')
-const dotenv = require('dotenv-safe').config({silent: true})
+const dotenv = require('dotenv-safe').config({ silent: true })
 
 import express from 'express'
 import { ApolloServer } from 'apollo-server-express'
@@ -97,7 +96,7 @@ const main = async () => {
 
   const { RedisMessageStore } = require('./socketio/messageStore')
   const messageStore = new RedisMessageStore(redis)
-console.log("is prod:", __prod__)
+  console.log('is prod:', __prod__)
   if (__prod__) {
     app.set('trust proxy', 1)
   }

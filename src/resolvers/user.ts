@@ -224,17 +224,17 @@ export class UserResolver {
     @Arg('options') options: UsernamePasswordInput,
     @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
-    const errors = validateRegister(options)
-
-    if (errors) {
-      return { errors }
-    }
-
-    const hashedPassword = await argon2.hash(options.password)
-    let user
-    console.log('ENTER REGISTER')
-
     try {
+      const errors = validateRegister(options)
+
+      if (errors) {
+        return { errors }
+      }
+
+      const hashedPassword = await argon2.hash(options.password)
+      let user
+      console.log('ENTER REGISTER')
+
       const result = await getConnection()
         .createQueryBuilder()
         .insert()
@@ -249,6 +249,32 @@ export class UserResolver {
 
       user = await User.findOne(result.raw[0].uuid)
       console.log('user in register:', user)
+
+      console.log('user in register:', user)
+      let profile = await Profile.findOne({ where: { userId: user?.uuid } })
+
+      user = {
+        ...user,
+        profile: { uuid: profile?.uuid, username: profile?.username },
+      }
+
+      req.session.user = user
+      req.session.userId = user.uuid
+
+      console.log('user in regssister:', req.session.user)
+      console.log('user in register:', req.session.userId)
+
+      const token = v4()
+
+      // const response = rpcClient.relay().sendEmail({
+      //   from: 'info@noon.com',
+      //   email: 'mohamad.sleimanhaidar@gmail.com',
+      //   task: 'send-welcome-email',
+      //   subject: 'Registration done',
+      //   html: `<a href="http://localhost:3000/change-password/${token}">reset password</a>`,
+      // })
+
+      return { user }
     } catch (error) {
       console.log('error:', error)
 
@@ -265,32 +291,6 @@ export class UserResolver {
         }
       }
     }
-
-    console.log('user in register:', user)
-    let profile = await Profile.findOne({ where: { userId: user?.uuid } })
-
-    user = {
-      ...user,
-      profile: { uuid: profile?.uuid, username: profile?.username },
-    }
-
-    req.session.user = user
-    req.session.userId = user.uuid
-
-    console.log('user in regssister:', req.session.user)
-    console.log('user in register:', req.session.userId)
-
-    const token = v4()
-
-    // const response = rpcClient.relay().sendEmail({
-    //   from: 'info@noon.com',
-    //   email: 'mohamad.sleimanhaidar@gmail.com',
-    //   task: 'send-welcome-email',
-    //   subject: 'Registration done',
-    //   html: `<a href="http://localhost:3000/change-password/${token}">reset password</a>`,
-    // })
-
-    return { user }
   }
 
   @Mutation(() => UserResponse)

@@ -53,7 +53,7 @@ const getEnv = () => {
   //   NEO4J_TRUST: 'trust',
   //   NEO4J_TRUSTED_CERTIFICATES: 'trustedCertificates',
   //   NEO4J_KNOWN_HOSTS: 'knownHosts',
-  //
+
   //   NEO4J_MAX_CONNECTION_POOLSIZE: 'maxConnectionPoolSize',
   //   NEO4J_MAX_TRANSACTION_RETRY_TIME: 'maxTransactionRetryTime',
   //   NEO4J_LOAD_BALANCING_STRATEGY: 'loadBalancingStrategy',
@@ -62,7 +62,7 @@ const getEnv = () => {
   //   NEO4J_DISABLE_LOSSLESS_INTEGERS: 'disableLosslessIntegers',
   //   NEO4J_LOGGING_LEVEL: 'logging',
   // }
-  //
+
   // Object.keys(settings).forEach((setting) => {
   //   if (process.env.hasOwnProperty(setting)) {
   //     const key = settings[setting]
@@ -73,7 +73,7 @@ const getEnv = () => {
   //     } else if (key == 'disableLosslessIntegers') {
   //       value = value === 'true'
   //     }
-  //
+
   //     config[key] = value
   //   }
   // })
