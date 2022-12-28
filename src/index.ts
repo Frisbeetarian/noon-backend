@@ -116,11 +116,11 @@ const main = async () => {
         disableTouch: true,
       }),
       cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
-        httpOnly: false,
-        sameSite: 'lax',
-        secure: __prod__,
+        maxAge: 60 * 60 * 24 * 1000
         domain: __prod__ ? '.noon.tube' : undefined,
+        secure: __prod__,
+        httpOnly: true,
+        sameSite: 'none',
       },
       saveUninitialized: false,
       secret: process.env.SESSION_SECRET,
