@@ -117,9 +117,9 @@ const main = async () => {
       }),
       cookie: {
         maxAge: 60 * 60 * 24 * 1000,
-        domain: __prod__ ? 'www.noon.tube' : undefined,
+        domain: __prod__ ? '.noon.tube' : undefined,
         secure: __prod__,
-        httpOnly: true,
+        httpOnly: !__prod__,
         sameSite: 'none',
       },
       saveUninitialized: false,
@@ -319,7 +319,6 @@ const main = async () => {
       })
 
       // socket.emit('users', users)
-
       // notify existing users
       // socket.broadcast.emit('user connected', {
       //   userID: socket.userID,
@@ -351,7 +350,6 @@ const main = async () => {
         }) => {
           participants.map((participant) => {
             // figure out way to send messages to groups
-
             if (participant !== fromUuid) {
               io.to(participant).emit('invited-to-group', {
                 fromUuid,
