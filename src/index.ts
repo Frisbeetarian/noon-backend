@@ -178,7 +178,7 @@ const main = async () => {
 
   apolloServer.applyMiddleware({
     app,
-    cors: true,
+    cors: false,
   })
 
   app.use(express.json())
