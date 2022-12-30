@@ -6,7 +6,7 @@ import neo4j from 'neo4j-driver'
  * @return {Neo4jDriver}
  */
 let instance = null
-const getConnection = () => {
+const getNeo4jConnection = () => {
   // its already instanced
   if (instance) {
     return instance
@@ -48,36 +48,6 @@ const getEnv = () => {
   // Build additional config
   const config = {}
 
-  // const settings = {
-  //   NEO4J_ENCRYPTION: 'encrypted',
-  //   NEO4J_TRUST: 'trust',
-  //   NEO4J_TRUSTED_CERTIFICATES: 'trustedCertificates',
-  //   NEO4J_KNOWN_HOSTS: 'knownHosts',
-
-  //   NEO4J_MAX_CONNECTION_POOLSIZE: 'maxConnectionPoolSize',
-  //   NEO4J_MAX_TRANSACTION_RETRY_TIME: 'maxTransactionRetryTime',
-  //   NEO4J_LOAD_BALANCING_STRATEGY: 'loadBalancingStrategy',
-  //   NEO4J_MAX_CONNECTION_LIFETIME: 'maxConnectionLifetime',
-  //   NEO4J_CONNECTION_TIMEOUT: 'connectionTimeout',
-  //   NEO4J_DISABLE_LOSSLESS_INTEGERS: 'disableLosslessIntegers',
-  //   NEO4J_LOGGING_LEVEL: 'logging',
-  // }
-
-  // Object.keys(settings).forEach((setting) => {
-  //   if (process.env.hasOwnProperty(setting)) {
-  //     const key = settings[setting]
-  //     let value = process.env[setting]
-  //
-  //     if (key == 'trustedCertificates') {
-  //       value = value.split(',')
-  //     } else if (key == 'disableLosslessIntegers') {
-  //       value = value === 'true'
-  //     }
-
-  //     config[key] = value
-  //   }
-  // })
-
   return {
     connection_string,
     NEO4J_USERNAME,
@@ -92,4 +62,4 @@ const getInstance = () => {
   return neo4j
 }
 
-export { getConnection, getInstance }
+export { getNeo4jConnection, getInstance }

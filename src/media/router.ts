@@ -61,7 +61,7 @@ router.post(
   upload.single('file'),
   async function (req, res, next) {
     let { image } = req.body
-
+    console.log('req in upload recording:', req)
     console.log('conversation uuid in upload audio recording:', req.file)
 
     const response = await rpcClient.media().sendAudioRecording({

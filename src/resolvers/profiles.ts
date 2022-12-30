@@ -105,12 +105,19 @@ export class ProfileResolver {
 
     const recipientProfile = await Profile.findOne(profileUuid)
 
-    await sendFriendRequest(
-      senderProfile?.uuid,
-      senderProfile?.username,
-      recipientProfile?.uuid,
-      recipientProfile?.username
-    )
+    console.log('profileUuid in resolver:', profileUuid)
+    console.log('recipient in resolver:', recipientProfile)
+
+    if (recipientProfile) {
+      await sendFriendRequest(
+        senderProfile?.uuid,
+        senderProfile?.username,
+        recipientProfile?.uuid,
+        recipientProfile?.username
+      )
+    } else {
+      return false
+    }
 
     // await rpcClient.search().updateEntryInIndex({
     //   index: 'PROFILES',

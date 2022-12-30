@@ -1,17 +1,9 @@
 // @ts-nocheck
-import neo4j from 'neo4j-driver'
 import { parse, stringify, toJSON, fromJSON } from 'flatted'
-import { Profile } from '../../entities/Profile'
-import { Conversation } from '../../entities/Conversation'
-import { getConnection } from 'typeorm'
-
-var driver = neo4j.driver(
-  'bolt://localhost:7687',
-  neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD)
-)
+import { getNeo4jConnection } from '../driver'
 
 export const getProfiles = async function (loggedInProfileUuid) {
-  var session = driver.session()
+  const session = getNeo4jConnection().session()
   let profiles = []
 
   await session
@@ -80,7 +72,8 @@ export const getProfiles = async function (loggedInProfileUuid) {
 }
 
 export const getFriendsForProfile = async function (profileUuid) {
-  let session = driver.session()
+  const session = getNeo4jConnection().session()
+
   let friends = []
 
   await session
@@ -111,7 +104,8 @@ export const getFriendsForProfile = async function (profileUuid) {
 }
 
 export const checkFriendship = async function (profile1Uuid, profile2Uuid) {
-  let session = driver.session()
+  const session = getNeo4jConnection().session()
+
   let check = null
   await session
     .run(
@@ -142,7 +136,8 @@ export const checkFriendship = async function (profile1Uuid, profile2Uuid) {
 }
 
 export const getFriendRequestsForProfile = async function (profileUuid) {
-  let session = driver.session()
+  const session = getNeo4jConnection().session()
+
   let friendRequests = []
   // 'MATCH (p:Profile {uuid: $profileUuid}) RETURN [(p)-[fr:FRIEND_REQUEST]->() | fr] AS outgoingFriendRequests, [(p)<-[fr:FRIEND_REQUEST]-() | fr] AS incomingFriendRequests',
 
@@ -198,7 +193,8 @@ export const createUserAndAssociateWithProfile = async function (
   user,
   profile
 ) {
-  let session = driver.session()
+  const session = getNeo4jConnection().session()
+
   const tx = session.beginTransaction()
 
   try {
@@ -250,10 +246,11 @@ export const sendFriendRequest = async function (
   recipientProfileUuid,
   recipientProfileUsername
 ) {
-  // console.log('senderProfileUuid:', senderProfileUuid)
-  // console.log('recipientProfileUuid:', recipientProfileUuid)
+  console.log('senderProfileUuid:', senderProfileUuid)
+  console.log('recipientProfileUuid:', recipientProfileUuid)
 
-  let session = driver.session()
+  const session = getNeo4jConnection().session()
+
   const tx = session.beginTransaction()
 
   try {
@@ -303,7 +300,8 @@ export const acceptFriendRequest = async function (
   recipientProfileUuid,
   recipientProfileUsername
 ) {
-  let session = driver.session()
+  const session = getNeo4jConnection().session()
+
   const tx = session.beginTransaction()
 
   try {
@@ -351,7 +349,8 @@ export const refuseFriendRequest = async function (
   recipientProfileUuid,
   recipientProfileUsername
 ) {
-  let session = driver.session()
+  const session = getNeo4jConnection().session()
+
   const tx = session.beginTransaction()
 
   console.log('refuse friend request: ', {
@@ -400,7 +399,8 @@ export const cancelFriendRequest = async function (
   recipientProfileUuid,
   recipientProfileUsername
 ) {
-  let session = driver.session()
+  const session = getNeo4jConnection().session()
+
   const tx = session.beginTransaction()
 
   console.log('cancel friend request: ', {
@@ -449,7 +449,8 @@ export const unfriend = async function (
   targetProfileUuid,
   targetProfileUsername
 ) {
-  let session = driver.session()
+  const session = getNeo4jConnection().session()
+
   const tx = session.beginTransaction()
 
   console.log('cancel friend request: ', {
