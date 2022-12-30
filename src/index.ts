@@ -172,7 +172,7 @@ const main = async () => {
 
   const io = socketIo(server, {
     cors: {
-      origin: '*',
+      origin: process.env.CORS_ORIGIN,
       methods: ['GET', 'POST'],
     },
     adapter: require('socket.io-redis')({
@@ -199,8 +199,8 @@ const main = async () => {
     protocol: 'amqp',
     hostname: 'localhost',
     port: 5672,
-    username: 'guest',
-    password: 'guest',
+    username: process.env.RABBIT_MQ_USERNAME,
+    password: process.env.RABBIT_MQ_PASSWORD,
     locale: 'en_US',
     vhost: '/',
   }
