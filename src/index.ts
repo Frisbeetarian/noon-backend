@@ -1,8 +1,5 @@
 // @ts-ignore
 import 'reflect-metadata'
-// import 'dotenv-safe/config'
-
-// const dotenv = require('dotenv')
 const dotenv = require('dotenv-safe').config({ silent: true })
 
 import express from 'express'
@@ -39,7 +36,6 @@ import { ConversationResolver } from './resolvers/conversations'
 import { ConversationToProfile } from './entities/ConversationToProfile'
 import { MessageResolver } from './resolvers/messages'
 import { ConversationProfileResolver } from './resolvers/conversationProfile'
-import { getFriendsForProfile } from './neo4j/neo4j_calls/neo4j_api'
 import { createMessageLoader } from './utils/createMessageLoader'
 import { __prod__ } from './constants'
 import { PostResolver } from './resolvers/post'
@@ -48,6 +44,8 @@ import { EventResolver } from './resolvers/events'
 import { User } from './entities/User'
 import { Updoot } from './entities/Updoot'
 import mediaRouter from './media/router'
+import { RedisMessageStore } from './socketio/messageStore'
+import connection from './socketio/connection'
 
 const app = express()
 
@@ -88,18 +86,9 @@ const main = async () => {
     }
   }
   // await conn.runMigrations()
-  const RedisStore = connectRedis(session)
-  const redis = new Redis(process.env.REDIS_URL)
 
-  const { RedisSessionStore } = require('./socketio/sessionStore')
-  const sessionStore = new RedisSessionStore(redis)
-
-  const { RedisMessageStore } = require('./socketio/messageStore')
-  const messageStore = new RedisMessageStore(redis)
   console.log('is prod:', __prod__)
-  // if (__prod__) {
   app.set('trust proxy', 1)
-  // }
 
   app.use(
     cors({
@@ -107,6 +96,9 @@ const main = async () => {
       credentials: true,
     })
   )
+
+  const RedisStore = connectRedis(session)
+  const redis = new Redis(process.env.REDIS_URL)
 
   app.use(
     session({
@@ -120,8 +112,8 @@ const main = async () => {
         domain: __prod__ ? '.noon.tube' : undefined,
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
         httpOnly: true,
-        sameSite: 'lax', // csrf
-        secure: __prod__, // cookie only works in https
+        sameSite: 'lax',
+        secure: __prod__,
       },
       saveUninitialized: false,
       secret: process.env.SESSION_SECRET,
@@ -132,17 +124,6 @@ const main = async () => {
   let server = app.listen(parseInt(process.env.PORT), () =>
     console.log(`server listening at http://localhost:${process.env.PORT}`)
   )
-
-  const io = socketIo(server, {
-    cors: {
-      origin: '*',
-      methods: ['GET', 'POST'],
-    },
-    adapter: require('socket.io-redis')({
-      pubClient: redis,
-      subClient: redis.duplicate(),
-    }),
-  })
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
@@ -173,9 +154,6 @@ const main = async () => {
     uploads: false,
   })
 
-  // app.use(graphqlUploadExpress())
-  // app.use(graphqlUploadExpress({ maxFileSize: 10000000000, maxFiles: 10 }))
-
   apolloServer.applyMiddleware({
     app,
     cors: false,
@@ -186,36 +164,24 @@ const main = async () => {
 
   app.use('/media_api', mediaRouter)
 
-  // create_user('lokman')
-  // const server = http.createServer(app)
-  // let httpServer = http.createServer()
-  // const WORKERS_COUNT = 4
+  const { RedisSessionStore } = require('./socketio/sessionStore')
+  const sessionStore = new RedisSessionStore(redis)
 
-  // if (cluster.isMaster) {
-  //   console.log(`Master ${process.pid} is running`)
-  //
-  //   for (let i = 0; i < WORKERS_COUNT; i++) {
-  //     cluster.fork()
-  //   }
-  //
-  //   cluster.on('exit', (worker) => {
-  //     console.log(`Worker ${worker.process.pid} died`)
-  //     cluster.fork()
-  //   })
-  //   // const httpServer = http.createServer()
+  const { RedisMessageStore } = require('./socketio/messageStore')
+  const messageStore = new RedisMessageStore(redis)
 
-  //   setupMaster(httpServer, {
-  //     loadBalancingMethod: 'least-connection', // either "random", "round-robin" or "least-connection"
-  //   })
-  //
-  //   app.listen(4020, () =>
-  //     console.log(`server listening at http://localhost:${4020}`)
-  //   )
-  // } else {
+  const io = socketIo(server, {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST'],
+    },
+    adapter: require('socket.io-redis')({
+      pubClient: redis,
+      subClient: redis.duplicate(),
+    }),
+  })
+
   console.log(`Worker ${process.pid} started`)
-  // app.listen(4020, () => {
-  //   console.log('server start on localhost:4020')
-  // })
 
   instrument(io, {
     auth: {
@@ -225,404 +191,7 @@ const main = async () => {
     },
   })
 
-  // io.use(async (socket, next) => {
-  //   let sessionID = socket.handshake.auth.sessionID
-  //   console.log('socket auth in middleware: ', socket.handshake.auth)
-  //   // console.log(
-  //   //   'user uuid in middleware: ',
-  //   //   socket.handshake.auth.userSocketUuid
-  //   // )
-  //   // console.log()
-
-  //   // if (sessionID === undefined) {
-  //   //   sessionID = socket.sessionID
-  //   // }
-
-  //   if (sessionID) {
-  //     const session = await sessionStore.findSession(sessionID)
-
-  //     if (session) {
-  //       socket.sessionID = sessionID
-  //       socket.userID = session.userId
-  //       socket.userSocketUuid = session.userSocketUuid
-  //       socket.username = session.username
-  //       return next()
-  //     }
-  //   }
-
-  //   const username = socket.handshake.auth.username
-  //
-  //   if (!username) {
-  //     return next(new Error('invalid username'))
-  //   }
-  //   console.log('middleware not passing through session')
-  //   socket.sessionID = randomId()
-  //   socket.userID = socket.handshake.auth.userID
-  //   socket.username = username
-  //   socket.userSocketUuid = socket.handshake.auth.userSocketUuid
-  //   next()
-  // })
-
-  // chat(io)
-  // setupWorker(io)
-
-  io.on('connection', async (socket) => {
-    console.log(
-      'socket.handshake.auth.sessionID:',
-      socket.handshake.auth.sessionID
-    )
-
-    console.log(
-      'socket.handshake.auth.userSocketUuid:',
-      socket.handshake.auth.userSocketUuid
-    )
-
-    if (socket.handshake.auth.userSocketUuid) {
-      sessionStore.saveSession(socket.handshake.auth.userSocketUuid, {
-        userID: socket.handshake.auth.userSocketUuid,
-        username: socket.handshake.auth.username,
-        connected: true,
-        userSocketUuid: socket.handshake.auth.userSocketUuid,
-      })
-
-      socket.emit('session', {
-        sessionID: socket.handshake.auth.userSocketUuid,
-        userID: socket.handshake.auth.userID,
-      })
-
-      socket.join(socket.handshake.auth.userID)
-      const users = []
-      const [messages, sessions] = await Promise.all([
-        messageStore.findMessagesForUser(socket.userID),
-        sessionStore.findAllSessions(),
-      ])
-
-      const messagesPerUser = new Map()
-
-      messages.forEach((message) => {
-        const { from, to } = message
-        const otherUser = socket.userID === from ? to : from
-
-        if (messagesPerUser.has(otherUser)) {
-          messagesPerUser.get(otherUser).push(message)
-        } else {
-          messagesPerUser.set(otherUser, [message])
-        }
-      })
-
-      sessions.forEach((session) => {
-        users.push({
-          userID: session.userID,
-          username: session.username,
-          connected: session.connected,
-          messages: messagesPerUser.get(session.userID) || [],
-        })
-      })
-
-      // socket.emit('users', users)
-      // notify existing users
-      // socket.broadcast.emit('user connected', {
-      //   userID: socket.userID,
-      //   username: socket.username,
-      //   connected: true,
-      //   messages: [],
-      // })
-
-      const friends = await getFriendsForProfile(
-        socket.handshake.auth.sessionID
-      )
-
-      // socket.on('friend-connected', async ({}) => {
-      friends.map((friend) => {
-        io.to(friend.uuid).emit('friend-connected', {
-          username: socket.handshake.auth.username,
-          uuid: socket.handshake.auth.sessionID,
-        })
-      })
-
-      socket.on(
-        'group-created',
-        async ({
-          fromUuid,
-          fromUsername,
-          conversation,
-          groupUuid,
-          participants,
-        }) => {
-          participants.map((participant) => {
-            // figure out way to send messages to groups
-            if (participant !== fromUuid) {
-              io.to(participant).emit('invited-to-group', {
-                fromUuid,
-                fromUsername,
-                conversation,
-                groupUuid,
-                participants,
-              })
-            }
-          })
-        }
-      )
-
-      // from: loggedInUser.user?.profile?.uuid,
-      //   fromUsername:
-      // loggedInUser.user?.profile?.username,
-      //   conversationUuid: conversation.uuid,
-      //   participants: participantsToSend,
-
-      socket.on(
-        'left-group',
-        async ({ fromUuid, fromUsername, conversationUuid, participants }) => {
-          participants.map((participant) => {
-            // TODO figure out way to send messages to groups
-            io.to(participant).emit('left-group', {
-              fromUuid,
-              fromUsername,
-              conversationUuid,
-            })
-          })
-        }
-      )
-
-      socket.on(
-        'private-chat-message',
-        async ({
-          content,
-          from,
-          fromUsername,
-          to,
-          toUsername,
-          messageUuid,
-          message,
-          conversationUuid,
-          type,
-          src,
-        }) => {
-          const messagePayload = {
-            content,
-            from: from,
-            fromUsername,
-            to,
-            conversationUuid,
-            type,
-            src,
-          }
-
-          io.to(to).emit('private-chat-message', {
-            content,
-            from,
-            fromUsername,
-            to,
-            toUsername,
-            messageUuid,
-            message,
-            conversationUuid,
-            type,
-            src,
-          })
-
-          try {
-            messageStore.saveMessage(messagePayload)
-          } catch (e) {
-            console.log('ERROR SAVING CONVERSATION:', e)
-          }
-        }
-      )
-
-      socket.on(
-        'message-deleted',
-        ({
-          messageUuid,
-          to,
-          toUsername,
-          from,
-          fromUsername,
-          conversationUuid,
-        }) => {
-          io.to(to).emit('message-deleted', {
-            messageUuid,
-            to,
-            toUsername,
-            from,
-            fromUsername,
-            conversationUuid,
-          })
-        }
-      )
-
-      // forward the private message to the right recipient (and to other tabs of the sender)
-      socket.on(
-        'send-friend-request',
-        ({ content, from, fromUsername, to, toUsername }) => {
-          io.to(to).emit('send-friend-request', {
-            content,
-            from,
-            fromUsername,
-            to,
-            toUsername,
-          })
-        }
-      )
-
-      socket.on(
-        'cancel-friend-request',
-        ({ content, from, fromUsername, to, toUsername }) => {
-          io.to(to).emit('cancel-friend-request', {
-            content,
-            from,
-            fromUsername,
-            to,
-            toUsername,
-          })
-        }
-      )
-
-      socket.on(
-        'unfriend',
-        ({ content, from, fromUsername, to, toUsername, conversationUuid }) => {
-          io.to(to).emit('unfriend', {
-            content,
-            from,
-            fromUsername,
-            to,
-            toUsername,
-            conversationUuid,
-          })
-        }
-      )
-
-      socket.on(
-        'friendship-request-accepted',
-        ({ content, from, fromUsername, to, toUsername, conversation }) => {
-          const message = {
-            content,
-            from: from,
-            fromUsername,
-            to,
-          }
-
-          io.to(to).emit('friendship-request-accepted', {
-            content,
-            from,
-            fromUsername,
-            to,
-            toUsername,
-            conversation,
-          })
-
-          messageStore.saveMessage(message)
-        }
-      )
-
-      socket.on(
-        'check-friend-connection',
-        async ({ from, fromUsername, to, toUsername }) => {
-          const session = await sessionStore.findSession(to)
-          console.log('session DATA:', session)
-
-          io.to(from).emit('check-friend-connection', {
-            session: session,
-          })
-        }
-      )
-
-      socket.on(
-        'set-pending-call-for-conversation',
-        async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
-          io.to(to).emit('set-pending-call-for-conversation', {
-            from,
-            fromUsername,
-            to,
-            toUsername,
-            conversationUuid,
-          })
-        }
-      )
-
-      socket.on(
-        'cancel-pending-call-for-conversation',
-        async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
-          console.log('cancel pending call for conversation:', to)
-
-          io.to(to).emit('cancel-pending-call-for-conversation', {
-            from,
-            fromUsername,
-            to,
-            toUsername,
-            conversationUuid,
-          })
-        }
-      )
-
-      socket.on(
-        'set-ongoing-call-for-conversation',
-        async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
-          // const session = await sessionStore.findSession(to)
-          // console.log('session DATA:', session)
-
-          io.to(to).emit('set-ongoing-call-for-conversation', {
-            from,
-            fromUsername,
-            to,
-            toUsername,
-            conversationUuid,
-          })
-        }
-      )
-
-      socket.on(
-        'cancel-ongoing-call-for-conversation',
-        async ({ from, fromUsername, to, toUsername, conversationUuid }) => {
-          // const session = await sessionStore.findSession(to)
-
-          io.to(to).emit('set-ongoing-call-for-conversation', {
-            from,
-            fromUsername,
-            to,
-            toUsername,
-            conversationUuid,
-          })
-        }
-      )
-
-      // notify users upon disconnection
-      socket.on('disconnect', async () => {
-        const matchingSockets = await io.in(socket.userID).allSockets()
-        const isDisconnected = matchingSockets.size === 0
-        console.log('username on disconnect:', socket.handshake.auth.username)
-        if (isDisconnected) {
-          // notify other users
-          socket.broadcast.emit('user disconnected', socket.userID)
-
-          // update the connection status of the session
-          sessionStore.saveSession(socket.handshake.auth.userSocketUuid, {
-            userID: socket.handshake.auth.userSocketUuid,
-            username: socket.handshake.auth.userID,
-            connected: false,
-            userSocketUuid: socket.handshake.auth.userSocketUuid,
-          })
-
-          console.log(
-            'socket.handshake.auth.userSocketUuid on disconnect:',
-            socket.handshake.auth.sessionID
-          )
-
-          const friends = await getFriendsForProfile(
-            socket.handshake.auth.sessionID
-          )
-
-          friends.map((friend) => {
-            io.to(friend.uuid).emit('friend-disconnected', {
-              username: socket.handshake.auth.username,
-              uuid: socket.handshake.auth.sessionID,
-            })
-          })
-
-          console.log('friends on disconnect:', friends)
-        }
-      })
-    }
-  })
+  connection(io, sessionStore, messageStore)
 
   const { RPCServer } = require('@noon/rabbit-mq-rpc/server')
 
