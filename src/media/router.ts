@@ -28,6 +28,11 @@ import cors from 'cors'
 //   return { result }
 // })
 
+router.options(
+  '/upload_image',
+  cors({ origin: process.env.CORS_ORIGIN, credentials: true })
+)
+
 router.post(
   '/upload_image',
   cors({ origin: process.env.CORS_ORIGIN, credentials: true }),
