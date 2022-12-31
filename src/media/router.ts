@@ -28,13 +28,12 @@ import cors from 'cors'
 //   return { result }
 // })
 
-router.use(
-  '/upload_image',
-  proxy({
-    target: 'https://api.noon.tube',
-    changeOrigin: true,
-  })
-)
+// router.use(
+//   '/upload_image',
+//   proxy({
+//     target: 'https://api.noon.tube',
+//   })
+// )
 
 router.post(
   '/upload_image',
