@@ -11,6 +11,7 @@ import { Message } from '../entities/Message'
 import { Profile } from '../entities/Profile'
 import { Conversation } from '../entities/Conversation'
 import { getConnection } from 'typeorm'
+import cors from 'cors'
 
 // const neo4j_calls = require('./../neo4j_calls/neo4j_api')
 // import { get_num_nodes, create_user } from '../neo4j_calls/neo4j_api'
@@ -29,6 +30,7 @@ import { getConnection } from 'typeorm'
 
 router.post(
   '/upload_image',
+  cors(),
   upload.single('file'),
   async function (req, res, next) {
     let { image } = req.body
@@ -58,6 +60,7 @@ router.post(
 
 router.post(
   '/upload_audio_recording',
+  cors(),
   upload.single('file'),
   async function (req, res, next) {
     let { image } = req.body

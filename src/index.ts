@@ -85,6 +85,7 @@ const main = async () => {
       await new Promise((res) => setTimeout(res, 5000))
     }
   }
+
   // await conn.runMigrations()
 
   console.log('is prod:', __prod__)
@@ -192,7 +193,6 @@ const main = async () => {
   })
 
   connection(io, sessionStore, messageStore)
-
   const { RPCServer } = require('@noon/rabbit-mq-rpc/server')
 
   const connectionObject = {
