@@ -30,7 +30,7 @@ import cors from 'cors'
 
 router.post(
   '/upload_image',
-  cors(),
+  cors({ origin: process.env.CORS_ORIGIN, credentials: true }),
   upload.single('file'),
   async function (req, res, next) {
     let { image } = req.body
@@ -60,7 +60,7 @@ router.post(
 
 router.post(
   '/upload_audio_recording',
-  cors(),
+  cors({ origin: process.env.CORS_ORIGIN, credentials: true }),
   upload.single('file'),
   async function (req, res, next) {
     let { image } = req.body
