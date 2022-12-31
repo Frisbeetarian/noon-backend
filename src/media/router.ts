@@ -28,14 +28,16 @@ import cors from 'cors'
 //   return { result }
 // })
 
-router.options(
+router.use(
   '/upload_image',
-  cors({ origin: process.env.CORS_ORIGIN, credentials: true })
+  proxy({
+    target: 'https://api.noon.tube',
+    changeOrigin: true,
+  })
 )
 
 router.post(
   '/upload_image',
-  cors({ origin: process.env.CORS_ORIGIN, credentials: true }),
   upload.single('file'),
   async function (req, res, next) {
     let { image } = req.body
