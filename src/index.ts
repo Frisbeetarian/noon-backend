@@ -160,10 +160,10 @@ const main = async () => {
     cors: false,
   })
 
+  app.use('/media_api', mediaRouter)
+
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
-
-  app.use('/media_api', mediaRouter)
 
   const { RedisSessionStore } = require('./socketio/sessionStore')
   const sessionStore = new RedisSessionStore(redis)
