@@ -18,4 +18,4 @@ RUN yarn build
 ENV NODE_END production
 
 EXPOSE 8080
-CMD [ "node", "dist/index.js" ]
+CMD [ "node", "dist/index.ts" ]

@@ -11,19 +11,18 @@ import {
   ObjectType,
   Field,
 } from 'type-graphql'
+import * as fs from 'fs'
 import { Conversation } from '../entities/Conversation'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
-import { Friend } from '../entities/Friend'
 import { MyContext } from '../types'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
 import { Message } from '../entities/Message'
-import { Post } from '../entities/Post'
-// import { GraphQLUpload, FileUpload } from 'graphql-upload'
 const { GraphQLUpload, FileUpload } = require('graphql-upload-minimal')
-
 import Redis from 'ioredis'
-// import { FileUpload } from '../../../reddit-clone-web/src/pages/noon/FileUpload';
+import rpcClient from '../utils/brokerInitializer'
+const stream = require('stream')
+import * as util from 'util'
 const redis = new Redis()
 
 const { RedisSessionStore } = require('./../socketio/sessionStore')
@@ -123,10 +122,56 @@ export class MessageResolver {
     @Arg('file', () => GraphQLUpload, { nullable: true }) file: FileUpload,
     @Ctx() { req }: MyContext
   ) {
-    console.log('GREGERGERGERGERGRE')
+    let message = null
+
+    const pipeline = util.promisify(stream.pipeline)
+
     if (file) {
-      console.log('file:', file)
+      try {
+        const chunks = []
+        const readStream = file.createReadStream()
+
+        readStream.on('data', (chunk) => {
+          chunks.push(chunk)
+        })
+
+        return new Promise((resolve) => {
+          readStream.on('end', async () => {
+            const buffer = Buffer.concat(chunks)
+
+            const response = await rpcClient.media().sendImage({
+              task: 'upload-image',
+              image: file,
+              readStream: buffer,
+            })
+
+            const conversation = await Conversation.findOne(conversationUuid)
+            const sender = await Profile.findOne(profileUuid)
+            const messageRepository = getConnection().getRepository(Message)
+
+            let type = 'image'
+            let src = response
+            let saveMessage = new Message(
+              conversation,
+              sender,
+              response,
+              type,
+              src
+            )
+
+            message = await messageRepository.save(saveMessage)
+            resolve(message)
+            // console.log('message:', message)
+            // return message
+          })
+        })
+      } catch (e) {
+        console.log('error:', e)
+        return false
+      }
     }
+
+    return false
   }
 
   @Mutation(() => Message)

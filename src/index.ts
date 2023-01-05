@@ -46,6 +46,9 @@ import { Updoot } from './entities/Updoot'
 import mediaRouter from './media/router'
 import { RedisMessageStore } from './socketio/messageStore'
 import connection from './socketio/connection'
+import { createProxyMiddleware } from 'http-proxy-middleware'
+import { graphqlUploadExpress } from 'graphql-upload-minimal'
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core'
 
 const app = express()
 
@@ -91,13 +94,6 @@ const main = async () => {
   console.log('is prod:', __prod__)
   app.set('trust proxy', 1)
 
-  app.use(
-    cors({
-      origin: process.env.CORS_ORIGIN,
-      credentials: true,
-    })
-  )
-
   const RedisStore = connectRedis(session)
   const redis = new Redis(process.env.REDIS_URL)
 
@@ -122,8 +118,18 @@ const main = async () => {
     })
   )
 
-  let server = app.listen(parseInt(process.env.PORT), () =>
-    console.log(`server listening at http://localhost:${process.env.PORT}`)
+  app.use(
+    cors({
+      origin: process.env.CORS_ORIGIN,
+      credentials: true,
+    })
+  )
+
+  app.use(
+    graphqlUploadExpress({
+      maxFileSize: 10000000, // 10 MB
+      maxFiles: 20,
+    })
   )
 
   const apolloServer = new ApolloServer({
@@ -143,6 +149,8 @@ const main = async () => {
       ],
       validate: false,
     }),
+    typeDefs: require('./typeDefs'),
+    // plugins: [ApolloServerPluginDrainHttpServer({ server })],
     context: ({ req, res }) => ({
       req,
       res,
@@ -152,13 +160,28 @@ const main = async () => {
       updootLoader: createUpdootLoader(),
       messageLoader: createMessageLoader(),
     }),
-    uploads: false,
+    // uploads: false,
   })
 
-  apolloServer.applyMiddleware({
-    app,
-    cors: false,
+  let server = null
+
+  apolloServer.start().then((res) => {
+    apolloServer.applyMiddleware({
+      app,
+      cors: false,
+    })
+
+    server = app.listen(parseInt(process.env.PORT), () =>
+      console.log(`server listening at http://localhost:${process.env.PORT}`)
+    )
+    // app.listen({ port: 3000 }, () => console.log('nice'))
   })
+
+  // const proxy = {
+  //   target: 'http://localhost:3000',
+  //   changeOrigin: true,
+  // }
+  // app.use('/media_api', createProxyMiddleware(proxy), mediaRouter)
 
   app.use('/media_api', mediaRouter)
 
