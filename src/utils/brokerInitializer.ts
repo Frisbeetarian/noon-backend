@@ -109,7 +109,6 @@ function media() {
   return {
     async sendImage({ file, readStream, task }) {
       try {
-        console.log('image:', image)
         // const buffer = Buffer.from(image)
         // channel.sendToQueue(queue, buffer);
 

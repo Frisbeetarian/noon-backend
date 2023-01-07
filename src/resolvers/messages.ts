@@ -140,7 +140,7 @@ export class MessageResolver {
               file,
               readStream: buffer,
             })
-
+            console.log('response:', response)
             const conversation = await Conversation.findOne(conversationUuid)
             const sender = await Profile.findOne(profileUuid)
             const messageRepository = getConnection().getRepository(Message)
