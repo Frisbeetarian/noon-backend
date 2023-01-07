@@ -93,7 +93,7 @@ export class ConversationResolver {
       const [count] = await Promise.all([
         Message.count({ where: { conversationUuid } }),
       ])
-
+      console.log('conversationUuid:', conversationUuid)
       console.log('count in check conversation:', count)
       return count > 20 ? true : false
     } catch (e) {

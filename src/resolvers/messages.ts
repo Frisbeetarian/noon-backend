@@ -21,8 +21,6 @@ import { Message } from '../entities/Message'
 const { GraphQLUpload, FileUpload } = require('graphql-upload-minimal')
 import Redis from 'ioredis'
 import rpcClient from '../utils/brokerInitializer'
-const stream = require('stream')
-import * as util from 'util'
 const redis = new Redis()
 
 const { RedisSessionStore } = require('./../socketio/sessionStore')
@@ -90,7 +88,7 @@ export class MessageResolver {
       replacements
     )
 
-    console.log('messages:', messages)
+    // console.log('messages:', messages)
     let messagesToSend = []
 
     messages.forEach((message) => {
@@ -124,8 +122,6 @@ export class MessageResolver {
   ) {
     let message = null
 
-    const pipeline = util.promisify(stream.pipeline)
-
     if (file) {
       try {
         const chunks = []
@@ -141,7 +137,7 @@ export class MessageResolver {
 
             const response = await rpcClient.media().sendImage({
               task: 'upload-image',
-              image: file,
+              file,
               readStream: buffer,
             })
 
@@ -161,8 +157,61 @@ export class MessageResolver {
 
             message = await messageRepository.save(saveMessage)
             resolve(message)
-            // console.log('message:', message)
-            // return message
+          })
+        })
+      } catch (e) {
+        console.log('error:', e)
+        return false
+      }
+    }
+
+    return false
+  }
+
+  @Mutation(() => Message)
+  async uploadVoiceRecording(
+    @Arg('profileUuid', () => String) profileUuid: string,
+    @Arg('conversationUuid', () => String) conversationUuid: string,
+    @Arg('file', () => GraphQLUpload, { nullable: true }) file: FileUpload,
+    @Ctx() { req }: MyContext
+  ) {
+    let message = null
+    console.log('file:', file)
+    if (file) {
+      try {
+        const chunks = []
+        const readStream = file.createReadStream()
+
+        readStream.on('data', (chunk) => {
+          chunks.push(chunk)
+        })
+
+        return new Promise((resolve) => {
+          readStream.on('end', async () => {
+            const buffer = Buffer.concat(chunks)
+
+            const response = await rpcClient.media().sendAudioRecording({
+              task: 'upload-audio-recording',
+              file,
+              readStream: buffer,
+            })
+
+            const conversation = await Conversation.findOne(conversationUuid)
+            const sender = await Profile.findOne(profileUuid)
+            const messageRepository = getConnection().getRepository(Message)
+
+            let type = 'audio'
+            let src = response
+            let saveMessage = new Message(
+              conversation,
+              sender,
+              response,
+              type,
+              src
+            )
+
+            message = await messageRepository.save(saveMessage)
+            resolve(message)
           })
         })
       } catch (e) {

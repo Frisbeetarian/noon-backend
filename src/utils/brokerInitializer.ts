@@ -107,14 +107,14 @@ function media() {
   const channel = QUEUES.MEDIA_SERVER.channel
 
   return {
-    async sendImage({ image, readStream, task }) {
+    async sendImage({ file, readStream, task }) {
       try {
         console.log('image:', image)
         // const buffer = Buffer.from(image)
         // channel.sendToQueue(queue, buffer);
 
         const mediaResponse = await mediaRPCRequest(channel, 'UPLOAD_IMAGE', {
-          image,
+          file,
           readStream,
           task,
         })
@@ -125,13 +125,14 @@ function media() {
         return null
       }
     },
-    async sendAudioRecording({ file, task }) {
+    async sendAudioRecording({ file, readStream, task }) {
       try {
         const mediaResponse = await mediaRPCRequest(
           channel,
           'UPLOAD_AUDIO_RECORDING',
           {
             file,
+            readStream,
             task,
           }
         )

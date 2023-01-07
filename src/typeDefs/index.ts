@@ -9,6 +9,7 @@ const typeDefs = gql`
   }
   type Mutation {
     UploadImage(file: Upload!): File!
+    UploadVoiceRecording(file: Upload!): File!
   }
 `
 
