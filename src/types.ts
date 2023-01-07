@@ -18,7 +18,7 @@ export type MyContext = {
   // req: Request;
   res: Response
   redis: Redis
-  io: Socket
+  // io: Socket
   userLoader: ReturnType<typeof createUserLoader>
   // profilesLoader: ReturnType<typeof createProfileLoader>
   updootLoader: ReturnType<typeof createUpdootLoader>

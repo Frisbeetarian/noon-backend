@@ -155,7 +155,7 @@ const main = async () => {
       req,
       res,
       redis,
-      io,
+      // io,
       userLoader: createUserLoader(),
       updootLoader: createUpdootLoader(),
       messageLoader: createMessageLoader(),
@@ -194,28 +194,33 @@ const main = async () => {
   const { RedisMessageStore } = require('./socketio/messageStore')
   const messageStore = new RedisMessageStore(redis)
 
-  const io = socketIo(server, {
-    cors: {
-      origin: process.env.CORS_ORIGIN,
-      methods: ['GET', 'POST'],
-    },
-    adapter: require('socket.io-redis')({
-      pubClient: redis,
-      subClient: redis.duplicate(),
-    }),
-  })
+  try {
+    const io = socketIo(server, {
+      cors: {
+        origin: process.env.CORS_ORIGIN,
+        methods: ['GET', 'POST'],
+      },
+      adapter: require('socket.io-redis')({
+        pubClient: redis,
+        subClient: redis.duplicate(),
+      }),
+    })
 
-  console.log(`Worker ${process.pid} started`)
+    console.log(`Worker ${process.pid} started`)
 
-  instrument(io, {
-    auth: {
-      type: 'basic',
-      username: process.env.SOCKET_INSTRUMENT_USERNAME,
-      password: process.env.SOCKET_INSTRUMENT_PASSWORD,
-    },
-  })
+    instrument(io, {
+      auth: {
+        type: 'basic',
+        username: process.env.SOCKET_INSTRUMENT_USERNAME,
+        password: process.env.SOCKET_INSTRUMENT_PASSWORD,
+      },
+    })
 
-  connection(io, sessionStore, messageStore)
+    connection(io, sessionStore, messageStore)
+  } catch (e) {
+    console.log('error establishing websocket connection:', e)
+  }
+
   const { RPCServer } = require('@noon/rabbit-mq-rpc/server')
 
   const connectionObject = {

@@ -632,14 +632,13 @@
     pluralize "^8.0.0"
     semver "^7.3.5"
 
-"@noon/rabbit-mq-rpc@^0.0.29":
-  version "0.0.29"
-  resolved "http://localhost:4873/@noon%2frabbit-mq-rpc/-/rabbit-mq-rpc-0.0.29.tgz#ec2cf472c7d11d1b1d08e5f9f3e0b520a0412d1c"
-  integrity sha512-NoyNFRH5eZhRRlmZMIp9WPBBHvbOAiZh8ujlZnjKPXJ4D2zNf0kMK9F362N2M1wwjAj0Y4JfCN3YKpBpDd/Q3A==
+"@noon/rabbit-mq-rpc@0.0.19":
+  version "0.0.19"
+  resolved "http://localhost:4873/@noon%2frabbit-mq-rpc/-/rabbit-mq-rpc-0.0.19.tgz#0a72da786dccad27f4f1e9103d21b2f83dfc7b39"
+  integrity sha512-GVbjKPWo6ShVpK94Xa8Hs15XU6cQa/1UBqBLKf7VApWj2I1ibgvEXVJiKOMfJ3vRr8+5CRf86VXB85cej5e4iQ==
   dependencies:
     amqp-connection-manager "^4.1.6"
     amqplib "^0.10.2"
-    prettier "^2.8.1"
     uuid "^8.3.2"
 
 "@panva/asn1.js@^1.0.0":
@@ -3260,11 +3259,6 @@ postgres-interval@^1.1.0:
   integrity sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==
   dependencies:
     xtend "^4.0.0"
-
-prettier@^2.8.1:
-  version "2.8.1"
-  resolved "http://localhost:4873/prettier/-/prettier-2.8.1.tgz#4e1fd11c34e2421bc1da9aea9bd8127cd0a35efc"
-  integrity sha512-lqGoSJBQNJidqCHE80vqZJHWHRFoNYsSpP9AjFhlhi9ODCJA541svILes/+/1GM3VaL/abZi7cpFzOpdR9UPKg==
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
