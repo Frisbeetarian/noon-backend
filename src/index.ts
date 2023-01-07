@@ -174,6 +174,35 @@ const main = async () => {
     server = app.listen(parseInt(process.env.PORT), () =>
       console.log(`server listening at http://localhost:${process.env.PORT}`)
     )
+
+    try {
+      console.log('Server:', server)
+      const io = socketIo(server, {
+        cors: {
+          origin: process.env.CORS_ORIGIN,
+          methods: ['GET', 'POST'],
+        },
+        adapter: require('socket.io-redis')({
+          pubClient: redis,
+          subClient: redis.duplicate(),
+        }),
+      })
+
+      console.log(`Worker ${process.pid} started`)
+
+      instrument(io, {
+        auth: {
+          type: 'basic',
+          username: process.env.SOCKET_INSTRUMENT_USERNAME,
+          password: process.env.SOCKET_INSTRUMENT_PASSWORD,
+        },
+      })
+
+      connection(io, sessionStore, messageStore)
+    } catch (e) {
+      console.log('error establishing websocket connection:', e)
+    }
+
     // app.listen({ port: 3000 }, () => console.log('nice'))
   })
 
@@ -194,33 +223,6 @@ const main = async () => {
   const { RedisMessageStore } = require('./socketio/messageStore')
   const messageStore = new RedisMessageStore(redis)
 
-  try {
-    const io = socketIo(server, {
-      cors: {
-        origin: process.env.CORS_ORIGIN,
-        methods: ['GET', 'POST'],
-      },
-      adapter: require('socket.io-redis')({
-        pubClient: redis,
-        subClient: redis.duplicate(),
-      }),
-    })
-
-    console.log(`Worker ${process.pid} started`)
-
-    instrument(io, {
-      auth: {
-        type: 'basic',
-        username: process.env.SOCKET_INSTRUMENT_USERNAME,
-        password: process.env.SOCKET_INSTRUMENT_PASSWORD,
-      },
-    })
-
-    connection(io, sessionStore, messageStore)
-  } catch (e) {
-    console.log('error establishing websocket connection:', e)
-  }
-
   const { RPCServer } = require('@noon/rabbit-mq-rpc/server')
 
   const connectionObject = {
@@ -232,7 +234,6 @@ const main = async () => {
     locale: 'en_US',
     vhost: '/',
   }
-
   async function establishRPCConsumer() {
     try {
       const rpcServer = new RPCServer({
