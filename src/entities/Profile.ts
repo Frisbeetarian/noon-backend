@@ -13,7 +13,6 @@ import {
 import { Post } from './Post'
 import { Updoot } from './Updoot'
 import { User } from './User'
-import { CommunityParticipant } from './CommunityParticipant'
 import { ConversationToProfile } from './ConversationToProfile'
 import { Message } from './Message'
 
@@ -37,21 +36,12 @@ export class Profile extends BaseEntity {
   @OneToOne(() => User, (user) => user.profile)
   user: User
 
-  // @OneToOne(
-  //   () => ConversationToProfile,
-  //   (conversationToProfile) => conversationToProfile.pendingCallProfile
-  // )
-  // pendingCall: ConversationToProfile
-
   @OneToMany(() => Post, (post) => post.creator)
   posts: Post[]
 
   @OneToMany(() => Updoot, (updoot) => updoot.user)
   updoots: Updoot[]
 
-  // @ManyToMany(() => Conversation, (conversation) => conversation.profiles)
-  // @JoinTable()
-  // conversations: Conversation[]
   @ManyToOne(
     () => ConversationToProfile,
     (conversationToProfile) => conversationToProfile.profile
@@ -62,13 +52,6 @@ export class Profile extends BaseEntity {
     cascade: true,
   })
   senderMessages: Message[]
-  // @ManyToMany(() => Friend)
-  // friends?: Friend[]
-  @OneToMany(
-    () => CommunityParticipant,
-    (communityParticipant) => communityParticipant.profile
-  )
-  communities: CommunityParticipant[]
 
   @Field(() => String)
   @UpdateDateColumn()

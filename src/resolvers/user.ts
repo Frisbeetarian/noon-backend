@@ -75,20 +75,16 @@ export class UserResolver {
 
   @FieldResolver(() => String)
   email(@Root() user: User, @Ctx() { req }: MyContext) {
-    // this is the current user and its okay to show them logged user info
     if (req.session.userId == user.uuid) {
       return user.email
     }
 
-    // current user wants to see other user's info
     return ''
   }
 
   @Query(() => User, { nullable: true })
   @UseMiddleware(isAuth)
   async me(@Ctx() { req }: MyContext) {
-    // console.log('session: ' + JSON.stringify(req.session))
-    console.log('Fewlfknweklfnwelfknwelfknewklfnlweknflkewnfl')
     if (!req.session.userId) {
       return null
     }
@@ -105,8 +101,6 @@ export class UserResolver {
     const friendRequestsArray = await getFriendRequestsForProfile(
       user?.profile?.uuid
     )
-
-    // console.log('friendRequestsArray: ', friendRequestsArray)
 
     if (friendsArray.length !== 0) {
       user = { ...user, friends: friendsArray }
@@ -126,8 +120,6 @@ export class UserResolver {
       }
     }
 
-    // console.log('UAWER:', user)
-    // console.log('USER 238ORH239UB392823923BF9UF: ', user)
     return user
   }
 
@@ -176,16 +168,12 @@ export class UserResolver {
       }
     }
 
-    // user.password = await argon2.hash(newPassword)
-    // await em.persistAndFlush(user)
-
     await User.update(
       { uuid: userIdNum },
       { password: await argon2.hash(newPassword) }
     )
 
     await redis.del(key)
-    // log in user after change password
     req.session.userId = user.uuid
 
     return { user }
@@ -199,7 +187,6 @@ export class UserResolver {
     const user = await User.findOne({ where: { email } })
 
     if (!user) {
-      // the email is not in the db
       return true
     }
 
@@ -233,7 +220,6 @@ export class UserResolver {
 
       const hashedPassword = await argon2.hash(options.password)
       let user
-      console.log('ENTER REGISTER')
 
       const result = await getConnection()
         .createQueryBuilder()
@@ -260,9 +246,6 @@ export class UserResolver {
 
       req.session.user = user
       req.session.userId = user.uuid
-
-      console.log('user in regssister:', req.session.user)
-      console.log('user in register:', req.session.userId)
 
       const token = v4()
 
@@ -311,7 +294,7 @@ export class UserResolver {
         errors: [
           {
             field: 'username',
-            message: 'that usernaaaaaame doesnt exist',
+            message: 'that username doesnt exist',
           },
         ],
       }

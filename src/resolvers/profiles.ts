@@ -10,7 +10,6 @@ import {
   Ctx,
   Mutation,
 } from 'type-graphql'
-import { Event } from '../entities/Event'
 import { Profile } from '../entities/Profile'
 import {
   acceptFriendRequest,
@@ -32,20 +31,6 @@ import { getConnection } from 'typeorm'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
 import rpcClient from '../utils/brokerInitializer'
 import { Message } from '../entities/Message'
-
-// @InputType()
-// class ProfileInput {
-//   @Field()
-//   username: string
-// }
-
-// @ObjectType()
-// class PaginatedEvents {
-//   @Field(() => [Event])
-//   events: Event[]
-//   @Field()
-//   hasMore: boolean
-// }
 
 @Resolver(Profile)
 export class ProfileResolver {

@@ -57,9 +57,6 @@ export class ConversationToProfile extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   pendingCall: boolean | any
 
-  // @Column()
-  // public order!: number
-
   @Field(() => Conversation)
   @ManyToOne(
     () => Conversation,
@@ -70,8 +67,6 @@ export class ConversationToProfile extends BaseEntity {
   @Field(() => [Profile])
   @ManyToOne(() => Profile, (profile) => profile.conversationToProfiles)
   public profile!: Profile[]
-
-  // @Field(() => String)
 
   @Field(() => String)
   @UpdateDateColumn()

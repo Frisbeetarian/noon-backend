@@ -12,6 +12,4 @@ export class FriendshipRequest extends BaseEntity {
 
   @Field({ defaultValue: false })
   reverse?: Boolean
-  // @ManyToMany(() => Profile)
-  // profiles?: Profile[]
 }

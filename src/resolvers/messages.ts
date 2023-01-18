@@ -417,10 +417,6 @@ export class MessageResolver {
       }
 
       return null
-
-      // const conversationProfileRepository = getConnection().getRepository(
-      //   ConversationToProfile
-      // )
     } catch (e) {
       console.log('error:', e)
       return null

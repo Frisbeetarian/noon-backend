@@ -19,14 +19,7 @@ import { createUpdootLoader } from './utils/createUpdootLoader'
 import { Post } from './entities/Post'
 import { Profile } from './entities/Profile'
 import { Friend } from './entities/Friend'
-import { Event } from './entities/Event'
 import { ProfileResolver } from './resolvers/profiles'
-import { EventToProfile } from './entities/EventToProfile'
-import { EventToProfileResolver } from './resolvers/eventToProfile'
-import { Community } from './entities/Community'
-import { CommunityResolver } from './resolvers/communities'
-import { CommunityParticipant } from './entities/CommunityParticipant'
-import { CommunityParticipantsResolver } from './resolvers/communityParticipants'
 import { RPCServer } from '@noon/rabbit-mq-rpc/server'
 import { RedisSessionStore } from './socketio/sessionStore'
 import { SearchResolver } from './resolvers/search'
@@ -40,7 +33,6 @@ import { createMessageLoader } from './utils/createMessageLoader'
 import { __prod__ } from './constants'
 import { PostResolver } from './resolvers/post'
 import { UserResolver } from './resolvers/user'
-import { EventResolver } from './resolvers/events'
 import { User } from './entities/User'
 import { Updoot } from './entities/Updoot'
 import { RedisMessageStore } from './socketio/messageStore'
@@ -68,10 +60,6 @@ const main = async () => {
           Updoot,
           Profile,
           Friend,
-          Event,
-          EventToProfile,
-          Community,
-          CommunityParticipant,
           Conversation,
           Message,
           ConversationToProfile,
@@ -88,7 +76,6 @@ const main = async () => {
 
   // await conn.runMigrations()
 
-  console.log('is prod:', __prod__)
   app.set('trust proxy', 1)
 
   const RedisStore = connectRedis(session)
@@ -134,11 +121,7 @@ const main = async () => {
       resolvers: [
         PostResolver,
         UserResolver,
-        EventResolver,
-        CommunityResolver,
         ProfileResolver,
-        EventToProfileResolver,
-        CommunityParticipantsResolver,
         SearchResolver,
         ConversationResolver,
         ConversationProfileResolver,
@@ -147,7 +130,6 @@ const main = async () => {
       validate: false,
     }),
     typeDefs: require('./typeDefs'),
-    // plugins: [ApolloServerPluginDrainHttpServer({ server })],
     context: ({ req, res }) => ({
       req,
       res,
@@ -173,7 +155,6 @@ const main = async () => {
     )
 
     try {
-      console.log('Server:', server)
       const io = socketIo(server, {
         cors: {
           origin: process.env.CORS_ORIGIN,

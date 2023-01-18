@@ -8,30 +8,11 @@ import {
   Resolver,
   Root,
 } from 'type-graphql'
-import { getConnection } from 'typeorm'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
-import { Profile } from '../entities/Profile'
-import { Conversation } from '../entities/Conversation'
-import { Message } from '../entities/Message'
 import { MyContext } from '../types'
 
 @Resolver(ConversationToProfile)
 export class ConversationProfileResolver {
-  // @FieldResolver(() => [Profile])
-  // profiles(@Root() conversationToProfile: ConversationToProfile | null) {
-  //   return conversationToProfile.profile
-  // }
-  //
-  // @FieldResolver(() => [Conversation])
-  // conversations(@Root() conversationToProfile: ConversationToProfile | null) {
-  //   return conversationToProfile.conversation
-  // }
-  //
-  // @FieldResolver(() => [Message])
-  // messages(@Root() conversation: Conversation | null) {
-  //   return conversation.messages
-  // }
-
   @Query(() => ConversationToProfile, { nullable: true })
   async getConversationProfileForLoggedInUser(
     @Ctx() { req }: MyContext
@@ -78,26 +59,4 @@ export class ConversationProfileResolver {
     }
     return objectToSend
   }
-
-  // @Query(() => [CommunityParticipant])
-  // async getCommunityParticipants(
-  //   @Arg('id', () => Int) id: number
-  // ): Promise<CommunityParticipant[] | undefined> {
-  //   return await CommunityParticipant.find({ communityId: id })
-  // }
-  //
-  // @Query(() => [CommunityParticipant])
-  // async getCommunitiesParticipants(
-  //   @Arg('communitiesIds', () => [Int]) communitiesIds: [number]
-  // ): Promise<CommunityParticipant[] | undefined> {
-  //   const data = await getConnection()
-  //     .createQueryBuilder(CommunityParticipant, 'cp')
-  //     .where('cp.communityId IN (:...communitiesIds)', {
-  //       communitiesIds: communitiesIds,
-  //     })
-  //     .getMany()
-  //   console.log('Participants: ', data)
-  //
-  //   return data
-  // }
 }
