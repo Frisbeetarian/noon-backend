@@ -4,6 +4,12 @@ import session from 'express-session'
 import { Redis } from 'ioredis'
 import { createUpdootLoader } from './utils/createUpdootLoader'
 import { createUserLoader } from './utils/createUserLoader'
+import { createMessageLoader } from './utils/createMessageLoader'
+// import {io} from 'socket.io'
+// let socketIo = require('socket.io')
+
+import { Socket } from 'socket.io'
+// import { createProfileLoader } from './utils/createProfileLoader'
 
 export type MyContext = {
   // em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>
@@ -12,6 +18,9 @@ export type MyContext = {
   // req: Request;
   res: Response
   redis: Redis
+  // io: Socket
   userLoader: ReturnType<typeof createUserLoader>
+  // profilesLoader: ReturnType<typeof createProfileLoader>
   updootLoader: ReturnType<typeof createUpdootLoader>
+  messageLoader: ReturnType<typeof createMessageLoader>
 }

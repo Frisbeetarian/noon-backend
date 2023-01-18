@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Arg,
   Ctx,
@@ -8,21 +9,33 @@ import {
   Resolver,
   FieldResolver,
   Root,
+  UseMiddleware,
 } from 'type-graphql'
 import { MyContext } from '../types'
 import { User } from '../entities/User'
 import argon2 from 'argon2'
-// import { EntityManager } from '@mikro-orm/postgresql'
 import { UsernamePasswordInput } from './UsernamePasswordInput'
 import { validateRegister } from '../utils/validateRegister'
 import { sendEmail } from '../utils/sendEmail'
 import { v4 } from 'uuid'
 import { FORGET_PASSWORD_PREFIX } from '../constants'
 import { getConnection } from 'typeorm'
+import { Profile } from '../entities/Profile'
+import {
+  getFriendRequestsForProfile,
+  getFriendsForProfile,
+} from '../neo4j/neo4j_calls/neo4j_api'
+import { Friend } from '../entities/Friend'
+import { FriendshipRequest } from '../entities/FriendshipRequest'
+import { isAuth } from '../middleware/isAuth'
+// import rpcClient from '../utils/brokerInitializer'
+const rpcClient = require('../utils/brokerInitializer')
+const uuidv4 = require('uuid').v4
 
 declare module 'express-session' {
   interface Session {
-    userId: number
+    userId: string
+    user: any
   }
 }
 
@@ -45,15 +58,77 @@ class UserResponse {
 
 @Resolver(User)
 export class UserResolver {
+  @FieldResolver(() => Profile)
+  profile(@Root() user: User) {
+    return user.profile
+  }
+
+  @FieldResolver(() => [Friend])
+  friends(@Root() user: User) {
+    return user.friends
+  }
+
+  @FieldResolver(() => [FriendshipRequest])
+  friendshipRequests(@Root() user: User | null) {
+    return user.friendshipRequests
+  }
+
   @FieldResolver(() => String)
   email(@Root() user: User, @Ctx() { req }: MyContext) {
     // this is the current user and its okay to show them logged user info
-    if (req.session.userId === user.id) {
+    if (req.session.userId == user.uuid) {
       return user.email
     }
 
     // current user wants to see other user's info
     return ''
+  }
+
+  @Query(() => User, { nullable: true })
+  @UseMiddleware(isAuth)
+  async me(@Ctx() { req }: MyContext) {
+    // console.log('session: ' + JSON.stringify(req.session))
+    console.log('Fewlfknweklfnwelfknwelfknewklfnlweknflkewnfl')
+    if (!req.session.userId) {
+      return null
+    }
+
+    let user = await getConnection()
+      .getRepository(User)
+      .createQueryBuilder('user')
+      .select('user')
+      .where('user.uuid = :id', { id: req.session.userId })
+      .leftJoinAndSelect('user.profile', 'profile')
+      .getOne()
+
+    const friendsArray = await getFriendsForProfile(user?.profile?.uuid)
+    const friendRequestsArray = await getFriendRequestsForProfile(
+      user?.profile?.uuid
+    )
+
+    // console.log('friendRequestsArray: ', friendRequestsArray)
+
+    if (friendsArray.length !== 0) {
+      user = { ...user, friends: friendsArray }
+    } else {
+      user = {
+        ...user,
+        friends: [],
+      }
+    }
+
+    if (friendRequestsArray.length !== 0) {
+      user = { ...user, friendshipRequests: friendRequestsArray }
+    } else {
+      user = {
+        ...user,
+        friendshipRequests: [],
+      }
+    }
+
+    // console.log('UAWER:', user)
+    // console.log('USER 238ORH239UB392823923BF9UF: ', user)
+    return user
   }
 
   @Mutation(() => UserResponse)
@@ -75,6 +150,7 @@ export class UserResolver {
 
     const key = FORGET_PASSWORD_PREFIX + token
     const userId = await redis.get(FORGET_PASSWORD_PREFIX + token)
+
     if (!userId) {
       return {
         errors: [
@@ -102,14 +178,15 @@ export class UserResolver {
 
     // user.password = await argon2.hash(newPassword)
     // await em.persistAndFlush(user)
+
     await User.update(
-      { id: userIdNum },
+      { uuid: userIdNum },
       { password: await argon2.hash(newPassword) }
     )
 
     await redis.del(key)
     // log in user after change password
-    req.session.userId = user.id
+    req.session.userId = user.uuid
 
     return { user }
   }
@@ -129,27 +206,17 @@ export class UserResolver {
     const token = v4()
     await redis.set(
       FORGET_PASSWORD_PREFIX + token,
-      user.id,
+      user.uuid,
       'ex',
       1000 * 60 * 60 * 24 * 3
     ) // 3 days
 
-    sendEmail(
+    await sendEmail(
       email,
       `<a href="http://localhost:3000/change-password/${token}">reset password</a>`
     )
+
     return true
-  }
-
-  @Query(() => User, { nullable: true })
-  me(@Ctx() { req }: MyContext) {
-    console.log('session: ' + JSON.stringify(req.session))
-    if (!req.session.userId) {
-      return null
-    }
-
-    return User.findOne(req.session.userId)
-    // return user
   }
 
   @Mutation(() => UserResponse)
@@ -157,17 +224,17 @@ export class UserResolver {
     @Arg('options') options: UsernamePasswordInput,
     @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
-    const errors = validateRegister(options)
-    if (errors) {
-      return { errors }
-    }
-
-    const hashedPassword = await argon2.hash(options.password)
-    let user
-
     try {
-      // same logic differently written
-      // User.create({}).save()
+      const errors = validateRegister(options)
+
+      if (errors) {
+        return { errors }
+      }
+
+      const hashedPassword = await argon2.hash(options.password)
+      let user
+      console.log('ENTER REGISTER')
+
       const result = await getConnection()
         .createQueryBuilder()
         .insert()
@@ -180,21 +247,34 @@ export class UserResolver {
         .returning('*')
         .execute()
 
-      // console.log('result:', result)
-      // const result = await (em as EntityManager)
-      //   .createQueryBuilder(User)
-      //   .getKnexQuery()
-      //   .insert({
-      //     username: options.username,
-      //     password: hashedPassword,
-      //     email: options.email,
-      //     created_at: new Date(),
-      //     updated_at: new Date(),
-      //   })
-      //   .returning('*')
+      user = await User.findOne(result.raw[0].uuid)
+      console.log('user in register:', user)
 
-      // user = result[0]
-      user = result.raw[0]
+      console.log('user in register:', user)
+      let profile = await Profile.findOne({ where: { userId: user?.uuid } })
+
+      user = {
+        ...user,
+        profile: { uuid: profile?.uuid, username: profile?.username },
+      }
+
+      req.session.user = user
+      req.session.userId = user.uuid
+
+      console.log('user in regssister:', req.session.user)
+      console.log('user in register:', req.session.userId)
+
+      const token = v4()
+
+      // const response = rpcClient.relay().sendEmail({
+      //   from: 'info@noon.com',
+      //   email: 'mohamad.sleimanhaidar@gmail.com',
+      //   task: 'send-welcome-email',
+      //   subject: 'Registration done',
+      //   html: `<a href="http://localhost:3000/change-password/${token}">reset password</a>`,
+      // })
+
+      return { user }
     } catch (error) {
       console.log('error:', error)
 
@@ -211,29 +291,26 @@ export class UserResolver {
         }
       }
     }
-
-    req.session.userId = user.id
-
-    return { user }
   }
 
   @Mutation(() => UserResponse)
   async login(
-    @Arg('usernameOrEmail') usernameOrEmail: string,
+    @Arg('username') username: string,
     @Arg('password') password: string,
     @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
-    const user = await User.findOne(
-      usernameOrEmail.includes('@')
-        ? { where: { email: usernameOrEmail } }
-        : { where: { username: usernameOrEmail } }
+    console.log('FSDFSDFSDF')
+    let user = await User.findOne(
+      username.includes('@')
+        ? { where: { email: username } }
+        : { where: { username: username } }
     )
 
     if (!user) {
       return {
         errors: [
           {
-            field: 'usernameOrEmail',
+            field: 'username',
             message: 'that usernaaaaaame doesnt exist',
           },
         ],
@@ -241,6 +318,7 @@ export class UserResolver {
     }
 
     const valid = await argon2.verify(user.password, password)
+
     if (!valid) {
       return {
         errors: [
@@ -252,9 +330,17 @@ export class UserResolver {
       }
     }
 
-    req.session.userId = user.id
-    // req.session.user = user;
-    // console.log("Fdsfds", req.session.userId);
+    console.log('user uuid on login:', user)
+    let profile = await Profile.findOne({ where: { userId: user?.uuid } })
+    console.log('profile on login:', profile)
+
+    user = {
+      ...user,
+      profile: { uuid: profile?.uuid, username: profile?.username },
+    }
+
+    req.session.user = user
+    req.session.userId = user.uuid
 
     return {
       user,
