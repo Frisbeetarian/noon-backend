@@ -5,8 +5,6 @@ import { Redis } from 'ioredis'
 import { createUpdootLoader } from './utils/createUpdootLoader'
 import { createUserLoader } from './utils/createUserLoader'
 import { createMessageLoader } from './utils/createMessageLoader'
-// import {io} from 'socket.io'
-// let socketIo = require('socket.io')
 
 import { Socket } from 'socket.io'
 // import { createProfileLoader } from './utils/createProfileLoader'

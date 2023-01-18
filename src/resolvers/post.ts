@@ -159,22 +159,6 @@ export class PostResolver {
       replacements
     )
 
-    // const qb = getConnection()
-    //   .getRepository(Post)
-    //   .createQueryBuilder("p")
-    //   .innerJoinAndSelect("p.creator", "u", 'u.id = p."creatorId"')
-    //   .orderBy('p."createdAt"', "DESC")
-    //   .take(reaLimitPlusOne);
-
-    // if (cursor) {
-    //   qb.where('p."createdAt" < :cursor', {
-    //     cursor: new Date(parseInt(cursor)),
-    //   });
-    // }
-
-    // const posts = await qb.getMany();
-    // console.log("posts: ", posts);
-
     return {
       posts: posts.slice(0, realLimit),
       hasMore: posts.length === reaLimitPlusOne,
@@ -187,11 +171,6 @@ export class PostResolver {
     @Arg('input') input: PostInput,
     @Ctx() { req }: MyContext
   ): Promise<Post> {
-    // const post = em.create(Post, { title })
-    // await em.persistAndFlush(post)
-    // return post
-
-    // 2 sql query one to select one to save
     return Post.create({ ...input, creatorId: req.session.userId }).save()
   }
 
@@ -214,21 +193,7 @@ export class PostResolver {
       .returning('*')
       .execute()
 
-    // console.log('post from update: ', result)
-
     return result.raw[0]
-    // const post = await em.findOne(Post, { id })
-    // const post = await Post.findOne(id)
-    // if (!post) {
-    //   return null
-    // }
-
-    // if (typeof title !== 'undefined') {
-    // post.title = title
-    // await em.persistAndFlush(post)
-    // return Post.update({ id, creatorId: req.session.userId }, { title, text })
-    // }
-    // return post
   }
 
   @Mutation(() => Boolean)
@@ -237,27 +202,6 @@ export class PostResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() { req }: MyContext
   ): Promise<boolean> {
-    // await em.nativeDelete(Post, { id })
-
-    // Not cascade way
-    // const post = await Post.findOne(id)
-    // const updoot = await Updoot.findOne({ postId: id })
-
-    // if (!post) {
-    //   return false
-    // }
-
-    // if (post.creatorId !== req.session.userId) {
-    //   throw new Error('not authorized')
-    // }
-
-    // console.log('updoot', updoot)
-    // if (updoot) {
-    //   await Updoot.delete({ postId: id })
-    // }
-
-    // await Post.delete({ id })
-
     await Post.delete({ id, creatorId: req.session.userId })
     return true
   }

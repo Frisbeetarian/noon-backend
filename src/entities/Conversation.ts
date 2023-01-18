@@ -54,12 +54,6 @@ export class Conversation extends BaseEntity {
   @Field(() => Boolean)
   @Column({ default: false })
   hasMore?: boolean
-  // @OneToMany(() => Profile, (profile) => profile.conversations)
-  // profiles: Profile[]
-
-  // @ManyToMany(() => Profile, (profile) => profile.conversations)
-  // @JoinTable()
-  // profiles: Profile[]
 
   @Field(() => [ConversationToProfile])
   @OneToMany(
@@ -68,27 +62,12 @@ export class Conversation extends BaseEntity {
   )
   public conversationToProfiles!: ConversationToProfile[]
 
-  // @Field(() => Boolean)
-  // @Column({ type: 'boolean', default: false })
-  // ongoingCall: boolean | any
-
-  // @Field(() => Boolean)
-  // @Column({ type: 'boolean', default: false })
-  // pendingCall: boolean | any
-
   @Field(() => Profile, { nullable: true })
   @OneToOne(() => Profile, {
     nullable: true,
   })
   @JoinColumn()
   pendingCallProfile: Profile
-
-  // @Field(() => String)
-  // @Column({ nullable: true })
-  // profiles: Profile[]
-
-  // @OneToMany(() => Profile, (profile) => profile.conversation)
-  // profiles: Profile[]
 
   @Field(() => String)
   @UpdateDateColumn()

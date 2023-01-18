@@ -9,7 +9,4 @@ export class Friend extends BaseEntity {
 
   @Field()
   username?: string
-
-  // @ManyToMany(() => Profile)
-  // profiles?: Profile[]
 }

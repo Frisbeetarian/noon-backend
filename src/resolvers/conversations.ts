@@ -47,16 +47,6 @@ export class ConversationResolver {
     return conversation.calls
   }
 
-  // @FieldResolver(() => [Message])
-  // messages(
-  //   @Root() conversation: Conversation,
-  //   @Ctx() { messageLoader }: MyContext
-  // ) {
-  //   // if (conversation.uuid) {
-  //   return messageLoader.load(conversation)
-  //   // }
-  // }
-
   @FieldResolver(() => [Message])
   messages(@Root() conversation: Conversation | null) {
     return conversation.messages
@@ -66,21 +56,6 @@ export class ConversationResolver {
   pendingCallProfile(@Root() conversation: Conversation | null) {
     return conversation.pendingCallProfile
   }
-
-  // @FieldResolver(() => Boolean)
-  // hasMore(@Root() conversation: Conversation | null) {
-  //   return conversation.hasMore
-  // }
-
-  // @FieldResolver(() => Conversation)
-  // unreadMessages(@Root() conversation: Conversation | null) {
-  //   return conversation?.unreadMessages
-  // }
-
-  // @FieldResolver(() => ConversationToProfile)
-  // profileThatHasUnreadMessages(@Root() conversation: Conversation | null) {
-  //   return conversation?.profileThatHasUnreadMessages
-  // }
 
   @Query(() => Boolean)
   async checkIfConversationHasMoreMessages(
@@ -118,24 +93,6 @@ export class ConversationResolver {
     const conversationReplacements: any[] = [loggedInProfileUuid, 20]
 
     try {
-      // const conversations = await ConversationToProfile.find({
-      //   where: [{ profileUuid: loggedInProfileUuid }],
-      //   relations: ['conversation', 'profile'],
-      // })
-
-      // const conversations = await Conversation
-      // const conversationsOnJoin = await getConnection().query(
-      //   `
-      // select conversation.uuid, conversation_profile.*
-      // from conversation
-      // LEFT JOIN conversation_profile ON conversation_profile."conversationUuid" = conversation.uuid
-      // ${`where conversation_profile."profileUuid" = $1`}
-      // order by conversation_profile."createdAt" DESC
-      // limit $2
-      // `,
-      //   conversationReplacements
-      // )
-
       const conversations = await getConnection().query(
         `
         select conversation_profile.*, conversation.*
@@ -147,20 +104,6 @@ export class ConversationResolver {
       `,
         conversationReplacements
       )
-
-      // const messages = await getConnection().query(
-      //   `
-      // select profile.uuid, profile.username, message.*
-      // from profile
-      // LEFT JOIN message ON message."senderUuid" = profile.uuid
-      // ${`where message."conversationUuid" = $2`}
-      // order by message."createdAt" DESC
-      // limit $1
-      // `,
-      //   replacements
-      // )
-
-      // console.log('conversations newnew:', conversations)
 
       if (conversations) {
         await Promise.all(
@@ -179,10 +122,6 @@ export class ConversationResolver {
 
             replacements.push(conversationEntity.uuid)
 
-            // console.log('conversation entity:', conversationEntity)
-            // console.log('conversationObject:', conversationObject)
-            // console.log('replacements:', replacements)
-
             const messages = await getConnection().query(
               `
             select profile.uuid, profile.username, message.*
@@ -198,7 +137,6 @@ export class ConversationResolver {
             let calls = []
 
             conversationObject.map((object) => {
-              // console.log('conversation profile object:', object.profile)
               calls.push({
                 profileUuid: object.profile.uuid,
                 profileUsername: object.profile.username,
@@ -225,25 +163,6 @@ export class ConversationResolver {
               })
             })
 
-            // SELECT `settings`.*, `character_settings`.`value`
-            // FROM (`settings`)
-            // LEFT OUTER JOIN `character_settings`
-            // ON `character_settings`.`setting_id` = `settings`.`id`
-            // WHERE `character_settings`.`character_id` = '1' OR
-            // `character_settings`.character_id is NULL
-
-            // const messages = await getConnection()
-            //   .getRepository(Message)
-            //   .createQueryBuilder('m')
-            //   .leftJoinAndSelect(
-            //     'm.conversation',
-            //     'c',
-            //     'm."conversationUuid" = c.uuid'
-            //   )
-            //   .orderBy('m."createdAt"', 'DESC')
-            //   .take(5)
-            // console.log('MESSAGE FROM QUERY BUILDer:', messages)
-
             objectToSend.push({
               uuid: conversation.conversationUuid,
               unreadMessages: conversation.unreadMessages,
@@ -262,9 +181,6 @@ export class ConversationResolver {
               updatedAt: conversation.updatedAt,
               createdAt: conversation.createdAt,
             })
-
-            // console.log('messages.length:', messages.length)
-            // console.log('realLimitPlusOne:', realLimitPlusOne)
           })
         )
 
@@ -284,16 +200,6 @@ export class ConversationResolver {
     @Ctx() { req }: MyContext
   ): Promise<Boolean> {
     try {
-      // const profile = await Profile.findOne({
-      //   where: { uuid: req.session.userId },
-      // })
-
-      // .where('id = :id and "creatorId" = :creatorId', {
-      //   id,
-      //   creatorId: req.session.userId,
-      // })
-
-      // if (profile) {
       await getConnection()
         .createQueryBuilder()
         .delete()
@@ -319,9 +225,6 @@ export class ConversationResolver {
     @Arg('participants', () => [String]) participants: [string],
     @Ctx() { req }: MyContext
   ): Promise<Conversation> {
-    console.log('input in create group function:', input)
-    console.log('participants in create group function:', participants)
-
     try {
       const conversationProfileRepository = getConnection().getRepository(
         ConversationToProfile
@@ -331,15 +234,8 @@ export class ConversationResolver {
         ...input,
       }).save()
 
-      // let conversation = new Conversation()
-      // await conversationRepository.save(conversation)
-
       let participantsArray = []
       let calls = []
-
-      // const [count] = await Promise.all([
-      //   Message.count({ where: { conversationUuid } }),
-      // ])
 
       await Promise.all(
         participants.map(async (participant) => {
@@ -423,8 +319,6 @@ export class ConversationResolver {
     @Ctx() { req }: MyContext
   ) {
     try {
-      // console.log('cancel pending call conversation uuid:', conversationUuid)
-
       await getConnection()
         .createQueryBuilder()
         .update(ConversationToProfile)
@@ -509,24 +403,7 @@ export class ConversationResolver {
   ): Promise<Conversation | null> {
     const loggedInProfileUuid = req.session.user.profile.uuid
 
-    console.log('logged in profile uuid:', loggedInProfileUuid)
-    console.log('logged in profile uuid:', profileUuid)
-
     try {
-      // const conversations = await getConnection()
-      //   .getRepository(Profile)
-      //   .createQueryBuilder('profile')
-      //   .where('profile.uuid = :loggedInProfileUuid', { loggedInProfileUuid })
-      //   .leftJoinAndSelect('profile.conversations', 'conversation')
-      //   .getMany()
-
-      // const conversations = await getConnection()
-      //   .getRepository(Conversation)
-      //   .createQueryBuilder('conversation')
-      //   .leftJoinAndSelect('conversation.profiles', 'profile')
-      //   .where('profile.uuid = :profileUuid', { profileUuid })
-      //   .getOne()
-
       const conversation = await ConversationToProfile.findOne({
         where: [
           { profileUuid: loggedInProfileUuid },
@@ -538,20 +415,6 @@ export class ConversationResolver {
       console.log('CONVERSATION:', conversation.conversation.messages)
 
       if (conversation) {
-        // let messages = []
-        // conversation.conversation.messages.forEach((message) => {
-        //   messages.push({
-        //     uuid: message.uuid,
-        //     content: message.content,
-        //     sender: {
-        //       uuid: message.sender.uuid,
-        //       username: message.sender.username,
-        //     },
-        //     updatedAt: message.updatedAt,
-        //     createdAt: message.createdAt,
-        //   })
-        // })
-
         const objectToSend = {
           uuid: conversation.conversationUuid,
           profiles: [
