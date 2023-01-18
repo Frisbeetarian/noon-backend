@@ -43,12 +43,9 @@ import { UserResolver } from './resolvers/user'
 import { EventResolver } from './resolvers/events'
 import { User } from './entities/User'
 import { Updoot } from './entities/Updoot'
-import mediaRouter from './media/router'
 import { RedisMessageStore } from './socketio/messageStore'
 import connection from './socketio/connection'
-import { createProxyMiddleware } from 'http-proxy-middleware'
 import { graphqlUploadExpress } from 'graphql-upload-minimal'
-import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core'
 
 const app = express()
 
@@ -202,17 +199,7 @@ const main = async () => {
     } catch (e) {
       console.log('error establishing websocket connection:', e)
     }
-
-    // app.listen({ port: 3000 }, () => console.log('nice'))
   })
-
-  // const proxy = {
-  //   target: 'http://localhost:3000',
-  //   changeOrigin: true,
-  // }
-  // app.use('/media_api', createProxyMiddleware(proxy), mediaRouter)
-
-  app.use('/media_api', mediaRouter)
 
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
