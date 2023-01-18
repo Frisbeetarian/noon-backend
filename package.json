@@ -1,6 +1,6 @@
 {
   "name": "noon-server",
-  "version": "0.0.5-beta",
+  "version": "0.0.5-alpha",
   "description": "Social platform with video conferencing.",
   "main": "index.js",
   "scripts": {
