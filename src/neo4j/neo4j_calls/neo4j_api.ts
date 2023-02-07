@@ -246,9 +246,6 @@ export const sendFriendRequest = async function (
   recipientProfileUuid,
   recipientProfileUsername
 ) {
-  console.log('senderProfileUuid:', senderProfileUuid)
-  console.log('recipientProfileUuid:', recipientProfileUuid)
-
   const session = getNeo4jConnection().session()
 
   const tx = session.beginTransaction()
@@ -258,7 +255,6 @@ export const sendFriendRequest = async function (
       'MATCH (p1:Profile {uuid: $sUuid})' +
         ' MATCH (p2:Profile {uuid: $rUuid})' +
         ' MERGE (p1)-[friendRequest:FRIEND_REQUEST {uuid: $recipientProfileUuid, username: $recipientProfileUsername }]->(p2)' +
-        // ' MERGE (p2)-[:FRIEND_REQUEST {uuid: $senderProfileUuid, username: $senderProfileUsername }]->(p1)' +
         ' RETURN p1, friendRequest, p2',
       {
         sUuid: senderProfileUuid,

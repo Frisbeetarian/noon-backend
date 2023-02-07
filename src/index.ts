@@ -91,7 +91,7 @@ const main = async () => {
       proxy: __prod__,
       cookie: {
         domain: __prod__ ? '.noon.tube' : undefined,
-        maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
+        maxAge: 3 * 60 * 60 * 1000, // 3 hours
         httpOnly: true,
         sameSite: 'lax',
         secure: __prod__,

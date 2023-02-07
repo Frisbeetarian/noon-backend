@@ -280,9 +280,9 @@ export class UserResolver {
   async login(
     @Arg('username') username: string,
     @Arg('password') password: string,
+    @Arg('rememberMe') rememberMe: boolean,
     @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
-    console.log('FSDFSDFSDF')
     let user = await User.findOne(
       username.includes('@')
         ? { where: { email: username } }
@@ -293,7 +293,7 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: 'username',
+            field: 'usernameOrEmail',
             message: 'that username doesnt exist',
           },
         ],
@@ -313,13 +313,15 @@ export class UserResolver {
       }
     }
 
-    console.log('user uuid on login:', user)
     let profile = await Profile.findOne({ where: { userId: user?.uuid } })
-    console.log('profile on login:', profile)
 
     user = {
       ...user,
       profile: { uuid: profile?.uuid, username: profile?.username },
+    }
+
+    if (rememberMe) {
+      req.session.cookie.maxAge = 90 * 24 * 60 * 60 * 1000 // 90 days
     }
 
     req.session.user = user

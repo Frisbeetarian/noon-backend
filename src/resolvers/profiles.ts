@@ -90,9 +90,6 @@ export class ProfileResolver {
 
     const recipientProfile = await Profile.findOne(profileUuid)
 
-    console.log('profileUuid in resolver:', profileUuid)
-    console.log('recipient in resolver:', recipientProfile)
-
     if (recipientProfile) {
       await sendFriendRequest(
         senderProfile?.uuid,
