@@ -11,13 +11,9 @@ export class SearchResolver {
     @Arg('username', () => String) username: string
   ): Promise<Search[] | null> {
     try {
-      console.log('username in serach:', username)
-
-      const response = await rpcClient
+      let response = await rpcClient
         .search()
         .searchForProfileByUsername({ username })
-
-      console.log('response in resolver:', response)
 
       return [response]
     } catch (e) {

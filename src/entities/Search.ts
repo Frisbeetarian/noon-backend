@@ -21,6 +21,15 @@ export class Search extends BaseEntity {
   @Field()
   userId?: string
 
+  @Field()
+  isAFriend: false
+
+  @Field()
+  hasFriendshipRequestFromLoggedInProfile: false
+
+  @Field()
+  hasSentFriendshipRequestToProfile: false
+
   @Field(() => String)
   @UpdateDateColumn()
   updatedAt: Date
