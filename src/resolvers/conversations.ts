@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   Resolver,
   Query,
@@ -15,7 +14,6 @@ import { Conversation } from '../entities/Conversation'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
 
-import { Friend } from '../entities/Friend'
 import { MyContext } from '../types'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
 import { Message } from '../entities/Message'
@@ -37,10 +35,10 @@ export class ConversationResolver {
     return conversation.profiles
   }
 
-  @FieldResolver(() => [ConversationToProfile])
-  conversations(@Root() profile: Profile | null) {
-    return profile.conversationToProfiles
-  }
+  // @FieldResolver(() => [ConversationToProfile])
+  // conversations(@Root() profile: Profile | null) {
+  //   return profile.conversationToProfiles
+  // }
 
   @FieldResolver(() => [ConversationToProfile])
   calls(@Root() conversation: Conversation | null) {
@@ -287,9 +285,6 @@ export class ConversationResolver {
     @Ctx() { req }: MyContext
   ) {
     try {
-      console.log('pending call conversation uuid:', conversationUuid)
-      console.log('pending call initiating:', profileUuid)
-
       await getConnection()
         .createQueryBuilder()
         .update(ConversationToProfile)
@@ -389,7 +384,6 @@ export class ConversationResolver {
         .returning('*')
         .execute()
 
-      console.log('result:', result)
       return true
     } catch (e) {
       return false
@@ -412,8 +406,6 @@ export class ConversationResolver {
         relations: ['conversation', 'profile'],
       })
 
-      console.log('CONVERSATION:', conversation.conversation.messages)
-
       if (conversation) {
         const objectToSend = {
           uuid: conversation.conversationUuid,
@@ -430,7 +422,6 @@ export class ConversationResolver {
           messages: [...conversation.conversation.messages],
         }
 
-        console.log('objectToSend:', objectToSend)
         return objectToSend
       }
     } catch (e) {

@@ -67,6 +67,10 @@ export class Message extends BaseEntity {
   conversation: Conversation
 
   @Field(() => String)
+  @Column({ nullable: true })
+  from: string
+
+  @Field(() => String)
   @UpdateDateColumn()
   updatedAt: Date
 

@@ -50,7 +50,6 @@ export class ConversationProfileResolver {
             })
           })
         )
-        console.log('object profile to send:', objectToSend)
       }
       return objectToSend
     } catch (e) {

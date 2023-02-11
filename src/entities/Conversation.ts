@@ -13,6 +13,7 @@ import { Field, ObjectType } from 'type-graphql'
 import { Message } from './Message'
 import { Profile } from './Profile'
 import { ConversationToProfile } from './ConversationToProfile'
+import { Call } from './Call'
 
 @ObjectType()
 @Entity()
@@ -55,12 +56,23 @@ export class Conversation extends BaseEntity {
   @Column({ default: false })
   hasMore?: boolean
 
-  @Field(() => [ConversationToProfile])
+  @Field(() => Boolean)
+  @Column({ default: false })
+  pendingCall?: boolean
+
+  @Field(() => Boolean)
+  @Column({ default: false })
+  ongoingCall?: boolean
+
+  // @Field(() => [ConversationToProfile])
   @OneToMany(
     () => ConversationToProfile,
     (conversationToProfile) => conversationToProfile.conversation
   )
   public conversationToProfiles!: ConversationToProfile[]
+
+  @Field(() => [Call])
+  public calls!: Call[]
 
   @Field(() => Profile, { nullable: true })
   @OneToOne(() => Profile, {

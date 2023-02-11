@@ -41,10 +41,10 @@ export class MessageResolver {
     return conversation.profiles
   }
 
-  @FieldResolver(() => [ConversationToProfile])
-  conversations(@Root() profile: Profile | null) {
-    return profile.conversationToProfiles
-  }
+  // @FieldResolver(() => [ConversationToProfile])
+  // conversations(@Root() profile: Profile | null) {
+  //   return profile.conversationToProfiles
+  // }
 
   @Query(() => PaginatedMessages)
   async getMessagesForConversation(

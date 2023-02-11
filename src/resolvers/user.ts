@@ -56,6 +56,12 @@ class UserResponse {
   user?: User
 }
 
+@ObjectType()
+class UserWithRelationshipsResponse extends User {
+  friends: Profile[]
+  friendshipRequests: FriendshipRequest[]
+}
+
 @Resolver(User)
 export class UserResolver {
   @FieldResolver(() => Profile)
@@ -84,7 +90,9 @@ export class UserResolver {
 
   @Query(() => User, { nullable: true })
   @UseMiddleware(isAuth)
-  async me(@Ctx() { req }: MyContext) {
+  async me(
+    @Ctx() { req }: MyContext
+  ): Promise<UserWithRelationshipsResponse | undefined> {
     if (!req.session.userId) {
       return null
     }

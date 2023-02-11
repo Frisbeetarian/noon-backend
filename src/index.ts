@@ -38,6 +38,7 @@ import { Updoot } from './entities/Updoot'
 import { RedisMessageStore } from './socketio/messageStore'
 import connection from './socketio/connection'
 import { graphqlUploadExpress } from 'graphql-upload-minimal'
+import { Call } from './entities/Call'
 
 const app = express()
 
@@ -63,6 +64,7 @@ const main = async () => {
           Conversation,
           Message,
           ConversationToProfile,
+          Call,
         ],
         subscribers: [path.join(__dirname, './subscribers/*')],
       })
