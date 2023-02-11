@@ -1,10 +1,8 @@
-// @ts-nocheck
 import {
   Resolver,
   Query,
   Arg,
   Int,
-  InputType,
   FieldResolver,
   Root,
   Ctx,
@@ -29,8 +27,8 @@ import { FriendshipRequest } from '../entities/FriendshipRequest'
 import { Conversation } from '../entities/Conversation'
 import { getConnection } from 'typeorm'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
-import rpcClient from '../utils/brokerInitializer'
 import { Message } from '../entities/Message'
+import { Call } from '../entities/Call'
 
 @Resolver(Profile)
 export class ProfileResolver {
@@ -41,12 +39,17 @@ export class ProfileResolver {
 
   @FieldResolver(() => [Friend])
   friends(@Root() profile: Profile[] | null) {
-    return profile.friends
+    if (profile.friends) return profile.friends
+  }
+
+  @FieldResolver(() => [Call])
+  calls(@Root() conversation: Conversation | null) {
+    return conversation?.calls
   }
 
   @FieldResolver(() => [FriendshipRequest])
   friendshipRequests(@Root() profile: Profile[] | null) {
-    return profile.friendshipRequests
+    if (profile.friendshipRequests) return profile.friendshipRequests
   }
 
   @Query(() => Profile, { nullable: true })
@@ -116,85 +119,89 @@ export class ProfileResolver {
   async acceptFriendRequest(
     @Ctx() { req }: MyContext,
     @Arg('profileUuid', () => String) profileUuid: number | string
-  ) {
+  ): Promise<Conversation | undefined> {
     // TODO reorganize sender/recipient logic, seems to be in reverse (no since recipient and actor on request is the one logged in)
     const recipientProfile = await Profile.findOne({
       where: { userId: req.session.userId },
     })
 
     const senderProfile = await Profile.findOne(profileUuid)
-
-    const areFriends = await checkFriendship(
-      senderProfile?.uuid,
-      recipientProfile?.uuid
-    )
-
-    if (!areFriends) {
-      await acceptFriendRequest(
+    if (recipientProfile && senderProfile) {
+      const areFriends = await checkFriendship(
         senderProfile?.uuid,
-        senderProfile?.username,
-        recipientProfile?.uuid,
-        recipientProfile?.username
+        recipientProfile?.uuid
       )
 
-      const conversationRepository = getConnection().getRepository(Conversation)
-      const conversationProfileRepository = getConnection().getRepository(
-        ConversationToProfile
-      )
+      if (!areFriends) {
+        await acceptFriendRequest(
+          senderProfile?.uuid,
+          senderProfile?.username,
+          recipientProfile?.uuid,
+          recipientProfile?.username
+        )
 
-      let conversation = new Conversation()
-      await conversationRepository.save(conversation)
+        const conversationRepository =
+          getConnection().getRepository(Conversation)
+        const conversationProfileRepository = getConnection().getRepository(
+          ConversationToProfile
+        )
 
-      const conversationToProfile = new ConversationToProfile(
-        conversation,
-        recipientProfile,
-        recipientProfile?.username
-      )
+        let conversation = new Conversation()
+        await conversationRepository.save(conversation)
 
-      await conversationProfileRepository.save(conversationToProfile)
-      const conversationToProfile2 = new ConversationToProfile(
-        conversation,
-        senderProfile,
-        senderProfile?.username
-      )
+        const conversationToProfile = new ConversationToProfile(
+          conversation,
+          recipientProfile,
+          recipientProfile?.username
+        )
 
-      await conversationProfileRepository.save(conversationToProfile2)
+        await conversationProfileRepository.save(conversationToProfile)
+        const conversationToProfile2 = new ConversationToProfile(
+          conversation,
+          senderProfile,
+          senderProfile?.username
+        )
 
-      conversation = {
-        ...conversation,
-        unreadMessages: 0,
-        messages: [],
-        calls: [
-          {
-            profileUuid: senderProfile?.uuid,
-            profileUsername: senderProfile?.username,
-            pendingCall: false,
-            ongoingCall: false,
-          },
-          {
-            profileUuid: recipientProfile?.uuid,
-            profileUsername: recipientProfile?.username,
-            pendingCall: false,
-            ongoingCall: false,
-          },
-        ],
-        ongoingCall: false,
-        pendingCall: false,
-        pendingCallProfile: null,
-        profiles: [
-          {
-            uuid: senderProfile?.uuid,
-            username: senderProfile?.username,
-          },
-          {
-            uuid: recipientProfile?.uuid,
-            username: recipientProfile?.username,
-          },
-        ],
+        await conversationProfileRepository.save(conversationToProfile2)
+
+        conversation = {
+          ...conversation,
+          unreadMessages: 0,
+          messages: [],
+          calls: [
+            {
+              profileUuid: senderProfile?.uuid,
+              profileUsername: senderProfile?.username,
+              pendingCall: false,
+              ongoingCall: false,
+            },
+            {
+              profileUuid: recipientProfile?.uuid,
+              profileUsername: recipientProfile?.username,
+              pendingCall: false,
+              ongoingCall: false,
+            },
+          ],
+          ongoingCall: false,
+          pendingCall: false,
+          pendingCallProfile: undefined,
+          profiles: [
+            {
+              uuid: senderProfile?.uuid,
+              username: senderProfile?.username,
+            },
+            {
+              uuid: recipientProfile?.uuid,
+              username: recipientProfile?.username,
+            },
+          ],
+        }
+
+        return conversation
       }
-
-      return conversation
     }
+
+    return undefined
   }
 
   @Mutation(() => Boolean)

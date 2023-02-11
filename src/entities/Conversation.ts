@@ -14,7 +14,11 @@ import { Message } from './Message'
 import { Profile } from './Profile'
 import { ConversationToProfile } from './ConversationToProfile'
 import { Call } from './Call'
-
+import { Sender } from './ShortProfile'
+interface ProfileInConversation {
+  uuid: string
+  username: string
+}
 @ObjectType()
 @Entity()
 export class Conversation extends BaseEntity {
@@ -30,7 +34,7 @@ export class Conversation extends BaseEntity {
     cascade: true,
     // eager: true,
   })
-  messages: Message[]
+  messages: Message[] | [] | undefined | null
 
   @Field()
   @Column({ default: 0 })
@@ -72,14 +76,17 @@ export class Conversation extends BaseEntity {
   public conversationToProfiles!: ConversationToProfile[]
 
   @Field(() => [Call])
-  public calls!: Call[]
+  public calls?: Call[]
 
-  @Field(() => Profile, { nullable: true })
+  // @Field([ProfileInConversation])
+  public profiles!: ProfileInConversation[]
+
+  @Field(() => Sender, { nullable: true })
   @OneToOne(() => Profile, {
     nullable: true,
   })
   @JoinColumn()
-  pendingCallProfile: Profile
+  pendingCallProfile?: Sender
 
   @Field(() => String)
   @UpdateDateColumn()

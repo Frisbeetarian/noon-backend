@@ -23,7 +23,7 @@ export class Profile extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   uuid!: string
 
-  @Field()
+  @Field(() => String)
   @Column({ unique: true, nullable: true })
   username: string
 
@@ -34,13 +34,13 @@ export class Profile extends BaseEntity {
   userId?: string
 
   @OneToOne(() => User, (user) => user.profile)
-  user: User
+  user?: User
 
   @OneToMany(() => Post, (post) => post.creator)
-  posts: Post[]
+  posts?: Post[]
 
   @OneToMany(() => Updoot, (updoot) => updoot.user)
-  updoots: Updoot[]
+  updoots?: Updoot[]
 
   @ManyToOne(
     () => ConversationToProfile,
@@ -51,13 +51,13 @@ export class Profile extends BaseEntity {
   @OneToMany(() => Message, (message) => message.sender, {
     cascade: true,
   })
-  senderMessages: Message[]
+  senderMessages?: Message[]
 
   @Field(() => String)
   @UpdateDateColumn()
-  updatedAt: Date
+  updatedAt?: Date
 
   @Field(() => String)
   @CreateDateColumn()
-  createdAt: Date
+  createdAt?: Date
 }

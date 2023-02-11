@@ -7,10 +7,12 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
+import { GraphQLJSONObject } from 'graphql-type-json'
 
 import { Field, ObjectType } from 'type-graphql'
 import { Profile } from './Profile'
 import { Conversation } from './Conversation'
+import { Sender } from './ShortProfile'
 
 @ObjectType()
 @Entity()
@@ -36,11 +38,11 @@ export class Message extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   uuid?: string
 
-  @Field(() => Profile)
+  @Field(() => Sender)
   @ManyToOne(() => Profile, (profile) => profile.senderMessages, {
     eager: true,
   })
-  sender: Profile
+  sender: { uuid: string; username: string }
 
   @Field(() => String)
   @Column()
