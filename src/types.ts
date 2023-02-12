@@ -6,9 +6,6 @@ import { createUpdootLoader } from './utils/createUpdootLoader'
 import { createUserLoader } from './utils/createUserLoader'
 import { createMessageLoader } from './utils/createMessageLoader'
 
-import { Socket } from 'socket.io'
-// import { createProfileLoader } from './utils/createProfileLoader'
-
 export type MyContext = {
   // em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>
   // & in typescript joins the 2 types together

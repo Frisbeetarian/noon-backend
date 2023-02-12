@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
-import { GraphQLJSONObject } from 'graphql-type-json'
 
 import { Field, ObjectType } from 'type-graphql'
 import { Profile } from './Profile'

@@ -1,6 +1,5 @@
-// @ts-ignore
 import 'reflect-metadata'
-const dotenv = require('dotenv-safe').config({ silent: true })
+require('dotenv-safe').config({ silent: true })
 
 import express from 'express'
 import { ApolloServer } from 'apollo-server-express'
@@ -20,7 +19,9 @@ import { Post } from './entities/Post'
 import { Profile } from './entities/Profile'
 import { Friend } from './entities/Friend'
 import { ProfileResolver } from './resolvers/profiles'
+// @ts-ignore
 import { RPCServer } from '@noon/rabbit-mq-rpc/server'
+// @ts-ignore
 import { RedisSessionStore } from './socketio/sessionStore'
 import { SearchResolver } from './resolvers/search'
 import { Conversation } from './entities/Conversation'
@@ -35,6 +36,7 @@ import { PostResolver } from './resolvers/post'
 import { UserResolver } from './resolvers/user'
 import { User } from './entities/User'
 import { Updoot } from './entities/Updoot'
+// @ts-ignore
 import { RedisMessageStore } from './socketio/messageStore'
 import connection from './socketio/connection'
 import { graphqlUploadExpress } from 'graphql-upload-minimal'
@@ -146,7 +148,7 @@ const main = async () => {
 
   let server = null
 
-  apolloServer.start().then((res) => {
+  apolloServer.start().then(() => {
     apolloServer.applyMiddleware({
       app,
       cors: false,

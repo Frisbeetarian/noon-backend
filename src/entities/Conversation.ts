@@ -15,10 +15,10 @@ import { Profile } from './Profile'
 import { ConversationToProfile } from './ConversationToProfile'
 import { Call } from './Call'
 import { Sender } from './ShortProfile'
-interface ProfileInConversation {
-  uuid: string
-  username: string
-}
+// interface ProfileInConversation {
+//   uuid: string
+//   username: string
+// }
 @ObjectType()
 @Entity()
 export class Conversation extends BaseEntity {
@@ -44,7 +44,7 @@ export class Conversation extends BaseEntity {
   @Column({ default: 'pm' })
   type: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ default: '', nullable: true })
   profileThatHasUnreadMessages?: string
 
@@ -79,7 +79,8 @@ export class Conversation extends BaseEntity {
   public calls?: Call[]
 
   // @Field([ProfileInConversation])
-  public profiles!: ProfileInConversation[]
+  @Field(() => [Sender])
+  public profiles!: { uuid: string; username: string }[]
 
   @Field(() => Sender, { nullable: true })
   @OneToOne(() => Profile, {
