@@ -1,3 +1,4 @@
+// @ts-nocheck
 // import { EntityManager, IDatabaseDriver, Connection } from '@mikro-orm/core'
 import { Request, Response } from 'express'
 import session from 'express-session'

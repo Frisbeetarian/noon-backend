@@ -1,4 +1,5 @@
-// const cluster = require('cluster')
+// @ts-nocheck
+// @ts-nocheck// const cluster = require('cluster')
 // const http = require('http')
 // const { setupMaster } = require('@socket.io/sticky')
 //

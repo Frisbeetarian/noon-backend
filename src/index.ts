@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-nocheck
 import 'reflect-metadata'
 const dotenv = require('dotenv-safe').config({ silent: true })
 

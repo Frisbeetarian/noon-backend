@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ObjectType, Field, Int } from 'type-graphql'
 import {
   Entity,

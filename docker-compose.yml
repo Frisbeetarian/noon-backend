@@ -1,0 +1,75 @@
+version: '3'
+services:
+  #  noon-backend:
+  #    build: .
+  #    volumes:
+  #      - .:/usr/src/app
+  #    ports:
+  #      - '3000:3000'
+  #    environment:
+  #      - REDIS_URL=redis://redis:6379
+  #      - POSTGRESQL_DATABASE=noon
+  #      - POSTGRESQL_PASSWORD=admin
+  #      - POSTGRESQL_USERNAME=kozbara
+  #      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+  #    depends_on:
+  #      - postgres
+  #      - redis
+  #      - rabbitmq
+  #      - verdaccio
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=noon
+      - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRES_DB=kozbara
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - '6379:6379'
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - 15672:15672
+      - 5672:5672
+
+  verdaccio:
+    image: verdaccio/verdaccio
+    restart: always
+    ports:
+      - '4873:4873'
+
+  neo4j:
+    platform: linux/amd64
+    image: neo4j:4.2.6
+    restart: always
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}
+    volumes:
+      - ./neo4j/data:/data
+      - ./neo4j/logs:/logs
+      - ./neo4j/import:/var/lib/neo4j/import
+      - ./neo4j/plugins:/plugins
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - "discovery.type=single-node"
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - esnet
+networks:
+  esnet:

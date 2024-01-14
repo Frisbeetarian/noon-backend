@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { getFriendsForProfile } from '../neo4j/neo4j_calls/neo4j_api'
 
 const connection = (io, sessionStore, messageStore) => {

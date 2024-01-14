@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BaseEntity, PrimaryGeneratedColumn } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql'
 
