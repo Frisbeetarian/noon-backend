@@ -26,7 +26,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
       - POSTGRES_DB=kozbara
     volumes:
-      - ./postgres/data:/var/lib/postgresql/data
+      - ./../volumes/postgres/data:/var/lib/postgresql/data
 
   redis:
     image: redis
@@ -48,16 +48,18 @@ services:
       - '4873:4873'
 
   neo4j:
-    platform: linux/amd64
-    image: neo4j:4.2.6
+    image: neo4j:latest
     restart: always
     environment:
       NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}
     volumes:
-      - ./neo4j/data:/data
-      - ./neo4j/logs:/logs
-      - ./neo4j/import:/var/lib/neo4j/import
-      - ./neo4j/plugins:/plugins
+      - ./../volumes/neo4j/data:/data
+      - ./../volumes/neo4j/logs:/logs
+      - ./../volumes/neo4j/import:/var/lib/neo4j/import
+      - ./../volumes/neo4j/plugins:/plugins
+    ports:
+      - "7474:7474"
+      - "7687:7687"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
@@ -65,8 +67,9 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - "discovery.type=single-node"
+      - xpack.security.enabled=false
     volumes:
-      - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - ./../volumes/elasticsearch/data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
     networks:

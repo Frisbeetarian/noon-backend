@@ -1,6 +1,10 @@
 // @ts-nocheck
 import { getFriendsForProfile } from '../neo4j/neo4j_calls/neo4j_api'
 
+const emitSearchResultSet = (userId, results) => {
+  io.to(userId).emit('search-results', { results })
+}
+
 const connection = (io, sessionStore, messageStore) => {
   io.on('connection', async (socket) => {
     console.log(

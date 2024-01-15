@@ -20,7 +20,9 @@ import { Post } from './entities/Post'
 import { Profile } from './entities/Profile'
 import { Friend } from './entities/Friend'
 import { ProfileResolver } from './resolvers/profiles'
-import { RPCServer } from '@noon/rabbit-mq-rpc/server'
+
+import { RPCServer } from '@noon/rabbit-mq-rpc'
+
 import { RedisSessionStore } from './socketio/sessionStore'
 import { SearchResolver } from './resolvers/search'
 import { Conversation } from './entities/Conversation'
@@ -30,6 +32,7 @@ import { ConversationToProfile } from './entities/ConversationToProfile'
 import { MessageResolver } from './resolvers/messages'
 import { ConversationProfileResolver } from './resolvers/conversationProfile'
 import { createMessageLoader } from './utils/createMessageLoader'
+import { initRPCClient } from './utils/brokerInitializer'
 import { __prod__ } from './constants'
 import { PostResolver } from './resolvers/post'
 import { UserResolver } from './resolvers/user'
@@ -191,7 +194,7 @@ const main = async () => {
   const { RedisMessageStore } = require('./socketio/messageStore')
   const messageStore = new RedisMessageStore(redis)
 
-  const { RPCServer } = require('@noon/rabbit-mq-rpc/server')
+  // const { RPCServer } = require('@noon/rabbit-mq-rpc/server')
 
   const connectionObject = {
     protocol: 'amqp',
@@ -202,12 +205,16 @@ const main = async () => {
     locale: 'en_US',
     vhost: '/',
   }
+
   async function establishRPCConsumer() {
     try {
       const rpcServer = new RPCServer({
         connectionObject,
         hostId: 'localhost',
         queue: 'rpc_queue.noon.search-results',
+        handleMessage: (index, params) => {
+          console.log('RPC_SEARCH_RECEIVED', { index, params })
+        },
       })
 
       await rpcServer.start()
@@ -227,6 +234,12 @@ const main = async () => {
   }
 
   establishRPCConsumer()
+
+  async function establishRPCConnections() {
+    await initRPCClient()
+  }
+
+  establishRPCConnections()
 }
 
 main().catch((err) => {
