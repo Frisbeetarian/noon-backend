@@ -1,8 +1,9 @@
 // @ts-nocheck
 import { getFriendsForProfile } from '../neo4j/neo4j_calls/neo4j_api'
 
-const emitSearchResultSet = (userId, results) => {
-  io.to(userId).emit('search-results', { results })
+const emitSearchResultSet = (io, senderUuid, profile) => {
+  console.log('emitSearchResultSet:', { senderUuid, profile })
+  io.to(senderUuid).emit('search-results', { profile })
 }
 
 const connection = (io, sessionStore, messageStore) => {
@@ -174,10 +175,22 @@ const connection = (io, sessionStore, messageStore) => {
         }
       )
 
+      socket.onAny((event, ...args) => {
+        console.log(event, args)
+      })
+
       // forward the private message to the right recipient (and to other tabs of the sender)
       socket.on(
         'send-friend-request',
         ({ content, from, fromUsername, to, toUsername }) => {
+          console.log('send-friend-request: ', {
+            content,
+            from,
+            fromUsername,
+            to,
+            toUsername,
+          })
+
           io.to(to).emit('send-friend-request', {
             content,
             from,

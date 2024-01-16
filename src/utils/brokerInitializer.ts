@@ -86,9 +86,7 @@ async function searchRPCRequest(channel, task, params) {
   try {
     // await initRPCClient()
 
-    const response = await client.rpcRequest(channel, task, params)
-    console.log('response in searchRPCRequest:', response)
-    return response
+    return await client.rpcRequest(channel, task, params)
   } catch (e) {
     console.log('error:', e)
     return null

@@ -399,12 +399,12 @@ export const cancelFriendRequest = async function (
 
   const tx = session.beginTransaction()
 
-  console.log('cancel friend request: ', {
-    senderProfileUuid,
-    senderProfileUsername,
-    recipientProfileUuid,
-    recipientProfileUsername,
-  })
+  // console.log('cancel friend request: ', {
+  //   senderProfileUuid,
+  //   senderProfileUsername,
+  //   recipientProfileUuid,
+  //   recipientProfileUsername,
+  // })
   try {
     tx.run(
       'Match (p1:Profile {uuid: $sUuid}) ' +
@@ -418,11 +418,11 @@ export const cancelFriendRequest = async function (
       }
     )
       .then((result) => {
-        console.log(result)
+        // console.log(result)
 
-        result.records.forEach(async (record) => {
-          console.log(record)
-        })
+        // result.records.forEach(async (record) => {
+        //   console.log(record)
+        // })
         return tx.commit()
       })
       .then(() => {

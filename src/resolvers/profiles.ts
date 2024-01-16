@@ -31,9 +31,16 @@ import { getConnection } from 'typeorm'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
 import rpcClient from '../utils/brokerInitializer'
 import { Message } from '../entities/Message'
+import Emitters from '../socketio/emitters'
 
 @Resolver(Profile)
 export class ProfileResolver {
+  private emitters: Emitters
+
+  constructor(@Ctx() { io }: MyContext) {
+    this.emitters = new Emitters(io)
+  }
+
   @FieldResolver(() => User)
   user(@Root() profile: Profile) {
     return profile.user
@@ -81,7 +88,7 @@ export class ProfileResolver {
 
   @Mutation(() => Boolean)
   async sendFriendRequest(
-    @Ctx() { req }: MyContext,
+    @Ctx() { req, io }: MyContext,
     @Arg('profileUuid', () => String) profileUuid: number | string
   ) {
     const senderProfile = await Profile.findOne({
@@ -96,6 +103,14 @@ export class ProfileResolver {
         senderProfile?.username,
         recipientProfile?.uuid,
         recipientProfile?.username
+      )
+
+      this.emitters.emitFriendRequest(
+        senderProfile.uuid,
+        senderProfile.username,
+        recipientProfile.uuid,
+        recipientProfile.username,
+        'Friend request'
       )
     } else {
       return false

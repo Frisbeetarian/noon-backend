@@ -23,7 +23,6 @@ export class SearchResolver {
         senderUuid: senderProfile?.uuid,
       })
 
-      console.log('response in search resolver:', response)
       return [response]
     } catch (e) {
       console.log('error:', e)

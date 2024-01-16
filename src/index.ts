@@ -13,6 +13,7 @@ import { createConnection } from 'typeorm'
 import path from 'path'
 let socketIo = require('socket.io')
 const { instrument } = require('@socket.io/admin-ui')
+import { createServer } from 'http'
 
 import { createUserLoader } from './utils/createUserLoader'
 import { createUpdootLoader } from './utils/createUpdootLoader'
@@ -41,48 +42,21 @@ import { Updoot } from './entities/Updoot'
 import { RedisMessageStore } from './socketio/messageStore'
 import connection from './socketio/connection'
 import { graphqlUploadExpress } from 'graphql-upload-minimal'
-
-const app = express()
-
+import Emitters from './socketio/emitters'
 const main = async () => {
-  let retries = 5
-
-  while (retries) {
-    try {
-      await createConnection({
-        type: 'postgres',
-        database: process.env.POSTGRESQL_DATABASE,
-        username: process.env.POSTGRESQL_USERNAME,
-        password: process.env.POSTGRESQL_PASSWORD,
-        logging: true,
-        synchronize: !__prod__,
-        migrations: [path.join(__dirname, './migrations/*')],
-        entities: [
-          User,
-          Post,
-          Updoot,
-          Profile,
-          Friend,
-          Conversation,
-          Message,
-          ConversationToProfile,
-        ],
-        subscribers: [path.join(__dirname, './subscribers/*')],
-      })
-      break
-    } catch (e) {
-      retries -= 1
-      console.log('error connecting to postgres db:', e, retries)
-      await new Promise((res) => setTimeout(res, 5000))
-    }
-  }
-
-  // await conn.runMigrations()
-
-  app.set('trust proxy', 1)
+  const app = express()
+  const httpServer = createServer(app)
 
   const RedisStore = connectRedis(session)
   const redis = new Redis(process.env.REDIS_URL)
+
+  const { RedisSessionStore } = require('./socketio/sessionStore')
+  const sessionStore = new RedisSessionStore(redis)
+
+  const { RedisMessageStore } = require('./socketio/messageStore')
+  const messageStore = new RedisMessageStore(redis)
+
+  app.set('trust proxy', 1)
 
   app.use(
     session({
@@ -112,6 +86,62 @@ const main = async () => {
     })
   )
 
+  let io = socketIo(httpServer, {
+    cors: {
+      origin: process.env.CORS_ORIGIN,
+      methods: ['GET', 'POST'],
+    },
+    adapter: require('socket.io-redis')({
+      pubClient: redis,
+      subClient: redis.duplicate(),
+    }),
+  })
+
+  console.log(`Worker ${process.pid} started`)
+
+  instrument(io, {
+    auth: {
+      type: 'basic',
+      username: process.env.SOCKET_INSTRUMENT_USERNAME,
+      password: process.env.SOCKET_INSTRUMENT_PASSWORD,
+    },
+  })
+
+  connection(io, sessionStore, messageStore)
+
+  let retries = 5
+  while (retries) {
+    try {
+      await createConnection({
+        type: 'postgres',
+        database: process.env.POSTGRESQL_DATABASE,
+        username: process.env.POSTGRESQL_USERNAME,
+        password: process.env.POSTGRESQL_PASSWORD,
+        logging: true,
+        synchronize: !__prod__,
+        migrations: [path.join(__dirname, './migrations/*')],
+        entities: [
+          User,
+          Post,
+          Updoot,
+          Profile,
+          Friend,
+          Conversation,
+          Message,
+          ConversationToProfile,
+        ],
+        subscribers: [path.join(__dirname, './subscribers/*')],
+      })
+      break
+    } catch (e) {
+      retries -= 1
+      console.log('error connecting to postgres db:', e, retries)
+      new Promise((res) => setTimeout(res, 5000))
+    }
+  }
+
+  // await conn.runMigrations()
+
   app.use(
     graphqlUploadExpress({
       maxFileSize: 10000000, // 10 MB
@@ -137,7 +167,7 @@ const main = async () => {
       req,
       res,
       redis,
-      // io,
+      io,
       userLoader: createUserLoader(),
       updootLoader: createUpdootLoader(),
       messageLoader: createMessageLoader(),
@@ -145,54 +175,19 @@ const main = async () => {
     // uploads: false,
   })
 
-  let server = null
-
   apolloServer.start().then((res) => {
     apolloServer.applyMiddleware({
       app,
       cors: false,
     })
 
-    server = app.listen(parseInt(process.env.PORT), () =>
+    httpServer.listen(parseInt(process.env.PORT), () =>
       console.log(`server listening at http://localhost:${process.env.PORT}`)
     )
-
-    try {
-      const io = socketIo(server, {
-        cors: {
-          origin: process.env.CORS_ORIGIN,
-          methods: ['GET', 'POST'],
-        },
-        adapter: require('socket.io-redis')({
-          pubClient: redis,
-          subClient: redis.duplicate(),
-        }),
-      })
-
-      console.log(`Worker ${process.pid} started`)
-
-      instrument(io, {
-        auth: {
-          type: 'basic',
-          username: process.env.SOCKET_INSTRUMENT_USERNAME,
-          password: process.env.SOCKET_INSTRUMENT_PASSWORD,
-        },
-      })
-
-      connection(io, sessionStore, messageStore)
-    } catch (e) {
-      console.log('error establishing websocket connection:', e)
-    }
   })
 
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
-
-  const { RedisSessionStore } = require('./socketio/sessionStore')
-  const sessionStore = new RedisSessionStore(redis)
-
-  const { RedisMessageStore } = require('./socketio/messageStore')
-  const messageStore = new RedisMessageStore(redis)
 
   // const { RPCServer } = require('@noon/rabbit-mq-rpc/server')
 
@@ -206,7 +201,7 @@ const main = async () => {
     vhost: '/',
   }
 
-  async function establishRPCConsumer() {
+  const initializeRPCServer = (emitters) => {
     try {
       const rpcServer = new RPCServer({
         connectionObject,
@@ -214,10 +209,12 @@ const main = async () => {
         queue: 'rpc_queue.noon.search-results',
         handleMessage: (index, params) => {
           console.log('RPC_SEARCH_RECEIVED', { index, params })
+          const { profiles, senderUuid } = params
+          emitters.emitSearchResultSet(senderUuid, profiles)
         },
       })
 
-      await rpcServer.start()
+      rpcServer.start()
 
       console.log('RPC_CONNECTION_SUCCESSFUL', {
         hostId: 'localhost',
@@ -233,7 +230,8 @@ const main = async () => {
     }
   }
 
-  establishRPCConsumer()
+  const emitters = new Emitters(io)
+  initializeRPCServer(emitters)
 
   async function establishRPCConnections() {
     await initRPCClient()
