@@ -8,10 +8,7 @@ const emitSearchResultSet = (io, senderUuid, profile) => {
 
 const connection = (io, sessionStore, messageStore) => {
   io.on('connection', async (socket) => {
-    console.log(
-      'socket.handshake.auth.sessionID:',
-      socket.handshake.auth.sessionID
-    )
+    console.log('socket.handshake.sessionID:', socket.handshake.sessionID)
 
     console.log(
       'socket.handshake.auth.userSocketUuid:',

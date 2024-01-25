@@ -35,12 +35,6 @@ import Emitters from '../socketio/emitters'
 
 @Resolver(Profile)
 export class ProfileResolver {
-  private emitters: Emitters
-
-  constructor(@Ctx() { io }: MyContext) {
-    this.emitters = new Emitters(io)
-  }
-
   @FieldResolver(() => User)
   user(@Root() profile: Profile) {
     return profile.user
@@ -105,12 +99,15 @@ export class ProfileResolver {
         recipientProfile?.username
       )
 
-      this.emitters.emitFriendRequest(
+      const emitters = new Emitters(io)
+      const content = senderProfile.username + ' wants to be your friend.'
+
+      emitters.emitFriendRequest(
         senderProfile.uuid,
         senderProfile.username,
         recipientProfile.uuid,
         recipientProfile.username,
-        'Friend request'
+        content
       )
     } else {
       return false
