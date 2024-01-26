@@ -3,8 +3,6 @@ import 'reflect-metadata'
 const dotenv = require('dotenv-safe').config({ silent: true })
 
 import express from 'express'
-import { ApolloServer } from 'apollo-server-express'
-import { buildSchema } from 'type-graphql'
 import Redis from 'ioredis'
 import session from 'express-session'
 import connectRedis from 'connect-redis'
@@ -15,34 +13,27 @@ let socketIo = require('socket.io')
 const { instrument } = require('@socket.io/admin-ui')
 import { createServer } from 'http'
 
-import { createUserLoader } from './utils/createUserLoader'
-import { createUpdootLoader } from './utils/createUpdootLoader'
 import { Post } from './entities/Post'
 import { Profile } from './entities/Profile'
 import { Friend } from './entities/Friend'
-import { ProfileResolver } from './resolvers/profiles'
 
 import { RPCServer } from '@noon/rabbit-mq-rpc'
 
 import { RedisSessionStore } from './socketio/sessionStore'
-import { SearchResolver } from './resolvers/search'
 import { Conversation } from './entities/Conversation'
 import { Message } from './entities/Message'
-import { ConversationResolver } from './resolvers/conversations'
 import { ConversationToProfile } from './entities/ConversationToProfile'
-import { MessageResolver } from './resolvers/messages'
-import { ConversationProfileResolver } from './resolvers/conversationProfile'
-import { createMessageLoader } from './utils/createMessageLoader'
 import { initRPCClient } from './utils/brokerInitializer'
 import { __prod__ } from './constants'
-import { PostResolver } from './resolvers/post'
-import { UserResolver } from './resolvers/user'
 import { User } from './entities/User'
 import { Updoot } from './entities/Updoot'
 import { RedisMessageStore } from './socketio/messageStore'
 import connection from './socketio/connection'
-import { graphqlUploadExpress } from 'graphql-upload-minimal'
 import Emitters from './socketio/emitters'
+import userRoutes from './routes/userRoutes'
+import conversationRoutes from './routes/conversationRoutes'
+import messageRoutes from './routes/messageRoutes'
+
 const main = async () => {
   const app = express()
   const httpServer = createServer(app)
@@ -85,6 +76,9 @@ const main = async () => {
       credentials: true,
     })
   )
+
+  app.use(express.json())
+  app.use(express.urlencoded({ extended: true }))
 
   let io = socketIo(httpServer, {
     cors: {
@@ -142,52 +136,53 @@ const main = async () => {
 
   // await conn.runMigrations()
 
-  app.use(
-    graphqlUploadExpress({
-      maxFileSize: 10000000, // 10 MB
-      maxFiles: 20,
-    })
+  // app.use(
+  //   graphqlUploadExpress({
+  //     maxFileSize: 10000000, // 10 MB
+  //     maxFiles: 20,
+  //   })
+  // )
+
+  // const apolloServer = new ApolloServer({
+  //   schema: await buildSchema({
+  //     resolvers: [
+  //       PostResolver,
+  //       UserResolver,
+  //       ProfileResolver,
+  //       SearchResolver,
+  //       ConversationResolver,
+  //       ConversationProfileResolver,
+  //       MessageResolver,
+  //     ],
+  //     validate: false,
+  //   }),
+  //   typeDefs: require('./typeDefs'),
+  //   context: ({ req, res }) => ({
+  //     req,
+  //     res,
+  //     redis,
+  //     io,
+  //     userLoader: createUserLoader(),
+  //     updootLoader: createUpdootLoader(),
+  //     messageLoader: createMessageLoader(),
+  //   }),
+  //   // uploads: false,
+  // })
+
+  // apolloServer.start().then((res) => {
+  //   apolloServer.applyMiddleware({
+  //     app,
+  //     cors: false,
+  //   })
+  //
+  // })
+  app.use('/api/users', userRoutes)
+  app.use('/api/conversations', conversationRoutes)
+  app.use('/api/messages', messageRoutes)
+
+  httpServer.listen(parseInt(process.env.PORT), () =>
+    console.log(`server listening at http://localhost:${process.env.PORT}`)
   )
-
-  const apolloServer = new ApolloServer({
-    schema: await buildSchema({
-      resolvers: [
-        PostResolver,
-        UserResolver,
-        ProfileResolver,
-        SearchResolver,
-        ConversationResolver,
-        ConversationProfileResolver,
-        MessageResolver,
-      ],
-      validate: false,
-    }),
-    typeDefs: require('./typeDefs'),
-    context: ({ req, res }) => ({
-      req,
-      res,
-      redis,
-      io,
-      userLoader: createUserLoader(),
-      updootLoader: createUpdootLoader(),
-      messageLoader: createMessageLoader(),
-    }),
-    // uploads: false,
-  })
-
-  apolloServer.start().then((res) => {
-    apolloServer.applyMiddleware({
-      app,
-      cors: false,
-    })
-
-    httpServer.listen(parseInt(process.env.PORT), () =>
-      console.log(`server listening at http://localhost:${process.env.PORT}`)
-    )
-  })
-
-  app.use(express.json())
-  app.use(express.urlencoded({ extended: true }))
 
   // const { RPCServer } = require('@noon/rabbit-mq-rpc/server')
 

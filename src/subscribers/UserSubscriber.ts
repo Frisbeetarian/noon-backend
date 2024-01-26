@@ -4,6 +4,7 @@ import {
   getConnection,
   InsertEvent,
 } from 'typeorm'
+
 import { User } from '../entities/User'
 import { Profile } from '../entities/Profile'
 import { createUserAndAssociateWithProfile } from '../neo4j/neo4j_calls/neo4j_api'
@@ -31,9 +32,10 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
         .execute()
 
       const user = await User.findOne(event.entity.uuid)
+
       if (user) {
         user.profile = profile.raw[0]
-        user.profileId = profile.raw[0].uuid
+        user.profileUuid = profile.raw[0].uuid
         await getConnection().manager.save(user)
 
         await createUserAndAssociateWithProfile(user, profile.raw[0])

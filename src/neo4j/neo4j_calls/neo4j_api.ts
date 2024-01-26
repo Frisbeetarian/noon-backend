@@ -200,15 +200,15 @@ export const createUserAndAssociateWithProfile = async function (
   try {
     tx.run(
       ' CREATE (a:User {uuid: $id, username: $username, name: $name}) ' +
-        ' CREATE (b:Profile {uuid: $profileId, username: $username, name: $name})' +
-        ' CREATE (a)-[:PROFILE {username: $username, name: $name, profileUuid: $profileId}]->(b)' +
+        ' CREATE (b:Profile {uuid: $profileUuid, username: $username, name: $name})' +
+        ' CREATE (a)-[:PROFILE {username: $username, name: $name, profileUuid: $profileUuid}]->(b)' +
         ' CREATE (b)-[:USER {username: $username, name: $name, userUuid: $id}]->(a)' +
         ' RETURN a, b',
       {
         id: user.uuid,
         username: user.username,
         name: user.username,
-        profileId: profile.uuid,
+        profileUuid: profile.uuid,
       }
     )
       .then((result) => {

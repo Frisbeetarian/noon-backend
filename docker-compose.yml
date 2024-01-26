@@ -27,6 +27,8 @@ services:
       - POSTGRES_DB=kozbara
     volumes:
       - ./../volumes/postgres/data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
 
   redis:
     image: redis

@@ -5,6 +5,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -42,6 +44,14 @@ export class Profile extends BaseEntity {
 
   @OneToMany(() => Updoot, (updoot) => updoot.user)
   updoots: Updoot[]
+
+  @ManyToMany(() => Profile)
+  @JoinTable()
+  friends: Profile[]
+
+  @ManyToMany(() => Profile)
+  @JoinTable()
+  friendshipRequests: Profile[]
 
   @ManyToOne(
     () => ConversationToProfile,

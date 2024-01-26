@@ -131,6 +131,7 @@ export class ProfileResolver {
     @Arg('profileUuid', () => String) profileUuid: number | string
   ) {
     // TODO reorganize sender/recipient logic, seems to be in reverse (no since recipient and actor on request is the one logged in)
+    console.log('profileUuid:', profileUuid)
     const recipientProfile = await Profile.findOne({
       where: { userId: req.session.userId },
     })
