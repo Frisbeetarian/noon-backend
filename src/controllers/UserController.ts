@@ -15,39 +15,46 @@ import {
 
 class UserController {
   static async me(req: Request, res: Response) {
-    if (!req.session.userId) {
-      return res.status(401).json({ error: 'Not authenticated' })
-    }
-
-    // Get user from database
-    let user = await getConnection()
-      .getRepository(User)
-      .createQueryBuilder('user')
-      .select('user')
-      .where('user.uuid = :id', { id: req.session.userId })
-      .leftJoinAndSelect('user.profile', 'profile')
-      .getOne()
-
-    if (user && user.profile) {
-      const friendsArray = await getFriendsForProfile(user?.profile?.uuid)
-      const friendRequestsArray = await getFriendRequestsForProfile(
-        user?.profile?.uuid
-      )
-
-      if (friendsArray.length !== 0) {
-        user.profile.friends = friendsArray
-      } else {
-        user.profile.friends = []
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not authenticated' })
       }
 
-      if (friendRequestsArray.length !== 0) {
-        user.profile.friendshipRequests = friendRequestsArray
-      } else {
-        user.profile.friendshipRequests = []
-      }
-    }
+      // Get user from database
+      let user = await getConnection()
+        .getRepository(User)
+        .createQueryBuilder('user')
+        .select('user')
+        .where('user.uuid = :id', { id: req.session.userId })
+        .leftJoinAndSelect('user.profile', 'profile')
+        .getOne()
 
-    return res.status(200).json(user)
+      if (user && user.profile) {
+        const friendsArray = await getFriendsForProfile(user?.profile?.uuid)
+        const friendRequestsArray = await getFriendRequestsForProfile(
+          user?.profile?.uuid
+        )
+
+        if (friendsArray.length !== 0) {
+          user.profile.friends = friendsArray
+        } else {
+          user.profile.friends = []
+        }
+
+        if (friendRequestsArray.length !== 0) {
+          user.profile.friendshipRequests = friendRequestsArray
+        } else {
+          user.profile.friendshipRequests = []
+        }
+      } else {
+        return res.status(401).json({ error: 'Not authenticated' })
+      }
+
+      return res.status(200).json(user)
+    } catch (e) {
+      console.error('Register Error:', e)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
   }
 
   // static async changePassword(req: Request, res: Response) {
@@ -111,17 +118,73 @@ class UserController {
       console.error('Register Error:', error)
       return res.status(500).json({ error: 'Internal server error' })
     }
-
-    // return res.json({ user })
   }
 
-  // static async login(req: Request, res: Response) {
-  //   // ... logic for login mutation
-  // }
-  //
-  // static async logout(req: Request, res: Response) {
-  //   // ... logic for logout mutation
-  // }
+  static async login(req: Request, res: Response) {
+    try {
+      const { username, password, rememberMe } = req.body
+
+      let user = await User.findOne(
+        username.includes('@')
+          ? { where: { email: username } }
+          : { where: { username: username } }
+      )
+
+      if (!user) {
+        return {
+          errors: [
+            {
+              field: 'usernameOrEmail',
+              message: 'that username doesnt exist',
+            },
+          ],
+        }
+      }
+
+      const valid = await argon2.verify(user.password, password)
+
+      if (!valid) {
+        return {
+          errors: [
+            {
+              field: 'password',
+              message: 'incorrect password',
+            },
+          ],
+        }
+      }
+
+      let profile = await Profile.findOne({ where: { userId: user?.uuid } })
+
+      user = {
+        ...user,
+        profile: { uuid: profile?.uuid, username: profile?.username },
+      }
+
+      if (rememberMe) {
+        req.session.cookie.maxAge = 90 * 24 * 60 * 60 * 1000 // 90 days
+      }
+
+      req.session.user = user
+      req.session.userId = user.uuid
+
+      return res.status(200).json(user)
+    } catch (e) {
+      console.error('Register Error:', error)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
+  static async logout(req: Request, res: Response) {
+    req.session.destroy((err) => {
+      res.clearCookie('qid')
+      if (err) {
+        console.log(err)
+        return res.status(500).json({ error: 'Failed to logout' })
+      }
+      return res.status(200).json({ message: 'Logged out successfully' })
+    })
+  }
 }
 
 export default UserController

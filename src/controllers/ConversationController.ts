@@ -1,24 +1,18 @@
 import { Request, Response } from 'express'
 import { getConnection } from 'typeorm'
-// import { Conversation } from '../entities/Conversation'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
 import { Conversation } from '../entities/Conversation'
 import { Profile } from '../entities/Profile'
-// import { Message } from '../entities/Message'
-// import { Profile } from '../entities/Profile'
+import { Message } from '../entities/Message'
 
 class ConversationController {
   static async getConversationsForLoggedInUser(req: Request, res: Response) {
-    const loggedInProfileUuid = req.session.user.profile.uuid
-    const objectToSend = []
-
-    const realLimit = 20
-    // const realLimitPlusOne = realLimit + 1
-    // let cursor = null
-
-    const conversationReplacements: any[] = [loggedInProfileUuid, 20]
-
     try {
+      const loggedInProfileUuid = req.session.user.profile.uuid
+      const objectToSend = []
+      const realLimit = 20
+      const conversationReplacements: any[] = [loggedInProfileUuid, 20]
+
       const conversations = await getConnection().query(
         `
         select conversation_profile.*, conversation.*
@@ -111,45 +105,33 @@ class ConversationController {
         )
 
         return res.status(200).json(objectToSend)
+      } else {
+        return res.status(200).json([])
       }
     } catch (e) {
       console.log('error:', e.message)
       return res.status(500).json(e.message)
     }
   }
-  // async checkIfConversationHasMoreMessages(req, res) {
-  //   // Logic for checkIfConversationHasMoreMessages
-  // }
-  //
-  // async createGroupConversation(req, res) {
-  //   // Logic for createGroupConversation
-  // }
-  //
-  async leaveGroup(req, res) {
+
+  static async checkIfConversationHasMoreMessages(req, res) {
     try {
-      const { groupUuid } = req.body
+      const { conversationUuid } = req.body
 
-      await getConnection()
-        .createQueryBuilder()
-        .delete()
-        .from(ConversationToProfile)
-        .where('conversationUuid = :groupUuid and profileUuid = :profileUuid', {
-          groupUuid,
-          profileUuid: req.session.user.profile.uuid,
-        })
-        .execute()
+      const [count] = await Promise.all([
+        Message.count({ where: { conversationUuid } }),
+      ])
 
-      return res.status(200)
+      return res.status(200).json(count > 20 ? true : false)
     } catch (e) {
       console.log('error:', e.message)
       return res.status(500).json(e.message)
     }
   }
 
-  async createGroupConversation(req, res) {
+  static async createGroupConversation(req, res) {
     try {
       const { input, participants } = req.body
-
       const conversationProfileRepository = getConnection().getRepository(
         ConversationToProfile
       )
@@ -199,25 +181,35 @@ class ConversationController {
       }
 
       return res.status(200).json(conversation)
-
-      // return (conversation = {
-      //   ...conversation,
-      //   unreadMessages: 0,
-      //   messages: [],
-      //   calls,
-      //   ongoingCall: false,
-      //   pendingCall: false,
-      //   pendingCallProfile: null,
-      //   profiles: participantsArray,
-      // })
     } catch (e) {
-      console.log(e.message)
+      console.log('error:', e.message)
+      return res.status(500).json(e.message)
+    }
+  }
+
+  static async leaveGroup(req, res) {
+    try {
+      const { groupUuid } = req.body
+
+      await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(ConversationToProfile)
+        .where('conversationUuid = :groupUuid and profileUuid = :profileUuid', {
+          groupUuid,
+          profileUuid: req.session.user.profile.uuid,
+        })
+        .execute()
+
+      return res.status(200)
+    } catch (e) {
+      console.log('error:', e.message)
       return res.status(500).json(e.message)
     }
   }
 
   //
-  async setPendingCallForConversation(req, res) {
+  static async setPendingCallForConversation(req, res) {
     try {
       const { conversationUuid, profileUuid } = req.body
 
@@ -244,7 +236,7 @@ class ConversationController {
     }
   }
 
-  async cancelPendingCallForConversation(req, res) {
+  static async cancelPendingCallForConversation(req, res) {
     try {
       const { conversationUuid, profileUuid } = req.body
 
@@ -269,18 +261,97 @@ class ConversationController {
       return res.status(500).json(e.message)
     }
   }
-  //
-  // async clearUnreadMessagesForConversation(req, res) {
-  //   // Logic for clearUnreadMessagesForConversation
-  // }
-  //
-  // async updateUnreadMessagesForConversation(req, res) {
-  //   // Logic for updateUnreadMessagesForConversation
-  // }
-  //
-  // async getConversationsByProfileUuid(req, res) {
-  //   // Logic for getConversationsByProfileUuid
-  // }
+
+  static async clearUnreadMessagesForConversation(req, res) {
+    try {
+      const { conversationUuid } = req.body
+
+      await getConnection()
+        .createQueryBuilder()
+        .update(ConversationToProfile)
+        .set({
+          unreadMessages: 0,
+          profileThatHasUnreadMessages: [],
+        })
+        .where('conversationUuid = :conversationUuid', {
+          conversationUuid,
+        })
+        .returning('*')
+        .execute()
+      return res.status(200)
+    } catch (e) {
+      console.log(e.message)
+      return res.status(500).json(e.message)
+    }
+  }
+  static async updateUnreadMessagesForConversation(req, res) {
+    try {
+      const { conversationUuid, profileUuid } = req.body
+
+      const conversationToProfile = await ConversationToProfile.findOne({
+        where: { conversationUuid: conversationUuid, profileUuid: profileUuid },
+      })
+
+      const result = await getConnection()
+        .createQueryBuilder()
+        .update(ConversationToProfile)
+        .set({
+          unreadMessages: conversationToProfile.unreadMessages + 1,
+          profileThatHasUnreadMessages: profileUuid,
+        })
+        .where('conversationUuid = :conversationUuid', {
+          conversationUuid,
+        })
+        .returning('*')
+        .execute()
+
+      console.log('result:', result)
+      return true
+    } catch (e) {
+      return false
+    }
+  }
+
+  async getConversationsByProfileUuid(req, res) {
+    try {
+      const { profileUuid } = req.body
+      const loggedInProfileUuid = req.session.user.profile.uuid
+
+      const conversation = await ConversationToProfile.findOne({
+        where: [
+          { profileUuid: loggedInProfileUuid },
+          { profileUuid: profileUuid },
+        ],
+        relations: ['conversation', 'profile'],
+      })
+
+      if (conversation) {
+        const objectToSend = {
+          uuid: conversation.conversationUuid,
+          profiles: [
+            {
+              uuid: conversation.profileUuid,
+              username: conversation.profile.username,
+            },
+            {
+              uuid: req.session.user.profile.uuid,
+              username: req.session.user.profile.username,
+            },
+          ],
+          messages: [...conversation.conversation.messages],
+        }
+
+        return res.status(200).json(objectToSend)
+      } else {
+        return res.status(404).json('Conversation not found')
+      }
+    } catch (e) {
+      console.log('error:', e)
+      return null
+    }
+
+    return null
+  }
 }
 
 export default ConversationController

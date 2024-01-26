@@ -12,29 +12,30 @@ const sessionStore = new RedisSessionStore(redis)
 
 class MessageController {
   static async getMessagesForConversation(req: Request, res: Response) {
-    const { conversationUuid, limit, cursor } = req.query
+    try {
+      const { conversationUuid, limit, cursor } = req.query
 
-    if (conversationUuid === null) {
-      return res.json({
-        messages: [],
-        hasMore: false,
-      })
-    }
+      if (conversationUuid === null) {
+        return res.json({
+          messages: [],
+          hasMore: false,
+        })
+      }
 
-    const realLimit = Math.min(20, Number(limit))
-    const realLimitPlusOne = realLimit + 1
-    const replacements: any[] = [realLimitPlusOne]
+      const realLimit = Math.min(20, Number(limit))
+      const realLimitPlusOne = realLimit + 1
+      const replacements: any[] = [realLimitPlusOne]
 
-    if (cursor) {
-      replacements.push(new Date(parseInt(cursor as string)))
-    }
+      if (cursor) {
+        replacements.push(new Date(parseInt(cursor as string)))
+      }
 
-    replacements.push(conversationUuid)
-    console.log('cursor:', cursor)
-    console.log('replacements:', replacements)
+      replacements.push(conversationUuid)
+      console.log('cursor:', cursor)
+      console.log('replacements:', replacements)
 
-    const messages = await getConnection().query(
-      `
+      const messages = await getConnection().query(
+        `
       select profile.uuid, profile.username, message.*
       from profile
       LEFT JOIN message ON message."senderUuid" = profile.uuid
@@ -46,31 +47,35 @@ class MessageController {
       order by message."createdAt" DESC
       limit $1
       `,
-      replacements
-    )
+        replacements
+      )
 
-    let messagesToSend = []
+      let messagesToSend = []
 
-    messages.forEach((message) => {
-      messagesToSend.push({
-        uuid: message.uuid,
-        content: message.content,
-        type: message.type,
-        src: message.src,
-        updatedAt: message.updatedAt,
-        createdAt: message.createdAt,
-        deleted: message.deleted,
-        sender: {
-          uuid: message.senderUuid,
-          username: message.username,
-        },
+      messages.forEach((message) => {
+        messagesToSend.push({
+          uuid: message.uuid,
+          content: message.content,
+          type: message.type,
+          src: message.src,
+          updatedAt: message.updatedAt,
+          createdAt: message.createdAt,
+          deleted: message.deleted,
+          sender: {
+            uuid: message.senderUuid,
+            username: message.username,
+          },
+        })
       })
-    })
 
-    return res.json({
-      messages: messagesToSend,
-      hasMore: messages.length === realLimitPlusOne,
-    })
+      return res.status(200).json({
+        messages: messagesToSend,
+        hasMore: messages.length === realLimitPlusOne,
+      })
+    } catch (e) {
+      console.log('Message error:', e.message)
+      return res.status(500).json(e.message)
+    }
   }
 
   static async uploadImage(req: Request, res: Response) {
@@ -140,23 +145,21 @@ class MessageController {
 
         let saveMessage = new Message(
           conversation,
-          // conversation.uuid,
           req.session.user.profile,
           message,
           type,
           src
         )
 
-        return await messageRepository.save(saveMessage)
+        const result = await messageRepository.save(saveMessage)
+        return res.status(200).json(result)
+      } else {
+        return res.status(400).json({ error: 'Conversation not found' })
       }
-
-      return null
     } catch (e) {
-      console.log('error:', e)
-      return null
+      console.log('Message error:', e.message)
+      return res.status(500).json(e.message)
     }
-
-    return null
   }
 }
 
