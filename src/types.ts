@@ -7,7 +7,7 @@ import { createUpdootLoader } from './utils/createUpdootLoader'
 import { createUserLoader } from './utils/createUserLoader'
 import { createMessageLoader } from './utils/createMessageLoader'
 
-import { Socket, Server } from 'socket.io'
+import { Server } from 'socket.io'
 // import { createProfileLoader } from './utils/createProfileLoader'
 
 export type MyContext = {

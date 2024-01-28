@@ -33,6 +33,12 @@ import Emitters from './socketio/emitters'
 import userRoutes from './routes/userRoutes'
 import conversationRoutes from './routes/conversationRoutes'
 import messageRoutes from './routes/messageRoutes'
+import { initSocketIO } from './socketio/socket'
+import profileRouter from './routes/profileRoutes'
+import conversationRouter from './routes/conversationRoutes'
+import userRouter from './routes/userRoutes'
+import messageRouter from './routes/messageRoutes'
+import searchRouter from './routes/searchRoutes'
 
 const main = async () => {
   const app = express()
@@ -79,17 +85,18 @@ const main = async () => {
 
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
+  const io = initSocketIO(httpServer, redis)
 
-  let io = socketIo(httpServer, {
-    cors: {
-      origin: process.env.CORS_ORIGIN,
-      methods: ['GET', 'POST'],
-    },
-    adapter: require('socket.io-redis')({
-      pubClient: redis,
-      subClient: redis.duplicate(),
-    }),
-  })
+  // let io = socketIo(httpServer, {
+  //   cors: {
+  //     origin: process.env.CORS_ORIGIN,
+  //     methods: ['GET', 'POST'],
+  //   },
+  //   adapter: require('socket.io-redis')({
+  //     pubClient: redis,
+  //     subClient: redis.duplicate(),
+  //   }),
+  // })
 
   console.log(`Worker ${process.pid} started`)
 
@@ -176,9 +183,11 @@ const main = async () => {
   //   })
   //
   // })
-  app.use('/api/users', userRoutes)
-  app.use('/api/conversations', conversationRoutes)
-  app.use('/api/messages', messageRoutes)
+  app.use('/api/users', userRouter)
+  app.use('/api/profiles', profileRouter)
+  app.use('/api/conversations', conversationRouter)
+  app.use('/api/messages', messageRouter)
+  app.use('/api/search', searchRouter)
 
   httpServer.listen(parseInt(process.env.PORT), () =>
     console.log(`server listening at http://localhost:${process.env.PORT}`)

@@ -7,6 +7,7 @@ import {
   sendFriendRequest,
 } from '../neo4j/neo4j_calls/neo4j_api'
 import Emitters from '../socketio/emitters'
+import { getIO } from '../socketio/socket'
 
 class ProfileController {
   static async getProfile(req: Request, res: Response) {
@@ -90,6 +91,7 @@ class ProfileController {
           recipientProfile?.username
         )
 
+        const io = getIO()
         const emitters = new Emitters(io)
         const content = senderProfile.username + ' wants to be your friend.'
 
@@ -101,8 +103,7 @@ class ProfileController {
           content
         )
 
-        return res.status(200)
-        s
+        return res.status(200).json({ message: 'Friend request sent' })
       } else {
         return res.status(404).json({ error: 'Recipient profile not found' })
       }
