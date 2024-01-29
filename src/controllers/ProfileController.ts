@@ -72,7 +72,7 @@ class ProfileController {
   static async sendFriendRequest(req: Request, res: Response) {
     try {
       const { profileUuid } = req.body
-
+      console.log('req.body in send friend request: ', profileUuid)
       const senderProfile = await Profile.findOne({
         where: { userId: req.session.userId },
       })

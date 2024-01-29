@@ -10,7 +10,7 @@ const rpcClient = require('../utils/brokerInitializer')
 class SearchController {
   static async getProfilesByUsername(req: Request, res: Response) {
     try {
-      const { username } = req.body
+      const options = req.body
 
       const senderProfile = await Profile.findOne({
         where: { userId: req.session.userId },
@@ -21,7 +21,7 @@ class SearchController {
       }
 
       await rpcClient.search().searchForProfileByUsername({
-        username,
+        username: options.query,
         senderUuid: senderProfile?.uuid,
       })
 
