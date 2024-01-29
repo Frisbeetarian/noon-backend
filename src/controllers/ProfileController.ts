@@ -8,12 +8,14 @@ import {
   getFriendsForProfile,
   getProfileByUsername,
   sendFriendRequest,
+  unfriend,
 } from '../neo4j/neo4j_calls/neo4j_api'
 import Emitters from '../socketio/emitters'
 import { getIO } from '../socketio/socket'
 import { getConnection } from 'typeorm'
 import { Conversation } from '../entities/Conversation'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
+import { Message } from '../entities/Message'
 
 class ProfileController {
   static async getProfile(req: Request, res: Response) {
@@ -268,6 +270,77 @@ class ProfileController {
       } else {
         return res.status(400).json({ error: 'Already friends' })
       }
+    } catch (e) {
+      console.error('Error:', e.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
+  static async unfriend(req: Request, res: Response) {
+    try {
+      const { profileUuid, conversationUuid } = req.body
+
+      const senderProfile = await Profile.findOne({
+        where: { userId: req.session.userId },
+      })
+
+      if (!senderProfile) {
+        return res.status(404).json({ error: 'Sender profile not found' })
+      }
+
+      const recipientProfile = await Profile.findOne(profileUuid)
+
+      if (!recipientProfile) {
+        return res.status(404).json({ error: 'Recipient profile not found' })
+      }
+
+      await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(ConversationToProfile)
+        .where('conversationUuid = :conversationUuid', {
+          conversationUuid,
+        })
+        .execute()
+
+      await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(Message)
+        .where('conversationUuid = :conversationUuid', {
+          conversationUuid,
+        })
+        .execute()
+
+      await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(Conversation)
+        .where('uuid = :conversationUuid', {
+          conversationUuid,
+        })
+        .execute()
+
+      await unfriend(
+        senderProfile?.uuid,
+        senderProfile?.username,
+        recipientProfile?.uuid,
+        recipientProfile?.username
+      )
+
+      const io = getIO()
+      const emitters = new Emitters(io)
+      const content = senderProfile.username + ' unfriended you.'
+
+      emitters.unfriend(
+        senderProfile.uuid,
+        senderProfile.username,
+        recipientProfile.uuid,
+        recipientProfile.username,
+        content
+      )
+
+      return res.status(200).json('Unfriended')
     } catch (e) {
       console.error('Error:', e.message)
       return res.status(500).json({ error: 'Internal server error' })

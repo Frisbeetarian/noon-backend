@@ -55,6 +55,22 @@ class Emitters {
       content,
     })
   }
+
+  unfriend(
+    senderUuid: String,
+    senderUsername: String,
+    recipientUuid: String,
+    recipientUsername: String,
+    content: String
+  ) {
+    this.io.to(recipientUuid).emit('unfriend', {
+      senderUuid,
+      senderUsername,
+      recipientUuid,
+      recipientUsername,
+      content,
+    })
+  }
 }
 
 export default Emitters
