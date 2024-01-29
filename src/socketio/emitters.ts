@@ -23,6 +23,38 @@ class Emitters {
       content,
     })
   }
+
+  emitCancelFriendRequest(
+    senderUuid: String,
+    senderUsername: String,
+    recipientUuid: String,
+    recipientUsername: String,
+    content: String
+  ) {
+    this.io.to(recipientUuid).emit('cancel-friend-request', {
+      senderUuid,
+      senderUsername,
+      recipientUuid,
+      recipientUsername,
+      content,
+    })
+  }
+
+  acceptFriendRequest(
+    senderUuid: String,
+    senderUsername: String,
+    recipientUuid: String,
+    recipientUsername: String,
+    content: String
+  ) {
+    this.io.to(recipientUuid).emit('accept-friend-request', {
+      senderUuid,
+      senderUsername,
+      recipientUuid,
+      recipientUsername,
+      content,
+    })
+  }
 }
 
 export default Emitters

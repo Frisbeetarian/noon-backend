@@ -9,5 +9,14 @@ profileRouter.get(
   ProfileController.getProfileByUsername
 )
 profileRouter.post('/sendFriendRequest', ProfileController.sendFriendRequest)
+profileRouter.post(
+  '/cancelFriendRequest',
+  ProfileController.cancelFriendRequest
+)
+
+profileRouter.post(
+  '/acceptFriendRequest',
+  ProfileController.acceptFriendRequest
+)
 
 export default profileRouter
