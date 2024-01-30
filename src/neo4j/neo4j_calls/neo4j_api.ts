@@ -66,14 +66,11 @@ export const getProfiles = async function (loggedInProfileUuid) {
       session.close()
     })
 
-  // console.log('profiles:', profiles)
-
   return profiles
 }
 
 export const getFriendsForProfile = async function (profileUuid) {
   const session = getNeo4jConnection().session()
-
   let friends = []
 
   await session
@@ -120,10 +117,7 @@ export const checkFriendship = async function (profile1Uuid, profile2Uuid) {
       }
     )
     .then((results) => {
-      // console.log('check friendship results:', results)
-      // console.log('check friendship results:', results.records)
       check = results.records[0]._fields[0].length > 0
-      // console.log('check friendship results:', results.records[0]._fields[0])
     })
     .catch((error) => {
       console.log(error)
@@ -137,7 +131,6 @@ export const checkFriendship = async function (profile1Uuid, profile2Uuid) {
 
 export const getFriendRequestsForProfile = async function (profileUuid) {
   const session = getNeo4jConnection().session()
-
   let friendRequests = []
   // 'MATCH (p:Profile {uuid: $profileUuid}) RETURN [(p)-[fr:FRIEND_REQUEST]->() | fr] AS outgoingFriendRequests, [(p)<-[fr:FRIEND_REQUEST]-() | fr] AS incomingFriendRequests',
 
@@ -153,11 +146,7 @@ export const getFriendRequestsForProfile = async function (profileUuid) {
       }
     )
     .then((results) => {
-      // console.log('results.records:', results.records)
-
       results.records.forEach((record) => {
-        // console.log('results.records fields[0]:', record._fields[1])
-
         if (record._fields[0]) {
           record._fields[0].forEach((outgoingFriendRequest) => {
             outgoingFriendRequest.properties = {
@@ -396,7 +385,6 @@ export const cancelFriendRequest = async function (
   recipientProfileUsername
 ) {
   const session = getNeo4jConnection().session()
-
   const tx = session.beginTransaction()
 
   try {
@@ -412,16 +400,10 @@ export const cancelFriendRequest = async function (
       }
     )
       .then((result) => {
-        // console.log(result)
-
-        // result.records.forEach(async (record) => {
-        //   console.log(record)
-        // })
         return tx.commit()
       })
       .then(() => {
         session.close()
-        // driver.close()
       })
       .catch((exception) => {
         console.log(exception)
@@ -440,15 +422,8 @@ export const unfriend = async function (
   targetProfileUsername
 ) {
   const session = getNeo4jConnection().session()
-
   const tx = session.beginTransaction()
 
-  console.log('cancel friend request: ', {
-    initiatorProfileUuid,
-    initiatorProfileUsername,
-    targetProfileUuid,
-    targetProfileUsername,
-  })
   try {
     tx.run(
       'Match (p1:Profile {uuid: $iUuid}) ' +
