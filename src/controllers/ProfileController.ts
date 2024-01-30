@@ -263,7 +263,8 @@ class ProfileController {
           senderProfile.username,
           recipientProfile.uuid,
           recipientProfile.username,
-          content
+          content,
+          conversation
         )
 
         return res.status(200).json(conversation)
@@ -337,7 +338,8 @@ class ProfileController {
         senderProfile.username,
         recipientProfile.uuid,
         recipientProfile.username,
-        content
+        content,
+        conversationUuid
       )
 
       return res.status(200).json('Unfriended')

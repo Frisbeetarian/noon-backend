@@ -47,14 +47,16 @@ class Emitters {
     senderUsername: String,
     recipientUuid: String,
     recipientUsername: String,
-    content: String
+    content: String,
+    conversation
   ) {
-    this.io.to(recipientUuid).emit('accept-friend-request', {
+    this.io.to(recipientUuid).emit('friendship-request-accepted', {
       senderUuid,
       senderUsername,
       recipientUuid,
       recipientUsername,
       content,
+      conversation,
     })
   }
 
@@ -63,7 +65,8 @@ class Emitters {
     senderUsername: String,
     recipientUuid: String,
     recipientUsername: String,
-    content: String
+    content: String,
+    conversationUuid
   ) {
     this.io.to(recipientUuid).emit('unfriend', {
       senderUuid,
@@ -71,6 +74,7 @@ class Emitters {
       recipientUuid,
       recipientUsername,
       content,
+      conversationUuid,
     })
   }
 
