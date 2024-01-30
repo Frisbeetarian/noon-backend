@@ -94,6 +94,7 @@ class UserController {
       console.log('user:', user)
 
       let profile = await Profile.findOne({ where: { userId: user?.uuid } })
+      console.log('profile:', profile)
 
       user = {
         ...user,

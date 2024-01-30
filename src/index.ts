@@ -68,12 +68,12 @@ const main = async () => {
       proxy: __prod__,
       cookie: {
         domain: __prod__ ? '.noon.tube' : undefined,
-        maxAge: 3 * 60 * 60 * 1000, // 3 hours
+        maxAge: 12 * 60 * 60 * 1000, // 12 hours
         httpOnly: true,
-        sameSite: __prod__ ? 'none' : 'lax',
+        sameSite: __prod__ ? 'lax' : 'none',
         secure: __prod__,
       },
-      saveUninitialized: false,
+      saveUninitialized: true,
       secret: process.env.SESSION_SECRET,
       resave: false,
     })
@@ -123,7 +123,7 @@ const main = async () => {
         username: process.env.POSTGRESQL_USERNAME,
         password: process.env.POSTGRESQL_PASSWORD,
         logging: true,
-        synchronize: __prod__,
+        synchronize: !__prod__,
         migrations: [path.join(__dirname, './migrations/*')],
         entities: [
           User,
