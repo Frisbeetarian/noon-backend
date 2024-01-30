@@ -66,7 +66,7 @@ const main = async () => {
       cookie: {
         domain: __prod__ ? '.noon.tube' : undefined,
         maxAge: 3 * 60 * 60 * 1000, // 3 hours
-        httpOnly: true,
+        httpOnly: false,
         sameSite: 'lax',
         secure: __prod__,
       },
