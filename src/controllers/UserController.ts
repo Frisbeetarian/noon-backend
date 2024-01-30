@@ -13,6 +13,7 @@ import {
   getFriendRequestsForProfile,
   getFriendsForProfile,
 } from '../neo4j/neo4j_calls/neo4j_api'
+import * as process from 'process'
 
 class UserController {
   static async me(req: Request, res: Response) {
@@ -103,6 +104,13 @@ class UserController {
 
       req.session.user = user
       req.session.userId = user.uuid
+
+      res.cookie('qid', process.env.SESSION_SECRET, {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      })
 
       console.error('request:', req)
       console.error('response:', res)
