@@ -73,7 +73,7 @@ const main = async () => {
         sameSite: __prod__ ? 'lax' : 'none',
         secure: __prod__,
       },
-      saveUninitialized: true,
+      saveUninitialized: false,
       secret: process.env.SESSION_SECRET,
       resave: false,
     })
