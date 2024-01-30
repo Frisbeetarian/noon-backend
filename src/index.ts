@@ -114,6 +114,7 @@ const main = async () => {
   while (retries) {
     try {
       await createConnection({
+        host: process.env.POSTGRESQL_HOST,
         type: 'postgres',
         database: process.env.POSTGRESQL_DATABASE,
         username: process.env.POSTGRESQL_USERNAME,
