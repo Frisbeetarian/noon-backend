@@ -70,12 +70,12 @@ const main = async () => {
         domain: __prod__ ? '.noon.tube' : undefined,
         maxAge: 12 * 60 * 60 * 1000, // 12 hours
         httpOnly: true,
-        sameSite: __prod__ ? 'lax' : 'none',
+        sameSite: __prod__ ? 'none' : 'lax',
         secure: __prod__,
       },
-      saveUninitialized: false,
+      saveUninitialized: true,
       secret: process.env.SESSION_SECRET,
-      resave: false,
+      resave: true,
     })
   )
 

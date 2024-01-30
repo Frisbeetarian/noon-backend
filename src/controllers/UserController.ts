@@ -106,13 +106,13 @@ class UserController {
       req.session.user = user
       req.session.userId = user.uuid
 
-      res.cookie('qid', process.env.SESSION_SECRET, {
-        domain: __prod__ ? '.noon.tube' : undefined,
-        maxAge: 12 * 60 * 60 * 1000, // 12 hours
-        httpOnly: true,
-        sameSite: __prod__ ? 'lax' : 'none',
-        secure: __prod__,
-      })
+      // res.cookie('qid', process.env.SESSION_SECRET, {
+      //   domain: __prod__ ? '.noon.tube' : undefined,
+      //   maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      //   httpOnly: true,
+      //   sameSite: __prod__ ? 'lax' : 'none',
+      //   secure: __prod__,
+      // })
 
       console.error('request:', req)
       console.error('response:', res)
