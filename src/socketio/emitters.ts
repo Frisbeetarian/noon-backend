@@ -1,3 +1,5 @@
+import { Message } from '../entities/Message'
+
 class Emitters {
   private io: any
   constructor(io: any) {
@@ -69,6 +71,26 @@ class Emitters {
       recipientUuid,
       recipientUsername,
       content,
+    })
+  }
+
+  emitSendMessage(
+    senderUuid: String,
+    senderUsername: String,
+    recipientUuid: String,
+    recipientUsername: String,
+    conversationUuid: String,
+    content: String,
+    message: Message
+  ) {
+    this.io.to(recipientUuid).emit('send-message', {
+      senderUuid,
+      senderUsername,
+      recipientUuid,
+      recipientUsername,
+      conversationUuid,
+      content,
+      message,
     })
   }
 }

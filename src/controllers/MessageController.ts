@@ -6,6 +6,8 @@ import { Conversation } from '../entities/Conversation'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
 
 import Redis from 'ioredis'
+import { getIO } from '../socketio/socket'
+import Emitters from '../socketio/emitters'
 const redis = new Redis()
 const { RedisSessionStore } = require('./../socketio/sessionStore')
 const sessionStore = new RedisSessionStore(redis)
@@ -94,26 +96,44 @@ class MessageController {
     // TODO: Implement delete message logic
   }
 
-  static async saveMessage(req: Request, res: Response) {
+  static async handleMessage(req: Request, res: Response) {
     try {
-      const { message, to, conversationUuid, type, src } = req.body
+      const {
+        message,
+        recipientUuid,
+        recipientUsername,
+        conversationUuid,
+        type,
+        src,
+      } = req.body
+
+      const senderProfile = await Profile.findOne({
+        where: { userId: req.session.userId },
+      })
+
+      if (!senderProfile) {
+        return res.status(404).json({ error: 'Sender profile not found' })
+      }
 
       const messageRepository = getConnection().getRepository(Message)
       // const conversationRepository = getConnection().getRepository(Conversation)
 
       const conversation = await Conversation.findOne(conversationUuid)
       const conversationToProfile = await ConversationToProfile.findOne({
-        where: { conversationUuid: conversationUuid, profileUuid: to },
+        where: {
+          conversationUuid: conversationUuid,
+          profileUuid: recipientUuid,
+        },
       })
 
-      console.log(
-        'conversationToProfile on save message:',
-        conversationToProfile
-      )
+      // console.log(
+      //   'conversationToProfile on save message:',
+      //   conversationToProfile
+      // )
 
       if (conversation) {
-        const session = await sessionStore.findSession(to)
-        console.log('session on save message:', session)
+        const session = await sessionStore.findSession(recipientUuid)
+        // console.log('session on save message:', session)
 
         if (!session?.connected) {
           await getConnection()
@@ -121,7 +141,7 @@ class MessageController {
             .update(ConversationToProfile)
             .set({
               unreadMessages: conversationToProfile?.unreadMessages + 1,
-              profileThatHasUnreadMessages: to,
+              profileThatHasUnreadMessages: recipientUuid,
             })
             .where('conversationUuid = :conversationUuid', {
               conversationUuid,
@@ -152,6 +172,21 @@ class MessageController {
         )
 
         const result = await messageRepository.save(saveMessage)
+
+        const io = getIO()
+        const emitters = new Emitters(io)
+        const content = senderProfile.username + ' sent you a message.'
+
+        emitters.emitSendMessage(
+          senderProfile.uuid,
+          senderProfile.username,
+          recipientUuid,
+          recipientUsername,
+          conversationUuid,
+          content,
+          result
+        )
+
         return res.status(200).json(result)
       } else {
         return res.status(400).json({ error: 'Conversation not found' })

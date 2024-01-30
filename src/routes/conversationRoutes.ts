@@ -8,10 +8,10 @@ conversationRouter.get(
   ConversationController.getConversationsForLoggedInUser
 )
 
-// router.get(
-//   '/conversations/check-messages',
-//   ConversationController.checkIfConversationHasMoreMessages
-// )
+conversationRouter.get(
+  '/:conversationUuid/checkMessages',
+  ConversationController.checkIfConversationHasMoreMessages
+)
 
 // router.post(
 //   '/conversations/group',

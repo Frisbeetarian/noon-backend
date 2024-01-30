@@ -14,11 +14,9 @@ messageRouter.post(
   '/uploadVoiceRecording',
   MessageController.uploadVoiceRecording
 )
-
 messageRouter.post('/saveGroupMessage', MessageController.saveGroupMessage)
+messageRouter.post('/', MessageController.handleMessage)
 
 messageRouter.delete('/:messageUuid', MessageController.deleteMessage)
-
-messageRouter.post('/saveMessage', MessageController.saveMessage)
 
 export default messageRouter

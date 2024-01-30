@@ -7,5 +7,5 @@ userRouter.get('/me', UserController.me)
 // userRouter.post('/forgot-password', UserController.forgotPassword)
 userRouter.post('/register', UserController.register)
 // userRouter.post('/login', UserController.login)
-// userRouter.post('/logout', UserController.logout)
+userRouter.post('/logout', UserController.logout)
 export default userRouter
