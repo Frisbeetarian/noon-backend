@@ -307,7 +307,7 @@ export const acceptFriendRequest = async function (
         ' Merge (p1)-[friends:FRIENDS {uuid: $recipientProfileUuid, username: $recipientProfileUsername }]->(p2)' +
         ' Merge (p2)-[:FRIENDS {uuid: $senderProfileUuid, username: $senderProfileUsername }]->(p1)' +
         ' WITH p1, friends, p2' +
-        ' Match (p1)-[fr:FRIEND_REQUEST]->(p2)' +
+        ' Match (p1)-[fr:FRIEND_REQUEST]-(p2)' +
         ' DELETE fr' +
         ' RETURN p1, friends, p2',
       {
@@ -399,12 +399,6 @@ export const cancelFriendRequest = async function (
 
   const tx = session.beginTransaction()
 
-  // console.log('cancel friend request: ', {
-  //   senderProfileUuid,
-  //   senderProfileUsername,
-  //   recipientProfileUuid,
-  //   recipientProfileUsername,
-  // })
   try {
     tx.run(
       'Match (p1:Profile {uuid: $sUuid}) ' +
