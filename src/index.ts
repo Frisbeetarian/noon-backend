@@ -55,6 +55,9 @@ const main = async () => {
 
   app.set('trust proxy', 1)
 
+  console.log('process.env.CORS_ORIGIN:', process.env.CORS_ORIGIN)
+  console.log('prod:', __prod__)
+
   app.use(
     session({
       name: 'qid',
