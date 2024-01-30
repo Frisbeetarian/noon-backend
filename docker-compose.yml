@@ -1,23 +1,5 @@
 version: '3'
 services:
-  #  noon-backend:
-  #    build: .
-  #    volumes:
-  #      - .:/usr/src/app
-  #    ports:
-  #      - '3000:3000'
-  #    environment:
-  #      - REDIS_URL=redis://redis:6379
-  #      - POSTGRESQL_DATABASE=noon
-  #      - POSTGRESQL_PASSWORD=admin
-  #      - POSTGRESQL_USERNAME=kozbara
-  #      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-  #    depends_on:
-  #      - postgres
-  #      - redis
-  #      - rabbitmq
-  #      - verdaccio
-
   postgres:
     image: postgres
     restart: always

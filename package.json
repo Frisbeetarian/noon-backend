@@ -16,7 +16,6 @@
   "author": "Mohammad Sleiman Haidar",
   "license": "ISC",
   "dependencies": {
-    "@neo4j/graphql": "^2.5.9",
     "@noon/rabbit-mq-rpc": "0.0.33-alpha",
     "@socket.io/admin-ui": "^0.5.1",
     "@socket.io/sticky": "^1.0.0",
