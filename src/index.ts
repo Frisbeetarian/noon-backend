@@ -62,11 +62,11 @@ const main = async () => {
         client: redis,
         disableTouch: true,
       }),
-      proxy: false,
+      proxy: __prod__,
       cookie: {
         domain: __prod__ ? '.noon.tube' : undefined,
         maxAge: 3 * 60 * 60 * 1000, // 3 hours
-        httpOnly: false,
+        httpOnly: true,
         sameSite: 'lax',
         secure: __prod__,
       },
