@@ -104,6 +104,9 @@ class UserController {
       req.session.user = user
       req.session.userId = user.uuid
 
+      console.error('request:', req)
+      console.error('response:', res)
+
       return res.status(200).json(user)
     } catch (error) {
       if (error.code === '23505') {
