@@ -62,7 +62,7 @@ const main = async () => {
         client: redis,
         disableTouch: true,
       }),
-      proxy: __prod__,
+      proxy: false,
       cookie: {
         domain: __prod__ ? '.noon.tube' : undefined,
         maxAge: 3 * 60 * 60 * 1000, // 3 hours
