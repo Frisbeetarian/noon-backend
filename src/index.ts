@@ -67,7 +67,7 @@ const main = async () => {
         domain: __prod__ ? '.noon.tube' : undefined,
         maxAge: 3 * 60 * 60 * 1000, // 3 hours
         httpOnly: true,
-        sameSite: __prod__ ? 'None' : 'Lax',
+        sameSite: __prod__ ? 'none' : 'lax',
         secure: __prod__,
       },
       saveUninitialized: false,
