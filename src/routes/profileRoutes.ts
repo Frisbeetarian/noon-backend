@@ -21,4 +21,5 @@ profileRouter.post(
 
 profileRouter.post('/unfriend', ProfileController.unfriend)
 
+profileRouter.get('/getFriendsRequests', ProfileController.getFriendRequests)
 export default profileRouter

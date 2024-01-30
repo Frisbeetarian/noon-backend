@@ -121,6 +121,31 @@ class ProfileController {
     }
   }
 
+  static async getFriendRequests(req: Request, res: Response) {
+    try {
+      const senderProfile = await Profile.findOne({
+        where: { userId: req.session.userId },
+      })
+
+      if (!senderProfile) {
+        return res.status(404).json({ error: 'Sender profile not found' })
+      }
+
+      const friendRequestsArray = await getFriendRequestsForProfile(
+        senderProfile.uuid
+      )
+
+      if (friendRequestsArray.length !== 0) {
+        return res.status(200).json(friendRequestsArray)
+      } else {
+        return res.status(200).json([])
+      }
+    } catch (e) {
+      console.error('getProfile Error:', e.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
   static async cancelFriendRequest(req: Request, res: Response) {
     try {
       const { profileUuid } = req.body
