@@ -52,7 +52,7 @@ class UserController {
 
       return res.status(200).json(user)
     } catch (e) {
-      console.error('Register Error:', e)
+      console.error('Register Error:', e.message)
       return res.status(500).json({ error: 'Internal server error' })
     }
   }
@@ -115,19 +115,21 @@ class UserController {
         })
       }
 
-      console.error('Register Error:', error)
+      console.error('Register Error:', error.message)
       return res.status(500).json({ error: 'Internal server error' })
     }
   }
 
   static async login(req: Request, res: Response) {
     try {
-      const { username, password, rememberMe } = req.body
+      const { usernameOrEmail, password, rememberMe } = req.body
+
+      console.log('req bodu:', req.body)
 
       let user = await User.findOne(
-        username.includes('@')
-          ? { where: { email: username } }
-          : { where: { username: username } }
+        usernameOrEmail.includes('@')
+          ? { where: { email: usernameOrEmail } }
+          : { where: { username: usernameOrEmail } }
       )
 
       if (!user) {
@@ -158,7 +160,7 @@ class UserController {
 
       user = {
         ...user,
-        profile: { uuid: profile?.uuid, username: profile?.username },
+        profile: { uuid: profile?.uuid, usernameOrEmail: profile?.username },
       }
 
       if (rememberMe) {
@@ -170,7 +172,7 @@ class UserController {
 
       return res.status(200).json(user)
     } catch (e) {
-      console.error('Register Error:', error)
+      console.error('Login Error:', e.message)
       return res.status(500).json({ error: 'Internal server error' })
     }
   }
@@ -179,7 +181,7 @@ class UserController {
     req.session.destroy((err) => {
       res.clearCookie('qid')
       if (err) {
-        console.log(err)
+        console.log(err.message)
         return res.status(500).json({ error: 'Failed to logout' })
       }
       return res.status(200).json({ message: 'Logged out successfully' })
