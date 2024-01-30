@@ -123,7 +123,7 @@ const main = async () => {
         username: process.env.POSTGRESQL_USERNAME,
         password: process.env.POSTGRESQL_PASSWORD,
         logging: true,
-        synchronize: !__prod__,
+        synchronize: true,
         migrations: [path.join(__dirname, './migrations/*')],
         entities: [
           User,
