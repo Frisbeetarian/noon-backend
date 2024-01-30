@@ -14,6 +14,7 @@ import {
   getFriendsForProfile,
 } from '../neo4j/neo4j_calls/neo4j_api'
 import * as process from 'process'
+import { __prod__ } from '../constants'
 
 class UserController {
   static async me(req: Request, res: Response) {
@@ -106,10 +107,11 @@ class UserController {
       req.session.userId = user.uuid
 
       res.cookie('qid', process.env.SESSION_SECRET, {
-        path: '/',
+        domain: __prod__ ? '.noon.tube' : undefined,
+        maxAge: 12 * 60 * 60 * 1000, // 12 hours
         httpOnly: true,
-        secure: true,
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        sameSite: __prod__ ? 'lax' : 'none',
+        secure: __prod__,
       })
 
       console.error('request:', req)
