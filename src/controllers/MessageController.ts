@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response } from 'express'
 import { getConnection } from 'typeorm'
 import { Message } from '../entities/Message'

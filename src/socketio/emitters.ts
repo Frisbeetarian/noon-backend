@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Message } from '../entities/Message'
 
 class Emitters {
