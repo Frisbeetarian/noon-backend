@@ -32,14 +32,10 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
         .execute()
 
       const user = await User.findOne(event.entity.uuid)
-      console.log('user in listener:', user)
-      console.log('profile in listener:', profile.raw[0])
 
       if (user) {
         user.profile = profile.raw[0]
         user.profileUuid = profile.raw[0].uuid
-
-        console.log('user in listener after update:', user)
 
         await getConnection().manager.save(user)
 

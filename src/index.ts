@@ -70,7 +70,7 @@ const main = async () => {
       }),
       proxy: __prod__,
       cookie: {
-        domain: __prod__ ? 'https://noon.tube' : undefined,
+        domain: __prod__ ? '.noon.tube' : undefined,
         maxAge: 12 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: __prod__ ? 'None' : 'Lax',

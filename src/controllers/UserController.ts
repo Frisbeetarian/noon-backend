@@ -69,7 +69,6 @@ class UserController {
   // }
 
   static async register(req: Request, res: Response) {
-    console.log('req.body:', req.body)
     const options = req.body
 
     const errors = validateRegister(options)
@@ -93,10 +92,8 @@ class UserController {
         .execute()
 
       user = await User.findOne(result.raw[0].uuid)
-      console.log('user:', user)
 
       let profile = await Profile.findOne({ where: { userId: user?.uuid } })
-      console.log('profile:', profile)
 
       user = {
         ...user,
