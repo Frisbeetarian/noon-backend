@@ -45,6 +45,7 @@ import searchRouter from './routes/searchRoutes'
 
 const main = async () => {
   const app = express()
+  const httpServer = createServer(app)
 
   const RedisStore = connectRedis(session)
   const redis = new Redis(process.env.REDIS_URL)
@@ -69,7 +70,7 @@ const main = async () => {
       }),
       proxy: __prod__,
       cookie: {
-        domain: __prod__ ? '.noon.tube' : undefined,
+        domain: __prod__ ? 'https://noon.tube' : undefined,
         maxAge: 12 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: __prod__ ? 'None' : 'Lax',
@@ -90,8 +91,6 @@ const main = async () => {
 
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
-
-  const httpServer = createServer(app)
 
   const io = initSocketIO(httpServer, redis)
 
