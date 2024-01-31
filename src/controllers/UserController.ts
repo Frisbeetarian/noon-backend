@@ -80,33 +80,28 @@ class UserController {
       const hashedPassword = await argon2.hash(options.password)
       let user
 
-      // const result = await getConnection()
-      //   .createQueryBuilder()
-      //   .insert()
-      //   .into(User)
-      //   .values({
-      //     username: options.username,
-      //     password: hashedPassword,
-      //     email: options.email,
-      //   })
-      //   .returning('*')
-      //   .execute()
+      const result = await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(User)
+        .values({
+          username: options.username,
+          password: hashedPassword,
+          email: options.email,
+        })
+        .returning('*')
+        .execute()
 
-      // user = await User.findOne(result.raw[0].uuid)
-      user = {
-        username: 'fewkjbfew',
-        email: 'fkjewbfew@fewfew.com',
-        uuid: '320894723fbiewubf',
-      }
+      user = await User.findOne(result.raw[0].uuid)
       console.log('user:', user)
 
-      // let profile = await Profile.findOne({ where: { userId: user?.uuid } })
-      // console.log('profile:', profile)
+      let profile = await Profile.findOne({ where: { userId: user?.uuid } })
+      console.log('profile:', profile)
 
-      // user = {
-      //   ...user,
-      //   profile: { uuid: profile?.uuid, username: profile?.username },
-      // }
+      user = {
+        ...user,
+        profile: { uuid: profile?.uuid, username: profile?.username },
+      }
 
       req.session.user = user
       req.session.userId = user.uuid
@@ -120,6 +115,7 @@ class UserController {
       // })
 
       // console.error('request:', req)
+      // console.error('response:', res)
 
       return res.status(200).json(user)
     } catch (error) {
