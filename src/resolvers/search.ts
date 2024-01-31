@@ -1,4 +1,4 @@
-import { Resolver, Query, Arg, UseMiddleware, Ctx } from 'type-graphql'
+import { Resolver, Query, Arg, Ctx } from 'type-graphql'
 import { Search } from '../entities/Search'
 // import { isAuth } from '../middleware/isAuth'
 import { Profile } from '../entities/Profile'
