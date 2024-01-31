@@ -22,12 +22,15 @@ import { RPCServer } from '@noon/rabbit-mq-rpc'
 import { RedisSessionStore } from './socketio/sessionStore'
 import { Conversation } from './entities/Conversation'
 import { Message } from './entities/Message'
+
 import { ConversationToProfile } from './entities/ConversationToProfile'
 import { initRPCClient } from './utils/brokerInitializer'
 import { __prod__ } from './constants'
+
 import { User } from './entities/User'
 import { Updoot } from './entities/Updoot'
 import { RedisMessageStore } from './socketio/messageStore'
+
 import connection from './socketio/connection'
 import Emitters from './socketio/emitters'
 import userRoutes from './routes/userRoutes'
@@ -42,7 +45,6 @@ import searchRouter from './routes/searchRoutes'
 
 const main = async () => {
   const app = express()
-  const httpServer = createServer(app)
 
   const RedisStore = connectRedis(session)
   const redis = new Redis(process.env.REDIS_URL)
@@ -68,7 +70,7 @@ const main = async () => {
       proxy: __prod__,
       cookie: {
         domain: __prod__ ? '.noon.tube' : undefined,
-        maxAge: 12 * 60 * 60 * 1000, // 12 hours
+        maxAge: 12 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: __prod__ ? 'None' : 'Lax',
         secure: __prod__,
@@ -88,6 +90,9 @@ const main = async () => {
 
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
+
+  const httpServer = createServer(app)
+
   const io = initSocketIO(httpServer, redis)
 
   // let io = socketIo(httpServer, {

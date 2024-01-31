@@ -117,6 +117,25 @@ class UserController {
       // console.error('request:', req)
       // console.error('response:', res)
 
+      // const cookieOptions = {
+      //   domain: __prod__ ? '.noon.tube' : undefined,
+      //   maxAge: 12 * 60 * 60 * 1000,
+      //   httpOnly: true,
+      //   sameSite: __prod__ ? 'None' : 'Lax',
+      //   secure: __prod__,
+      //   path: '/',
+      // }
+      //
+      // // Serialize the cookie options into a string
+      // const serialized = Object.entries(cookieOptions)
+      //   .map(([key, value]) => {
+      //     return `${key}=${value}`
+      //   })
+      //   .join('; ')
+      //
+      // // Set the cookie in the response header
+      // res.setHeader('Set-Cookie', `qid=your_cookie_value; ${serialized}`)
+
       return res.status(200).json(user)
     } catch (error) {
       if (error.code === '23505') {
