@@ -1,6 +1,6 @@
 import { Resolver, Query, Arg, UseMiddleware, Ctx } from 'type-graphql'
 import { Search } from '../entities/Search'
-import { isAuth } from '../middleware/isAuth'
+// import { isAuth } from '../middleware/isAuth'
 import { Profile } from '../entities/Profile'
 import { MyContext } from '../types'
 const rpcClient = require('../utils/brokerInitializer')
@@ -8,7 +8,7 @@ const rpcClient = require('../utils/brokerInitializer')
 @Resolver(Search)
 export class SearchResolver {
   @Query(() => [Search], { nullable: true })
-  @UseMiddleware(isAuth)
+  // @UseMiddleware(isAuth)
   async searchForProfileByUsername(
     @Ctx() { req }: MyContext,
     @Arg('username', () => String) username: string
