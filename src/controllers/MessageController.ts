@@ -90,7 +90,72 @@ class MessageController {
   }
 
   static async saveGroupMessage(req: Request, res: Response) {
-    // TODO: Implement save group message logic
+    const connection = getConnection()
+    const queryRunner = connection.createQueryRunner()
+
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+
+    try {
+      const { message, conversationUuid, type, src } = req.body
+      const senderProfile = await Profile.findOne({
+        where: { userId: req.session.userId },
+      })
+
+      if (!senderProfile) {
+        return res.status(404).json({ error: 'Sender profile not found' })
+      }
+
+      const messageRepository = queryRunner.manager.getRepository(Message)
+      const conversation = await queryRunner.manager.findOne(
+        Conversation,
+        conversationUuid
+      )
+
+      if (!conversation) {
+        await queryRunner.rollbackTransaction()
+        return res.status(400).json({ error: 'Conversation not found' })
+      }
+
+      const conversationToProfiles = await queryRunner.manager.find(
+        ConversationToProfile,
+        {
+          where: { conversationUuid },
+        }
+      )
+
+      const updatePromises = conversationToProfiles.map(async (ctp) => {
+        const session = await sessionStore.findSession(ctp.profileUuid)
+        if (!session?.connected) {
+          ctp.unreadMessages += 1
+          ctp.profileThatHasUnreadMessages = ctp.profileUuid
+        }
+        // Assuming updatedAt is automatically handled by TypeORM or database triggers
+        return queryRunner.manager.save(ctp)
+      })
+
+      await Promise.all(updatePromises)
+
+      let newMessage = messageRepository.create({
+        conversation,
+        senderProfile,
+        message,
+        type,
+        src,
+      })
+
+      const savedMessage = await queryRunner.manager.save(newMessage)
+
+      await queryRunner.commitTransaction()
+
+      return res.status(200).json(savedMessage)
+    } catch (e) {
+      await queryRunner.rollbackTransaction()
+      console.error('Error saving group message:', e.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   static async deleteMessage(req: Request, res: Response) {
@@ -126,11 +191,6 @@ class MessageController {
           profileUuid: recipientUuid,
         },
       })
-
-      // console.log(
-      //   'conversationToProfile on save message:',
-      //   conversationToProfile
-      // )
 
       if (conversation) {
         const session = await sessionStore.findSession(recipientUuid)
