@@ -232,6 +232,13 @@ class ConversationController {
   static async leaveGroup(req, res) {
     try {
       const { groupUuid } = req.body
+      const senderProfile = await Profile.findOne({
+        where: { userId: req.session.userId },
+      })
+
+      if (!senderProfile) {
+        return res.status(404).json({ error: 'Sender profile not found' })
+      }
 
       await getConnection()
         .createQueryBuilder()

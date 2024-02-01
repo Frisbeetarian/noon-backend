@@ -10,10 +10,7 @@ conversationRouter.get(
 
 conversationRouter.post('/', ConversationController.createGroupConversation)
 
-conversationRouter.post(
-  '/conversations/leave-group',
-  ConversationController.leaveGroup
-)
+conversationRouter.post('/leaveGroup', ConversationController.leaveGroup)
 
 // conversationRouter.post(
 //   '/conversations/set-pending-call',
