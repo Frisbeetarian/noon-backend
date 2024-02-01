@@ -131,55 +131,62 @@ class ConversationController {
   }
 
   static async createGroupConversation(req, res) {
+    console.log('LKNLKMLKMLKNLKNLKNLKNLKNLFKWENFLKEWNLKWEFNFLEWKN')
+    const connection = getConnection()
+    const queryRunner = connection.createQueryRunner()
+
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+
     try {
       const { input, participants } = req.body
+      const senderProfile = await Profile.findOne({
+        where: { userId: req.session.userId },
+      })
+
+      if (!senderProfile) {
+        return res.status(404).json({ error: 'Sender profile not found' })
+      }
 
       const conversationProfileRepository = getConnection().getRepository(
         ConversationToProfile
       )
 
-      let conversation = await Conversation.create({
-        ...input,
-      }).save()
+      let conversation = new Conversation()
+      Object.assign(conversation, input)
+      conversation = await queryRunner.manager.save(conversation)
 
-      let participantsArray = []
-      let calls = []
-
-      await Promise.all(
-        participants.map(async (participant) => {
-          const profile = await Profile.findOne(participant)
-
-          participantsArray.push({
-            uuid: profile?.uuid,
-            username: profile?.username,
-          })
-
-          calls.push({
-            profileUuid: profile?.uuid,
-            profileUsername: profile?.username,
-            pendingCall: false,
-            ongoingCall: false,
-          })
-
-          const conversationToProfile = new ConversationToProfile(
-            conversation,
-            profile,
-            profile?.username
-          )
-
-          await conversationProfileRepository.save(conversationToProfile)
-        })
+      const profiles = await queryRunner.manager.findByIds(
+        Profile,
+        participants
       )
+
+      const conversationsToProfiles = profiles.map((profile) => {
+        const conversationToProfile = new ConversationToProfile()
+        conversationToProfile.conversation = conversation
+        conversationToProfile.profile = profile
+        conversationToProfile.profileUsername = senderProfile.username
+        return conversationToProfile
+      })
+      console.log('conversationsToProfiles:', conversationsToProfiles)
+
+      // Bulk insert participants
+      await queryRunner.manager.save(conversationsToProfiles)
+
+      await queryRunner.commitTransaction()
 
       conversation = {
         ...conversation,
+        profiles: profiles.map((profile) => ({
+          uuid: profile.uuid,
+          username: profile.username,
+        })),
         unreadMessages: 0,
         messages: [],
-        calls,
+        calls: [],
         ongoingCall: false,
         pendingCall: false,
         pendingCallProfile: null,
-        profiles: participantsArray,
       }
 
       return res.status(200).json(conversation)

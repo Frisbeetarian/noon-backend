@@ -8,10 +8,7 @@ conversationRouter.get(
   ConversationController.getConversationsForLoggedInUser
 )
 
-conversationRouter.post(
-  '/group',
-  ConversationController.createGroupConversation
-)
+conversationRouter.post('/', ConversationController.createGroupConversation)
 
 conversationRouter.post(
   '/conversations/leave-group',
