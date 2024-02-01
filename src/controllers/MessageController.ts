@@ -153,7 +153,7 @@ class MessageController {
 
       conversationToProfiles.forEach((profile) => {
         if (profile.profileUuid !== senderProfile.uuid) {
-          emitters.emitSendMessageToGroup(
+          emitters.emitSendMessage(
             senderProfile.uuid,
             senderProfile.username,
             profile.profileUuid,
