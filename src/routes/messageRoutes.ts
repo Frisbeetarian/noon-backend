@@ -14,7 +14,7 @@ messageRouter.post(
   '/uploadVoiceRecording',
   MessageController.uploadVoiceRecording
 )
-messageRouter.post('/saveGroupMessage', MessageController.saveGroupMessage)
+messageRouter.post('/groupMessages', MessageController.handleGroupMessage)
 messageRouter.post('/', MessageController.handleMessage)
 
 messageRouter.delete('/:messageUuid', MessageController.deleteMessage)

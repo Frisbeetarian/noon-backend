@@ -211,15 +211,17 @@ class ConversationController {
       const content = senderProfile.username + ' added you to a group.'
 
       profiles.forEach((profile) => {
-        emitters.emitAddedToGroup(
-          senderProfile.uuid,
-          senderProfile.username,
-          profile.uuid,
-          profile.username,
-          conversation.uuid,
-          content,
-          conversation
-        )
+        if (profile.uuid !== senderProfile.uuid) {
+          emitters.emitAddedToGroup(
+            senderProfile.uuid,
+            senderProfile.username,
+            profile.uuid,
+            profile.username,
+            conversation.uuid,
+            content,
+            conversation
+          )
+        }
       })
 
       return res.status(200).json(conversation)

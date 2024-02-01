@@ -89,7 +89,7 @@ class MessageController {
     // TODO: Implement file upload handling
   }
 
-  static async saveGroupMessage(req: Request, res: Response) {
+  static async handleGroupMessage(req: Request, res: Response) {
     const connection = getConnection()
     const queryRunner = connection.createQueryRunner()
 
@@ -138,15 +138,32 @@ class MessageController {
 
       let newMessage = messageRepository.create({
         conversation,
-        senderProfile,
-        message,
+        sender: senderProfile,
+        content: message,
         type,
         src,
       })
-
       const savedMessage = await queryRunner.manager.save(newMessage)
 
       await queryRunner.commitTransaction()
+
+      const io = getIO()
+      const emitters = new Emitters(io)
+      const content = senderProfile.username + ' sent a message to the group.'
+
+      conversationToProfiles.forEach((profile) => {
+        if (profile.profileUuid !== senderProfile.uuid) {
+          emitters.emitSendMessageToGroup(
+            senderProfile.uuid,
+            senderProfile.username,
+            profile.profileUuid,
+            profile.profileUsername,
+            conversation.uuid,
+            content,
+            newMessage
+          )
+        }
+      })
 
       return res.status(200).json(savedMessage)
     } catch (e) {

@@ -118,6 +118,26 @@ class Emitters {
       conversation,
     })
   }
+
+  emitSendMessageToGroup(
+    senderUuid: String,
+    senderUsername: String,
+    recipientUuid: String,
+    recipientUsername: String,
+    conversationUuid: String,
+    content: String,
+    message: Message
+  ) {
+    this.io.to(recipientUuid).emit('send-message-to-group', {
+      senderUuid,
+      senderUsername,
+      recipientUuid,
+      recipientUsername,
+      conversationUuid,
+      content,
+      message,
+    })
+  }
 }
 
 export default Emitters
