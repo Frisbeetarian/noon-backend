@@ -8,40 +8,39 @@ conversationRouter.get(
   ConversationController.getConversationsForLoggedInUser
 )
 
+conversationRouter.post(
+  '/group',
+  ConversationController.createGroupConversation
+)
+
+conversationRouter.post(
+  '/conversations/leave-group',
+  ConversationController.leaveGroup
+)
+
+// conversationRouter.post(
+//   '/conversations/set-pending-call',
+//   ConversationController.setPendingCallForConversation
+// )
+
+// conversationRouter.post(
+//   '/conversations/cancel-pending-call',
+//   ConversationController.cancelPendingCallForConversation
+// )
+
 conversationRouter.get(
   '/:conversationUuid/checkMessages',
   ConversationController.checkIfConversationHasMoreMessages
 )
 
-// router.post(
-//   '/conversations/group',
-//   ConversationController.createGroupConversation
-// )
+conversationRouter.post(
+  '/conversations/clear-unread-messages',
+  ConversationController.clearUnreadMessagesForConversation
+)
 
-// router.post('/conversations/leave-group', ConversationController.leaveGroup)
-// router.post(
-//   '/conversations/set-pending-call',
-//   ConversationController.setPendingCallForConversation
-// )
-
-// router.post(
-//   '/conversations/cancel-pending-call',
-//   ConversationController.cancelPendingCallForConversation
-// )
-
-// router.post(
-//   '/conversations/clear-unread-messages',
-//   ConversationController.clearUnreadMessagesForConversation
-// )
-
-// router.post(
-//   '/conversations/update-unread-messages',
-//   ConversationController.updateUnreadMessagesForConversation
-// )
-
-// router.get(
-//   '/conversations/by-profile',
-//   ConversationController.getConversationsByProfileUuid
-// )
+conversationRouter.post(
+  '/conversations/update-unread-messages',
+  ConversationController.updateUnreadMessagesForConversation
+)
 
 export default conversationRouter

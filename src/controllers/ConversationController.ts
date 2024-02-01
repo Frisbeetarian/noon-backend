@@ -133,6 +133,7 @@ class ConversationController {
   static async createGroupConversation(req, res) {
     try {
       const { input, participants } = req.body
+
       const conversationProfileRepository = getConnection().getRepository(
         ConversationToProfile
       )
