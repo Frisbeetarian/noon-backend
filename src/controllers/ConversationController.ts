@@ -5,6 +5,9 @@ import { ConversationToProfile } from '../entities/ConversationToProfile'
 import { Conversation } from '../entities/Conversation'
 import { Profile } from '../entities/Profile'
 import { Message } from '../entities/Message'
+import { getIO } from '../socketio/socket'
+import Emitters from '../socketio/emitters'
+import { checkFriendship } from '../neo4j/neo4j_calls/neo4j_api'
 
 class ConversationController {
   static async getConversationsForLoggedInUser(req: Request, res: Response) {
@@ -131,7 +134,6 @@ class ConversationController {
   }
 
   static async createGroupConversation(req, res) {
-    console.log('LKNLKMLKMLKNLKNLKNLKNLKNLFKWENFLKEWNLKWEFNFLEWKN')
     const connection = getConnection()
     const queryRunner = connection.createQueryRunner()
 
@@ -161,18 +163,33 @@ class ConversationController {
         participants
       )
 
-      const conversationsToProfiles = profiles.map((profile) => {
+      let conversationsToProfiles = []
+
+      for (const profile of profiles) {
+        if (profile.uuid !== senderProfile.uuid) {
+          const areFriends = await checkFriendship(
+            senderProfile?.uuid,
+            profile?.uuid
+          )
+
+          if (!areFriends) {
+            await queryRunner.rollbackTransaction()
+            await queryRunner.release()
+            return res.status(400).json({
+              error: 'All participants must be friends with the sender.',
+            })
+          }
+        }
+
         const conversationToProfile = new ConversationToProfile()
         conversationToProfile.conversation = conversation
         conversationToProfile.profile = profile
         conversationToProfile.profileUsername = senderProfile.username
-        return conversationToProfile
-      })
-      console.log('conversationsToProfiles:', conversationsToProfiles)
+        conversationsToProfiles.push(conversationToProfile)
+      }
 
       // Bulk insert participants
       await queryRunner.manager.save(conversationsToProfiles)
-
       await queryRunner.commitTransaction()
 
       conversation = {
@@ -188,6 +205,22 @@ class ConversationController {
         pendingCall: false,
         pendingCallProfile: null,
       }
+
+      const io = getIO()
+      const emitters = new Emitters(io)
+      const content = senderProfile.username + ' added you to a group.'
+
+      profiles.forEach((profile) => {
+        emitters.emitAddedToGroup(
+          senderProfile.uuid,
+          senderProfile.username,
+          profile.uuid,
+          profile.username,
+          conversation.uuid,
+          content,
+          conversation
+        )
+      })
 
       return res.status(200).json(conversation)
     } catch (e) {
