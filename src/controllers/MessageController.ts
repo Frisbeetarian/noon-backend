@@ -9,6 +9,7 @@ import { ConversationToProfile } from '../entities/ConversationToProfile'
 import Redis from 'ioredis'
 import { getIO } from '../socketio/socket'
 import Emitters from '../socketio/emitters'
+import rpcClient from '../utils/brokerInitializer'
 const redis = new Redis()
 const { RedisSessionStore } = require('./../socketio/sessionStore')
 const sessionStore = new RedisSessionStore(redis)
@@ -81,8 +82,58 @@ class MessageController {
     }
   }
 
-  static async uploadImage(req: Request, res: Response) {
-    // TODO: Implement file upload handling
+  static async saveFile(req: Request, res: Response) {
+    try {
+      const { file, conversationUuid, profileUuid } = req.body
+
+      if (!file) {
+        return res.status(400).json({ error: 'No file provided' })
+      }
+
+      const chunks = []
+      const readStream = file.createReadStream()
+
+      readStream.on('data', (chunk) => {
+        chunks.push(chunk)
+      })
+
+      new Promise((resolve) => {
+        readStream.on('end', async () => {
+          const buffer = Buffer.concat(chunks)
+
+          const response = await rpcClient.media().sendImage({
+            task: 'upload-image',
+            file,
+            readStream: buffer,
+          })
+
+          console.log('response:', response)
+          const conversation = await Conversation.findOne(conversationUuid)
+          const sender = await Profile.findOne(profileUuid)
+          const messageRepository = getConnection().getRepository(Message)
+
+          let type = 'image'
+          let src = response
+
+          let message = new Message(
+            conversation,
+            sender,
+            response,
+            type,
+            response
+          )
+
+          message = await getConnection().getRepository(Message).save(message)
+
+          resolve(message)
+        })
+      })
+
+      return res.status(200)
+    } catch (e) {
+      console.error('Error saving group message:', e.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
   }
 
   static async uploadVoiceRecording(req: Request, res: Response) {

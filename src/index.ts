@@ -226,6 +226,16 @@ const main = async () => {
         },
       })
 
+      const rpcServer = new RPCServer({
+        connectionObject,
+        hostId: 'localhost',
+        queue: 'rpc_queue.noon.media-results',
+        handleMessage: (index, params) => {
+          console.log('RPC_MEDIA_RECEIVED', { index, params })
+          const { filePath, senderUuid } = params
+        },
+      })
+
       rpcServer.start()
 
       console.log('RPC_CONNECTION_SUCCESSFUL', {
