@@ -91,6 +91,9 @@ class MessageController {
         return res.status(400).json({ error: 'No file provided' })
       }
 
+      console.log('conversationUuid:', conversationUuid)
+      console.log('profileUuid:', profileUuid)
+      console.log('file:', file)
       const fileBuffer = file.buffer
       const filename = file.originalname
       const mimeType = file.mimetype
@@ -101,18 +104,16 @@ class MessageController {
         mimeType,
       }
 
-      const response = await rpcClient.media().sendImage({
+      await rpcClient.media().sendImage({
         task: 'upload-image',
         file: fileToSend,
       })
 
       const conversation = await Conversation.findOne(conversationUuid)
       const sender = await Profile.findOne(profileUuid)
-      const messageRepository = getConnection().getRepository(Message)
 
       const type = 'image'
-      const src = response
-      let message = new Message(conversation, sender, response, type, response)
+      let message = new Message(conversation, sender, '', type, '')
 
       await getConnection().getRepository(Message).save(message)
 
