@@ -215,7 +215,7 @@ const main = async () => {
 
   const initializeRPCServer = (emitters) => {
     try {
-      const rpcServer = new RPCServer({
+      const searchRpcServer = new RPCServer({
         connectionObject,
         hostId: 'localhost',
         queue: 'rpc_queue.noon.search-results',
@@ -226,7 +226,22 @@ const main = async () => {
         },
       })
 
-      const rpcServer = new RPCServer({
+      searchRpcServer
+        .start()
+        .then(() => {
+          console.log('RPC_CONNECTION_SUCCESSFUL for search results', {
+            hostId: 'localhost',
+            queue: 'rpc_queue.noon.search-results',
+          })
+        })
+        .catch((e) => {
+          console.error(
+            'RPC_CONNECTION_FAILED for search results',
+            JSON.stringify(e)
+          )
+        })
+
+      const mediaRpcServer = new RPCServer({
         connectionObject,
         hostId: 'localhost',
         queue: 'rpc_queue.noon.media-results',
@@ -236,14 +251,35 @@ const main = async () => {
         },
       })
 
-      rpcServer.start()
+      mediaRpcServer
+        .start()
+        .then(() => {
+          console.log('RPC_CONNECTION_SUCCESSFUL for media results', {
+            hostId: 'localhost',
+            queue: 'rpc_queue.noon.media-results',
+          })
+        })
+        .catch((e) => {
+          console.error(
+            'RPC_CONNECTION_FAILED for media results',
+            JSON.stringify(e)
+          )
+        })
 
-      console.log('RPC_CONNECTION_SUCCESSFUL', {
-        hostId: 'localhost',
-        queue: 'rpc_queue.noon.search-results',
-      })
+      //   console.log('RPC_CONNECTION_SUCCESSFUL', {
+      //     hostId: 'localhost',
+      //     queue: 'rpc_queue.noon.search-results',
+      //   })
+      // } catch (e) {
+      //   console.log('RPC_CONNECTION_FAILED', JSON.stringify(e))
+      //
+      //   setTimeout(() => {
+      //     console.error(e)
+      //     process.exit(1)
+      //   }, 2000)
+      // }
     } catch (e) {
-      console.log('RPC_CONNECTION_FAILED', JSON.stringify(e))
+      console.log('RPC Server initialization failed', JSON.stringify(e))
 
       setTimeout(() => {
         console.error(e)

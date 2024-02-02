@@ -8,7 +8,7 @@ messageRouter.get(
   MessageController.getMessagesForConversation
 )
 
-messageRouter.post('/uploadImage', MessageController.uploadImage)
+messageRouter.post('/uploadFile', MessageController.saveFile)
 
 messageRouter.post(
   '/uploadVoiceRecording',
