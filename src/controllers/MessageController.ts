@@ -90,44 +90,32 @@ class MessageController {
         return res.status(400).json({ error: 'No file provided' })
       }
 
-      const chunks = []
-      const readStream = file.createReadStream()
+      console.log('FILE:', file)
 
-      readStream.on('data', (chunk) => {
-        chunks.push(chunk)
+      const fileBuffer = req.file.buffer
+      const filename = req.file.originalname
+      const mimeType = req.file.mimetype
+
+      const fileToSend = {
+        buffer: fileBuffer,
+        filename,
+        mimeType,
+      }
+
+      const response = await rpcClient.media().sendImage({
+        task: 'upload-image',
+        file: fileToSend,
       })
 
-      new Promise((resolve) => {
-        readStream.on('end', async () => {
-          const buffer = Buffer.concat(chunks)
+      const conversation = await Conversation.findOne(conversationUuid)
+      const sender = await Profile.findOne(profileUuid)
+      const messageRepository = getConnection().getRepository(Message)
 
-          const response = await rpcClient.media().sendImage({
-            task: 'upload-image',
-            file,
-            readStream: buffer,
-          })
+      const type = 'image'
+      const src = response
+      let message = new Message(conversation, sender, response, type, response)
 
-          console.log('response:', response)
-          const conversation = await Conversation.findOne(conversationUuid)
-          const sender = await Profile.findOne(profileUuid)
-          const messageRepository = getConnection().getRepository(Message)
-
-          let type = 'image'
-          let src = response
-
-          let message = new Message(
-            conversation,
-            sender,
-            response,
-            type,
-            response
-          )
-
-          message = await getConnection().getRepository(Message).save(message)
-
-          resolve(message)
-        })
-      })
+      await getConnection().getRepository(Message).save(message)
 
       return res.status(200)
     } catch (e) {
