@@ -122,7 +122,7 @@ function media() {
       try {
         // const buffer = Buffer.from(image)
         // channel.sendToQueue(queue, buffer);
-
+        console.log('file in send iamge:', file)
         const mediaResponse = await mediaRPCRequest(channel, 'UPLOAD_IMAGE', {
           file,
           task,

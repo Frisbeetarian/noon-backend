@@ -9,7 +9,7 @@ import { ConversationToProfile } from '../entities/ConversationToProfile'
 import Redis from 'ioredis'
 import { getIO } from '../socketio/socket'
 import Emitters from '../socketio/emitters'
-import rpcClient from '../utils/brokerInitializer'
+const rpcClient = require('../utils/brokerInitializer')
 const redis = new Redis()
 const { RedisSessionStore } = require('./../socketio/sessionStore')
 const sessionStore = new RedisSessionStore(redis)
@@ -84,17 +84,16 @@ class MessageController {
 
   static async saveFile(req: Request, res: Response) {
     try {
-      const { file, conversationUuid, profileUuid } = req.body
+      const { conversationUuid, profileUuid } = req.body
+      const file = req.file
 
       if (!file) {
         return res.status(400).json({ error: 'No file provided' })
       }
 
-      console.log('FILE:', file)
-
-      const fileBuffer = req.file.buffer
-      const filename = req.file.originalname
-      const mimeType = req.file.mimetype
+      const fileBuffer = file.buffer
+      const filename = file.originalname
+      const mimeType = file.mimetype
 
       const fileToSend = {
         buffer: fileBuffer,
@@ -119,7 +118,7 @@ class MessageController {
 
       return res.status(200)
     } catch (e) {
-      console.error('Error saving group message:', e.message)
+      console.error('Error saving file:', e.message)
       return res.status(500).json({ error: 'Internal server error' })
     }
   }
