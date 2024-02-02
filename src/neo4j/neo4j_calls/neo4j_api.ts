@@ -66,14 +66,11 @@ export const getProfiles = async function (loggedInProfileUuid) {
       session.close()
     })
 
-  // console.log('profiles:', profiles)
-
   return profiles
 }
 
 export const getFriendsForProfile = async function (profileUuid) {
   const session = getNeo4jConnection().session()
-
   let friends = []
 
   await session
@@ -120,10 +117,7 @@ export const checkFriendship = async function (profile1Uuid, profile2Uuid) {
       }
     )
     .then((results) => {
-      // console.log('check friendship results:', results)
-      // console.log('check friendship results:', results.records)
       check = results.records[0]._fields[0].length > 0
-      // console.log('check friendship results:', results.records[0]._fields[0])
     })
     .catch((error) => {
       console.log(error)
@@ -137,7 +131,6 @@ export const checkFriendship = async function (profile1Uuid, profile2Uuid) {
 
 export const getFriendRequestsForProfile = async function (profileUuid) {
   const session = getNeo4jConnection().session()
-
   let friendRequests = []
   // 'MATCH (p:Profile {uuid: $profileUuid}) RETURN [(p)-[fr:FRIEND_REQUEST]->() | fr] AS outgoingFriendRequests, [(p)<-[fr:FRIEND_REQUEST]-() | fr] AS incomingFriendRequests',
 
@@ -153,11 +146,7 @@ export const getFriendRequestsForProfile = async function (profileUuid) {
       }
     )
     .then((results) => {
-      // console.log('results.records:', results.records)
-
       results.records.forEach((record) => {
-        // console.log('results.records fields[0]:', record._fields[1])
-
         if (record._fields[0]) {
           record._fields[0].forEach((outgoingFriendRequest) => {
             outgoingFriendRequest.properties = {
@@ -200,15 +189,15 @@ export const createUserAndAssociateWithProfile = async function (
   try {
     tx.run(
       ' CREATE (a:User {uuid: $id, username: $username, name: $name}) ' +
-        ' CREATE (b:Profile {uuid: $profileId, username: $username, name: $name})' +
-        ' CREATE (a)-[:PROFILE {username: $username, name: $name, profileUuid: $profileId}]->(b)' +
+        ' CREATE (b:Profile {uuid: $profileUuid, username: $username, name: $name})' +
+        ' CREATE (a)-[:PROFILE {username: $username, name: $name, profileUuid: $profileUuid}]->(b)' +
         ' CREATE (b)-[:USER {username: $username, name: $name, userUuid: $id}]->(a)' +
         ' RETURN a, b',
       {
         id: user.uuid,
         username: user.username,
         name: user.username,
-        profileId: profile.uuid,
+        profileUuid: profile.uuid,
       }
     )
       .then((result) => {
@@ -307,7 +296,7 @@ export const acceptFriendRequest = async function (
         ' Merge (p1)-[friends:FRIENDS {uuid: $recipientProfileUuid, username: $recipientProfileUsername }]->(p2)' +
         ' Merge (p2)-[:FRIENDS {uuid: $senderProfileUuid, username: $senderProfileUsername }]->(p1)' +
         ' WITH p1, friends, p2' +
-        ' Match (p1)-[fr:FRIEND_REQUEST]->(p2)' +
+        ' Match (p1)-[fr:FRIEND_REQUEST]-(p2)' +
         ' DELETE fr' +
         ' RETURN p1, friends, p2',
       {
@@ -396,15 +385,8 @@ export const cancelFriendRequest = async function (
   recipientProfileUsername
 ) {
   const session = getNeo4jConnection().session()
-
   const tx = session.beginTransaction()
 
-  console.log('cancel friend request: ', {
-    senderProfileUuid,
-    senderProfileUsername,
-    recipientProfileUuid,
-    recipientProfileUsername,
-  })
   try {
     tx.run(
       'Match (p1:Profile {uuid: $sUuid}) ' +
@@ -418,16 +400,10 @@ export const cancelFriendRequest = async function (
       }
     )
       .then((result) => {
-        console.log(result)
-
-        result.records.forEach(async (record) => {
-          console.log(record)
-        })
         return tx.commit()
       })
       .then(() => {
         session.close()
-        // driver.close()
       })
       .catch((exception) => {
         console.log(exception)
@@ -446,15 +422,8 @@ export const unfriend = async function (
   targetProfileUsername
 ) {
   const session = getNeo4jConnection().session()
-
   const tx = session.beginTransaction()
 
-  console.log('cancel friend request: ', {
-    initiatorProfileUuid,
-    initiatorProfileUsername,
-    targetProfileUuid,
-    targetProfileUsername,
-  })
   try {
     tx.run(
       'Match (p1:Profile {uuid: $iUuid}) ' +

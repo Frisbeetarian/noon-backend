@@ -240,11 +240,6 @@ export class MessageResolver {
         where: { conversationUuid },
       })
 
-      console.log(
-        'conversationToProfiles on save message:',
-        conversationToProfiles
-      )
-
       if (conversation) {
         conversationToProfiles.map(async (conversationToProfile) => {
           const session = await sessionStore.findSession(

@@ -1,5 +1,6 @@
 // @ts-nocheck
-const { RPCClient } = require('@noon/rabbit-mq-rpc/client')
+// const { RPCClient } = require('@noon/rabbit-mq-rpc/client')
+import { RPCClient } from '@noon/rabbit-mq-rpc'
 
 const connectionObject = {
   protocol: 'amqp',
@@ -36,21 +37,31 @@ async function initRPCClient() {
   if (rpcClientInitialized) {
     return
   }
+  try {
+    await Promise.all(
+      Object.values(QUEUES).map(async ({ channel, queue }) => {
+        await client.addChannel({
+          name: channel,
+          queue,
+        })
 
-  await Promise.all(
-    Object.values(QUEUES).map(async ({ channel, queue }) => {
-      await client.addChannel({
-        name: channel,
-        queue,
+        await client.rpcRequest(channel, 'heartbeat', {})
       })
-    })
-  )
+    )
 
+    console.log('RPC_CONNECTION_SUCCESSFUL')
+  } catch (e) {
+    console.log('RPC_CONNECTION_FAILED', JSON.stringify(e))
+    setTimeout(() => {
+      console.error(e)
+      process.exit(1)
+    }, 2000)
+  }
   rpcClientInitialized = true
 }
 
 async function relayRPCRequest(channel, task, params) {
-  await initRPCClient()
+  // await initRPCClient()
 
   try {
     return await client.rpcRequest(channel, task, params)
@@ -72,9 +83,9 @@ async function mediaRPCRequest(channel, task, params) {
 }
 
 async function searchRPCRequest(channel, task, params) {
-  await initRPCClient()
-
   try {
+    // await initRPCClient()
+
     return await client.rpcRequest(channel, task, params)
   } catch (e) {
     console.log('error:', e)
@@ -172,13 +183,14 @@ function search() {
       }
     },
 
-    async searchForProfileByUsername({ username }) {
+    async searchForProfileByUsername({ username, senderUuid }) {
       try {
         return await searchRPCRequest(
           channel,
           'SEARCH_FOR_PROFILE_BY_USERNAME',
           {
             username,
+            senderUuid,
           }
         )
       } catch (e) {
@@ -200,6 +212,7 @@ function search() {
   }
 }
 
+module.exports.initRPCClient = initRPCClient
 module.exports.search = search
 module.exports.relay = relay
 module.exports.media = media

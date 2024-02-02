@@ -1,19 +1,27 @@
-import { Resolver, Query, Arg, UseMiddleware } from 'type-graphql'
+import { Resolver, Query, Arg, Ctx } from 'type-graphql'
 import { Search } from '../entities/Search'
-import { isAuth } from '../middleware/isAuth'
+// import { isAuth } from '../middleware/isAuth'
+import { Profile } from '../entities/Profile'
+import { MyContext } from '../types'
 const rpcClient = require('../utils/brokerInitializer')
 
 @Resolver(Search)
 export class SearchResolver {
   @Query(() => [Search], { nullable: true })
-  @UseMiddleware(isAuth)
+  // @UseMiddleware(isAuth)
   async searchForProfileByUsername(
+    @Ctx() { req }: MyContext,
     @Arg('username', () => String) username: string
   ): Promise<Search[] | null> {
+    const senderProfile = await Profile.findOne({
+      where: { userId: req.session.userId },
+    })
+
     try {
-      let response = await rpcClient
-        .search()
-        .searchForProfileByUsername({ username })
+      let response = await rpcClient.search().searchForProfileByUsername({
+        username,
+        senderUuid: senderProfile?.uuid,
+      })
 
       return [response]
     } catch (e) {

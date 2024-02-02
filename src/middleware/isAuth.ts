@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { MyContext } from 'src/types'
 import { MiddlewareFn } from 'type-graphql'
 

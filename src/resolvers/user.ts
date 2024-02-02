@@ -234,9 +234,9 @@ export class UserResolver {
         .execute()
 
       user = await User.findOne(result.raw[0].uuid)
-      console.log('user in register:', user)
+      // console.log('user in register:', user)/**/
 
-      console.log('user in register:', user)
+      // console.log('user in register:', user)
       let profile = await Profile.findOne({ where: { userId: user?.uuid } })
 
       user = {

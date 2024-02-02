@@ -1,11 +1,11 @@
-import neo4j from 'neo4j-driver'
+import neo4j, { Driver } from 'neo4j-driver'
 
 /**
  * Singleton connection driver Neo4j
  *
  * @return {Neo4jDriver}
  */
-let instance = null
+let instance: Driver | null = null
 const getNeo4jConnection = () => {
   // its already instanced
   if (instance) {

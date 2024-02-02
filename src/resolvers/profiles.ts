@@ -31,6 +31,7 @@ import { getConnection } from 'typeorm'
 import { ConversationToProfile } from '../entities/ConversationToProfile'
 import rpcClient from '../utils/brokerInitializer'
 import { Message } from '../entities/Message'
+import Emitters from '../socketio/emitters'
 
 @Resolver(Profile)
 export class ProfileResolver {
@@ -81,7 +82,7 @@ export class ProfileResolver {
 
   @Mutation(() => Boolean)
   async sendFriendRequest(
-    @Ctx() { req }: MyContext,
+    @Ctx() { req, io }: MyContext,
     @Arg('profileUuid', () => String) profileUuid: number | string
   ) {
     const senderProfile = await Profile.findOne({
@@ -96,6 +97,17 @@ export class ProfileResolver {
         senderProfile?.username,
         recipientProfile?.uuid,
         recipientProfile?.username
+      )
+
+      const emitters = new Emitters(io)
+      const content = senderProfile.username + ' wants to be your friend.'
+
+      emitters.emitFriendRequest(
+        senderProfile.uuid,
+        senderProfile.username,
+        recipientProfile.uuid,
+        recipientProfile.username,
+        content
       )
     } else {
       return false
@@ -119,6 +131,7 @@ export class ProfileResolver {
     @Arg('profileUuid', () => String) profileUuid: number | string
   ) {
     // TODO reorganize sender/recipient logic, seems to be in reverse (no since recipient and actor on request is the one logged in)
+    console.log('profileUuid:', profileUuid)
     const recipientProfile = await Profile.findOne({
       where: { userId: req.session.userId },
     })

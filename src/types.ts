@@ -1,3 +1,4 @@
+// @ts-nocheck
 // import { EntityManager, IDatabaseDriver, Connection } from '@mikro-orm/core'
 import { Request, Response } from 'express'
 import session from 'express-session'
@@ -6,7 +7,7 @@ import { createUpdootLoader } from './utils/createUpdootLoader'
 import { createUserLoader } from './utils/createUserLoader'
 import { createMessageLoader } from './utils/createMessageLoader'
 
-import { Socket } from 'socket.io'
+import { Server } from 'socket.io'
 // import { createProfileLoader } from './utils/createProfileLoader'
 
 export type MyContext = {
@@ -16,7 +17,7 @@ export type MyContext = {
   // req: Request;
   res: Response
   redis: Redis
-  // io: Socket
+  io: Server
   userLoader: ReturnType<typeof createUserLoader>
   // profilesLoader: ReturnType<typeof createProfileLoader>
   updootLoader: ReturnType<typeof createUpdootLoader>
