@@ -101,19 +101,20 @@ class MessageController {
         mimeType,
       }
 
-      await rpcClient.media().sendImage({
-        task: 'upload-image',
-        file: fileToSend,
-        conversationUuid: conversationUuid,
-        senderUuid: profileUuid,
-      })
-
       const conversation = await Conversation.findOne(conversationUuid)
       const sender = await Profile.findOne(profileUuid)
 
       const type = 'image'
       let message = new Message(conversation, sender, '', type, '')
-      await getConnection().getRepository(Message).save(message)
+      message = await getConnection().getRepository(Message).save(message)
+
+      await rpcClient.media().sendImage({
+        task: 'upload-image',
+        file: fileToSend,
+        conversationUuid: conversationUuid,
+        senderUuid: profileUuid,
+        messageUuid: message.uuid,
+      })
 
       return res.status(200)
     } catch (e) {

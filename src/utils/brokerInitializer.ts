@@ -118,7 +118,7 @@ function media() {
   const channel = QUEUES.MEDIA_SERVER.channel
 
   return {
-    async sendImage({ file, task, conversationUuid, senderUuid }) {
+    async sendImage({ file, task, conversationUuid, senderUuid, messageUuid }) {
       try {
         // const buffer = Buffer.from(image)
         // channel.sendToQueue(queue, buffer);
@@ -128,6 +128,7 @@ function media() {
           task,
           conversationUuid,
           senderUuid,
+          messageUuid,
         })
 
         return mediaResponse

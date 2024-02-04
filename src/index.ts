@@ -42,6 +42,7 @@ import conversationRouter from './routes/conversationRoutes'
 import userRouter from './routes/userRoutes'
 import messageRouter from './routes/messageRoutes'
 import searchRouter from './routes/searchRoutes'
+import { MessageUtilities } from './utils/MessageUtilities'
 
 const main = async () => {
   const app = express()
@@ -131,8 +132,6 @@ const main = async () => {
         migrations: [path.join(__dirname, './migrations/*')],
         entities: [
           User,
-          Post,
-          Updoot,
           Profile,
           Friend,
           Conversation,
@@ -245,9 +244,16 @@ const main = async () => {
         connectionObject,
         hostId: 'localhost',
         queue: 'rpc_queue.noon.media-results',
-        handleMessage: (index, params) => {
-          console.log('RPC_MEDIA_RECEIVED', { index, params })
-          const { filePath, type } = params
+        handleMessage: async (index, params) => {
+          // console.log('RPC_MEDIA_RECEIVED', { index, params })
+          const { filePath, type, messageUuid, conversationUuid } = params
+          console.log('params: ', params)
+          await MessageUtilities.updateMessagePath(
+            messageUuid,
+            filePath,
+            type,
+            conversationUuid
+          )
         },
       })
 
