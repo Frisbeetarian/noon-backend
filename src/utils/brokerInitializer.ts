@@ -118,7 +118,7 @@ function media() {
   const channel = QUEUES.MEDIA_SERVER.channel
 
   return {
-    async sendImage({ file, task }) {
+    async sendImage({ file, task, conversationUuid, senderUuid }) {
       try {
         // const buffer = Buffer.from(image)
         // channel.sendToQueue(queue, buffer);
@@ -126,6 +126,8 @@ function media() {
         const mediaResponse = await mediaRPCRequest(channel, 'UPLOAD_IMAGE', {
           file,
           task,
+          conversationUuid,
+          senderUuid,
         })
 
         return mediaResponse

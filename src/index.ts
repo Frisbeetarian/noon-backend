@@ -247,7 +247,7 @@ const main = async () => {
         queue: 'rpc_queue.noon.media-results',
         handleMessage: (index, params) => {
           console.log('RPC_MEDIA_RECEIVED', { index, params })
-          const { filePath, senderUuid } = params
+          const { filePath, type } = params
         },
       })
 
