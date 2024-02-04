@@ -7,7 +7,12 @@ export class MessageUtilities {
   static async updateMessagePath(
     messageUuid: string,
     filePath: string,
-    type: string
+    type: string,
+    conversationUuid: string,
+    conversationType: string,
+    senderProfileUuid: string,
+    senderProfileUsername: string,
+    participantUuids: string[]
     // conversationUuid: string
   ): Promise<void> {
     try {
@@ -26,20 +31,18 @@ export class MessageUtilities {
 
         const io = getIO()
         const emitters = new Emitters(io)
-        const content = senderProfile.username + ' sent a message.'
 
-        conversationToProfiles.forEach((profile) => {
-          if (profile.profileUuid !== senderProfile.uuid) {
-            emitters.emitSendMessage(
-              senderProfile.uuid,
-              senderProfile.username,
-              profile.profileUuid,
-              profile.profileUsername,
-              conversation.uuid,
-              content,
-              newMessage
-            )
-          }
+        participantUuids.forEach((participantUuid) => {
+          emitters.emitSendFile(
+            senderProfileUuid,
+            senderProfileUsername,
+            participantUuid,
+            conversationUuid,
+            conversationType,
+            messageUuid,
+            type,
+            filePath
+          )
         })
       } else {
         console.error(`Message with ID ${messageUuid} not found.`)

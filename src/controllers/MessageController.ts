@@ -84,12 +84,7 @@ class MessageController {
 
   static async saveFile(req: Request, res: Response) {
     try {
-      const {
-        conversationUuid,
-        conversationType,
-        recipientProfileUuid,
-        participants,
-      } = req.body
+      const { conversationUuid, conversationType, participantUuids } = req.body
       const file = req.file
 
       const senderProfile = await Profile.findOne({
@@ -121,13 +116,10 @@ class MessageController {
         file: fileToSend,
         conversationUuid: conversationUuid,
         conversationType: conversationType,
-        senderUsername: senderProfile?.username,
-        senderUuid: senderProfile.uuid,
+        senderProfileUuid: senderProfile.uuid,
+        senderProfileUsername: senderProfile?.username,
         messageUuid: message.uuid,
-        recipientProfileUuid: recipientProfileUuid
-          ? recipientProfileUuid
-          : null,
-        participantUuids: participants ? participants : [],
+        participantUuids: participantUuids ? participantUuids : [],
       })
 
       return res.status(200)

@@ -125,11 +125,10 @@ function media() {
       task,
       conversationUuid,
       conversationType,
-      senderUuid,
-      senderUsername,
+      senderProfileUuid,
+      senderProfileUsername,
       messageUuid,
-      recipientProfileUuid = null,
-      participants = [],
+      participantUuids = [],
     }) {
       try {
         // console.log('file in send iamge:', file)
@@ -138,11 +137,10 @@ function media() {
           task,
           conversationUuid,
           conversationType,
-          senderUsername,
-          senderUuid,
+          senderProfileUsername,
+          senderProfileUuid,
           messageUuid,
-          recipientProfileUuid,
-          participants,
+          participantUuids,
         })
       } catch (e) {
         console.log('error:', e)

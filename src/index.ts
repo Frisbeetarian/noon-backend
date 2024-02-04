@@ -246,12 +246,25 @@ const main = async () => {
         queue: 'rpc_queue.noon.media-results',
         handleMessage: async (index, params) => {
           console.log('RPC_MEDIA_RECEIVED', { index, params })
-          const { filePath, type, messageUuid, conversationUuid } = params
+          const {
+            filePath,
+            type,
+            messageUuid,
+            conversationUuid,
+            conversationType,
+            senderProfileUuid,
+            senderProfileUsername,
+            participantUuids,
+          } = params
           await MessageUtilities.updateMessagePath(
             messageUuid,
             filePath,
             type,
-            conversationUuid
+            conversationUuid,
+            conversationType,
+            senderProfileUuid,
+            senderProfileUsername,
+            participantUuids
           )
         },
       })
