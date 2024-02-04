@@ -120,15 +120,29 @@ function media() {
   const channel = QUEUES.MEDIA_SERVER.channel
 
   return {
-    async sendImage({ file, task, conversationUuid, senderUuid, messageUuid }) {
+    async sendImage({
+      file,
+      task,
+      conversationUuid,
+      conversationType,
+      senderUuid,
+      senderUsername,
+      messageUuid,
+      recipientProfileUuid = null,
+      participants = [],
+    }) {
       try {
         // console.log('file in send iamge:', file)
         return await mediaRPCRequest(channel, 'UPLOAD_IMAGE', {
           file,
           task,
           conversationUuid,
+          conversationType,
+          senderUsername,
           senderUuid,
           messageUuid,
+          recipientProfileUuid,
+          participants,
         })
       } catch (e) {
         console.log('error:', e)

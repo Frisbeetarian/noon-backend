@@ -1,5 +1,7 @@
 import { getConnection, Repository } from 'typeorm'
 import { Message } from '../entities/Message'
+import { getIO } from '../socketio/socket'
+import Emitters from '../socketio/emitters'
 
 export class MessageUtilities {
   static async updateMessagePath(
@@ -21,6 +23,24 @@ export class MessageUtilities {
         messageToUpdate.src = filePath
         messageToUpdate.type = type
         await messageRepository.save(messageToUpdate)
+
+        const io = getIO()
+        const emitters = new Emitters(io)
+        const content = senderProfile.username + ' sent a message.'
+
+        conversationToProfiles.forEach((profile) => {
+          if (profile.profileUuid !== senderProfile.uuid) {
+            emitters.emitSendMessage(
+              senderProfile.uuid,
+              senderProfile.username,
+              profile.profileUuid,
+              profile.profileUsername,
+              conversation.uuid,
+              content,
+              newMessage
+            )
+          }
+        })
       } else {
         console.error(`Message with ID ${messageUuid} not found.`)
       }

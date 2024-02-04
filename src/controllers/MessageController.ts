@@ -84,8 +84,17 @@ class MessageController {
 
   static async saveFile(req: Request, res: Response) {
     try {
-      const { conversationUuid, profileUuid } = req.body
+      const {
+        conversationUuid,
+        conversationType,
+        recipientProfileUuid,
+        participants,
+      } = req.body
       const file = req.file
+
+      const senderProfile = await Profile.findOne({
+        where: { userId: req.session.userId },
+      })
 
       if (!file) {
         return res.status(400).json({ error: 'No file provided' })
@@ -102,18 +111,23 @@ class MessageController {
       }
 
       const conversation = await Conversation.findOne(conversationUuid)
-      const sender = await Profile.findOne(profileUuid)
 
       const type = 'image'
-      let message = new Message(conversation, sender, '', type, '')
+      let message = new Message(conversation, senderProfile, '', type, '')
       message = await getConnection().getRepository(Message).save(message)
 
       await rpcClient.media().sendImage({
         task: 'upload-image',
         file: fileToSend,
         conversationUuid: conversationUuid,
-        senderUuid: profileUuid,
+        conversationType: conversationType,
+        senderUsername: senderProfile?.username,
+        senderUuid: senderProfile.uuid,
         messageUuid: message.uuid,
+        recipientProfileUuid: recipientProfileUuid
+          ? recipientProfileUuid
+          : null,
+        participantUuids: participants ? participants : [],
       })
 
       return res.status(200)
