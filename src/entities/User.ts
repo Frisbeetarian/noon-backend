@@ -1,11 +1,9 @@
-// @ts-nocheck
 import {
   BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
-  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,

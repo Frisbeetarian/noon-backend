@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { BaseEntity, PrimaryGeneratedColumn } from 'typeorm'
 
 export class Friend extends BaseEntity {
