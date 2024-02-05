@@ -209,6 +209,7 @@ class ConversationController {
   static async leaveGroup(req, res) {
     try {
       const { groupUuid } = req.body
+
       const senderProfile = await Profile.findOne({
         where: { userId: req.session.userId },
       })
@@ -227,7 +228,7 @@ class ConversationController {
         })
         .execute()
 
-      return res.status(200)
+      return res.status(200).json("You've left the group.")
     } catch (e) {
       console.log('error:', e.message)
       return res.status(500).json(e.message)
