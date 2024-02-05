@@ -87,6 +87,9 @@ class MessageController {
       const { conversationUuid, conversationType, participantUuids } = req.body
       const file = req.file
 
+      const participantUuidsArray = participantUuids.split(',')
+      console.log('participantUuids iun save fil:', participantUuidsArray)
+
       const senderProfile = await Profile.findOne({
         where: { userId: req.session.userId },
       })
@@ -119,7 +122,7 @@ class MessageController {
         senderProfileUuid: senderProfile.uuid,
         senderProfileUsername: senderProfile?.username,
         messageUuid: message.uuid,
-        participantUuids: participantUuids ? participantUuids : [],
+        participantUuids: participantUuidsArray ? participantUuidsArray : [],
       })
 
       return res.status(200)

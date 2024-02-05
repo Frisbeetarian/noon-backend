@@ -13,7 +13,6 @@ export class MessageUtilities {
     senderProfileUuid: string,
     senderProfileUsername: string,
     participantUuids: string[]
-    // conversationUuid: string
   ): Promise<void> {
     try {
       const messageRepository: Repository<Message> =
@@ -23,7 +22,7 @@ export class MessageUtilities {
         await messageRepository.findOne(messageUuid)
 
       console.log('message path:', filePath)
-
+      console.log('participantUuids:', participantUuids)
       if (messageToUpdate) {
         messageToUpdate.src = filePath
         messageToUpdate.type = type
@@ -32,11 +31,11 @@ export class MessageUtilities {
         const io = getIO()
         const emitters = new Emitters(io)
 
-        participantUuids.forEach((participantUuid) => {
+        participantUuids.forEach((recipientProfileUuid) => {
           emitters.emitSendFile(
             senderProfileUuid,
             senderProfileUsername,
-            participantUuid,
+            recipientProfileUuid,
             conversationUuid,
             conversationType,
             messageUuid,

@@ -236,14 +236,13 @@ class ProfileController {
           recipientProfile,
           recipientProfile?.username
         )
-
         await conversationProfileRepository.save(conversationToProfile)
+
         const conversationToProfile2 = new ConversationToProfile(
           conversation,
           senderProfile,
           senderProfile?.username
         )
-
         await conversationProfileRepository.save(conversationToProfile2)
 
         conversation = {

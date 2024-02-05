@@ -100,8 +100,8 @@ class Emitters {
   }
 
   emitSendFile(
-    senderUuid: String,
-    senderUsername: String,
+    senderProfileUuid: String,
+    senderProfileUsername: String,
     recipientUuid: String,
     conversationUuid: String,
     conversationType: String,
@@ -110,8 +110,8 @@ class Emitters {
     filePath: String
   ) {
     this.io.to(recipientUuid).emit('send-file', {
-      senderUuid,
-      senderUsername,
+      senderProfileUuid,
+      senderProfileUsername,
       recipientUuid,
       conversationUuid,
       conversationType,
