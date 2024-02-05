@@ -9,6 +9,7 @@ import { ConversationToProfile } from '../entities/ConversationToProfile'
 import Redis from 'ioredis'
 import { getIO } from '../socketio/socket'
 import Emitters from '../socketio/emitters'
+const rpcClient = require('../utils/brokerInitializer')
 const redis = new Redis()
 const { RedisSessionStore } = require('./../socketio/sessionStore')
 const sessionStore = new RedisSessionStore(redis)
@@ -81,8 +82,54 @@ class MessageController {
     }
   }
 
-  static async uploadImage(req: Request, res: Response) {
-    // TODO: Implement file upload handling
+  static async saveFile(req: Request, res: Response) {
+    try {
+      const { conversationUuid, conversationType, participantUuids } = req.body
+      const file = req.file
+
+      const participantUuidsArray = participantUuids.split(',')
+      console.log('participantUuids iun save fil:', participantUuidsArray)
+
+      const senderProfile = await Profile.findOne({
+        where: { userId: req.session.userId },
+      })
+
+      if (!file) {
+        return res.status(400).json({ error: 'No file provided' })
+      }
+
+      const fileBuffer = file.buffer
+      const filename = file.originalname
+      const mimeType = file.mimetype
+
+      const fileToSend = {
+        buffer: fileBuffer,
+        filename,
+        mimeType,
+      }
+
+      const conversation = await Conversation.findOne(conversationUuid)
+
+      const type = 'image'
+      let message = new Message(conversation, senderProfile, '', type, '')
+      message = await getConnection().getRepository(Message).save(message)
+
+      await rpcClient.media().sendImage({
+        task: 'upload-image',
+        file: fileToSend,
+        conversationUuid: conversationUuid,
+        conversationType: conversationType,
+        senderProfileUuid: senderProfile.uuid,
+        senderProfileUsername: senderProfile?.username,
+        messageUuid: message.uuid,
+        participantUuids: participantUuidsArray ? participantUuidsArray : [],
+      })
+
+      return res.status(200)
+    } catch (e) {
+      console.error('Error saving file:', e.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
   }
 
   static async uploadVoiceRecording(req: Request, res: Response) {

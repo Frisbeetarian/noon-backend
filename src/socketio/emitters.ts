@@ -99,6 +99,28 @@ class Emitters {
     })
   }
 
+  emitSendFile(
+    senderProfileUuid: String,
+    senderProfileUsername: String,
+    recipientUuid: String,
+    conversationUuid: String,
+    conversationType: String,
+    messageUuid: String,
+    messageType: String,
+    filePath: String
+  ) {
+    this.io.to(recipientUuid).emit('send-file', {
+      senderProfileUuid,
+      senderProfileUsername,
+      recipientUuid,
+      conversationUuid,
+      conversationType,
+      messageUuid,
+      messageType,
+      filePath,
+    })
+  }
+
   emitAddedToGroup(
     senderUuid: String,
     senderUsername: String,

@@ -13,107 +13,83 @@ class ConversationController {
   static async getConversationsForLoggedInUser(req: Request, res: Response) {
     try {
       const loggedInProfileUuid = req.session.user.profile.uuid
-      const objectToSend = []
       const realLimit = 20
-      const conversationReplacements: any[] = [loggedInProfileUuid, 20]
 
-      const conversations = await getConnection().query(
-        `
-        select conversation_profile.*, conversation.*
-        from conversation_profile
-        LEFT JOIN conversation ON conversation_profile."conversationUuid" = conversation.uuid
-        ${`where conversation_profile."profileUuid" = $1`}
-        order by conversation_profile."createdAt" DESC
-        limit $2
-      `,
-        conversationReplacements
+      const conversationProfiles = await ConversationToProfile.find({
+        where: { profileUuid: loggedInProfileUuid },
+        relations: ['conversation', 'profile'],
+        order: { createdAt: 'DESC' },
+        take: realLimit,
+      })
+
+      const objectToSend = await Promise.all(
+        conversationProfiles.map(async (conversationProfile) => {
+          const conversationEntity = conversationProfile.conversation
+
+          const profiles = await ConversationToProfile.find({
+            where: { conversationUuid: conversationEntity.uuid },
+            relations: ['profile'],
+          })
+
+          const profilesToSend = profiles.map((cp) => cp.profile)
+
+          const [messages, calls] = await Promise.all([
+            Message.find({
+              where: { conversationUuid: conversationEntity.uuid },
+              order: { createdAt: 'DESC' },
+              take: realLimit,
+            }),
+            ConversationToProfile.find({
+              where: { conversationUuid: conversationEntity.uuid },
+            }),
+          ])
+          console.log('messages:', messages)
+
+          const messagesToSend = messages.map((message) => ({
+            uuid: message.uuid,
+            content: message.content,
+            type: message.type,
+            src: message.src,
+            deleted: message.deleted,
+            updatedAt: message.updatedAt,
+            createdAt: message.createdAt,
+            sender: {
+              uuid: message.sender.uuid,
+              username: message.sender.username,
+            },
+          }))
+
+          // const callsToSend = calls.map((call) => ({
+          //   profileUuid: call.profile.uuid,
+          //   profileUsername: call.profile.username,
+          //   pendingCall: call.pendingCall,
+          //   ongoingCall: call.ongoingCall,
+          // }));
+
+          return {
+            uuid: conversationEntity.uuid,
+            unreadMessages: conversationEntity.unreadMessages,
+            profileThatHasUnreadMessages:
+              conversationEntity.profileThatHasUnreadMessages,
+            ongoingCall: conversationEntity.ongoingCall,
+            pendingCall: conversationEntity.pendingCall,
+            pendingCallProfile: conversationEntity.pendingCallProfile,
+            calls: [],
+            profiles: profilesToSend,
+            type: conversationEntity.type,
+            name: conversationEntity.name,
+            description: conversationEntity.description,
+            messages: messagesToSend,
+            hasMore: messages.length === realLimit,
+            updatedAt: conversationEntity.updatedAt,
+            createdAt: conversationEntity.createdAt,
+          }
+        })
       )
 
-      if (conversations) {
-        await Promise.all(
-          conversations.map(async (conversation) => {
-            const replacements: any[] = [20]
-
-            const conversationObject = await ConversationToProfile.find({
-              where: [{ conversationUuid: conversation.conversationUuid }],
-              relations: ['conversation', 'profile'],
-            })
-
-            const conversationEntity = await Conversation.findOne({
-              where: [{ uuid: conversation.conversationUuid }],
-              relations: ['pendingCallProfile', 'messages'],
-            })
-
-            replacements.push(conversationEntity?.uuid)
-
-            const messages = await getConnection().query(
-              `
-            select profile.uuid, profile.username, message.*
-            from profile
-            LEFT JOIN message ON message."senderUuid" = profile.uuid
-            ${`where message."conversationUuid" = $2`}
-            order by message."createdAt" DESC
-            limit $1
-            `,
-              replacements
-            )
-            let profilesToSend = []
-            let calls = []
-
-            conversationObject.map((object) => {
-              calls.push({
-                profileUuid: object.profile.uuid,
-                profileUsername: object.profile.username,
-                pendingCall: object.pendingCall,
-                ongoingCall: object.ongoingCall,
-              })
-              profilesToSend.push(object.profile)
-            })
-
-            let messagesToSend = []
-            messages.forEach((message) => {
-              messagesToSend.push({
-                uuid: message.uuid,
-                content: message.content,
-                type: message.type,
-                src: message.src,
-                deleted: message.deleted,
-                updatedAt: message.updatedAt,
-                createdAt: message.createdAt,
-                sender: {
-                  uuid: message.senderUuid,
-                  username: message.username,
-                },
-              })
-            })
-
-            objectToSend.push({
-              uuid: conversation.conversationUuid,
-              unreadMessages: conversation.unreadMessages,
-              profileThatHasUnreadMessages:
-                conversation.profileThatHasUnreadMessages,
-              ongoingCall: conversation.ongoingCall,
-              pendingCall: conversation.pendingCall,
-              pendingCallProfile: conversation.pendingCallProfile,
-              calls: calls,
-              profiles: profilesToSend,
-              type: conversation.type,
-              name: conversation.name,
-              description: conversation.description,
-              messages: messagesToSend,
-              hasMore: messages.length === realLimit,
-              updatedAt: conversation.updatedAt,
-              createdAt: conversation.createdAt,
-            })
-          })
-        )
-
-        return res.status(200).json(objectToSend)
-      } else {
-        return res.status(200).json([])
-      }
+      return res.status(200).json(objectToSend)
     } catch (e) {
-      console.log('error:', e.message)
+      console.error('Error:', e.message)
       return res.status(500).json(e.message)
     }
   }
@@ -234,6 +210,7 @@ class ConversationController {
   static async leaveGroup(req, res) {
     try {
       const { groupUuid } = req.body
+
       const senderProfile = await Profile.findOne({
         where: { userId: req.session.userId },
       })
@@ -252,7 +229,7 @@ class ConversationController {
         })
         .execute()
 
-      return res.status(200)
+      return res.status(200).json("You've left the group.")
     } catch (e) {
       console.log('error:', e.message)
       return res.status(500).json(e.message)

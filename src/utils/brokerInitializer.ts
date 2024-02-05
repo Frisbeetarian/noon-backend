@@ -72,7 +72,9 @@ async function relayRPCRequest(channel, task, params) {
 }
 
 async function mediaRPCRequest(channel, task, params) {
-  await initRPCClient()
+  // console.log('mediaRPCRequest:', channel, task, params)
+
+  // await initRPCClient()
 
   try {
     return await client.rpcRequest(channel, task, params)
@@ -118,18 +120,28 @@ function media() {
   const channel = QUEUES.MEDIA_SERVER.channel
 
   return {
-    async sendImage({ file, readStream, task }) {
+    async sendImage({
+      file,
+      task,
+      conversationUuid,
+      conversationType,
+      senderProfileUuid,
+      senderProfileUsername,
+      messageUuid,
+      participantUuids = [],
+    }) {
       try {
-        // const buffer = Buffer.from(image)
-        // channel.sendToQueue(queue, buffer);
-
-        const mediaResponse = await mediaRPCRequest(channel, 'UPLOAD_IMAGE', {
+        // console.log('file in send iamge:', file)
+        return await mediaRPCRequest(channel, 'UPLOAD_IMAGE', {
           file,
-          readStream,
           task,
+          conversationUuid,
+          conversationType,
+          senderProfileUsername,
+          senderProfileUuid,
+          messageUuid,
+          participantUuids,
         })
-
-        return mediaResponse
       } catch (e) {
         console.log('error:', e)
         return null

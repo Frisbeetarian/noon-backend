@@ -9,7 +9,6 @@ conversationRouter.get(
 )
 
 conversationRouter.post('/', ConversationController.createGroupConversation)
-
 conversationRouter.post('/leaveGroup', ConversationController.leaveGroup)
 
 // conversationRouter.post(
@@ -28,12 +27,12 @@ conversationRouter.get(
 )
 
 conversationRouter.post(
-  '/conversations/clear-unread-messages',
+  '/clear-unread-messages',
   ConversationController.clearUnreadMessagesForConversation
 )
 
 conversationRouter.post(
-  '/conversations/update-unread-messages',
+  '/update-unread-messages',
   ConversationController.updateUnreadMessagesForConversation
 )
 

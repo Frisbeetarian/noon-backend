@@ -1,10 +1,13 @@
-// @ts-nocheck
 import { Server as SocketIOServer } from 'socket.io'
 import { Server as HTTPServer } from 'http'
+import { RedisClient } from 'redis'
 
-let io: any
+let io: SocketIOServer
 
-export const initSocketIO = (httpServer: HTTPServer, redisClient) => {
+export const initSocketIO = (
+  httpServer: HTTPServer,
+  redisClient: RedisClient
+) => {
   io = new SocketIOServer(httpServer, {
     cors: {
       origin: process.env.CORS_ORIGIN,
@@ -19,9 +22,11 @@ export const initSocketIO = (httpServer: HTTPServer, redisClient) => {
   return io
 }
 
-export const getIO = () => {
+export const getIO = (): SocketIOServer => {
   if (!io) {
-    throw new Error('Socket.io not initialized!')
+    throw new Error(
+      'Socket.io instance not initialized. Call initSocketIO first.'
+    )
   }
   return io
 }

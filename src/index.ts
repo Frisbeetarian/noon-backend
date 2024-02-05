@@ -42,6 +42,7 @@ import conversationRouter from './routes/conversationRoutes'
 import userRouter from './routes/userRoutes'
 import messageRouter from './routes/messageRoutes'
 import searchRouter from './routes/searchRoutes'
+import { MessageUtilities } from './utils/MessageUtilities'
 
 const main = async () => {
   const app = express()
@@ -131,8 +132,6 @@ const main = async () => {
         migrations: [path.join(__dirname, './migrations/*')],
         entities: [
           User,
-          Post,
-          Updoot,
           Profile,
           Friend,
           Conversation,
@@ -215,7 +214,7 @@ const main = async () => {
 
   const initializeRPCServer = (emitters) => {
     try {
-      const rpcServer = new RPCServer({
+      const searchRpcServer = new RPCServer({
         connectionObject,
         hostId: 'localhost',
         queue: 'rpc_queue.noon.search-results',
@@ -226,14 +225,79 @@ const main = async () => {
         },
       })
 
-      rpcServer.start()
+      searchRpcServer
+        .start()
+        .then(() => {
+          console.log('RPC_CONNECTION_SUCCESSFUL for search results', {
+            hostId: 'localhost',
+            queue: 'rpc_queue.noon.search-results',
+          })
+        })
+        .catch((e) => {
+          console.error(
+            'RPC_CONNECTION_FAILED for search results',
+            JSON.stringify(e)
+          )
+        })
 
-      console.log('RPC_CONNECTION_SUCCESSFUL', {
+      const mediaRpcServer = new RPCServer({
+        connectionObject,
         hostId: 'localhost',
-        queue: 'rpc_queue.noon.search-results',
+        queue: 'rpc_queue.noon.media-results',
+        handleMessage: async (index, params) => {
+          console.log('RPC_MEDIA_RECEIVED', { index, params })
+          const {
+            filePath,
+            type,
+            messageUuid,
+            conversationUuid,
+            conversationType,
+            senderProfileUuid,
+            senderProfileUsername,
+            participantUuids,
+          } = params
+          await MessageUtilities.updateMessagePath(
+            messageUuid,
+            filePath,
+            type,
+            conversationUuid,
+            conversationType,
+            senderProfileUuid,
+            senderProfileUsername,
+            participantUuids
+          )
+        },
       })
+
+      mediaRpcServer
+        .start()
+        .then(() => {
+          console.log('RPC_CONNECTION_SUCCESSFUL for media results', {
+            hostId: 'localhost',
+            queue: 'rpc_queue.noon.media-results',
+          })
+        })
+        .catch((e) => {
+          console.error(
+            'RPC_CONNECTION_FAILED for media results',
+            JSON.stringify(e)
+          )
+        })
+
+      //   console.log('RPC_CONNECTION_SUCCESSFUL', {
+      //     hostId: 'localhost',
+      //     queue: 'rpc_queue.noon.search-results',
+      //   })
+      // } catch (e) {
+      //   console.log('RPC_CONNECTION_FAILED', JSON.stringify(e))
+      //
+      //   setTimeout(() => {
+      //     console.error(e)
+      //     process.exit(1)
+      //   }, 2000)
+      // }
     } catch (e) {
-      console.log('RPC_CONNECTION_FAILED', JSON.stringify(e))
+      console.log('RPC Server initialization failed', JSON.stringify(e))
 
       setTimeout(() => {
         console.error(e)
