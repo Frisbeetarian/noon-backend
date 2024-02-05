@@ -23,6 +23,6 @@ messageRouter.post(
 messageRouter.post('/groupMessages', MessageController.handleGroupMessage)
 messageRouter.post('/', MessageController.handleMessage)
 
-messageRouter.delete('/:messageUuid', MessageController.deleteMessage)
+messageRouter.delete('/', MessageController.deleteMessage)
 
 export default messageRouter
