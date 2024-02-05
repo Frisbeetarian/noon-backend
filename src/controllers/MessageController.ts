@@ -228,7 +228,10 @@ class MessageController {
 
       const conversation = await Conversation.findOne({
         where: { uuid: conversationUuid },
+        relations: ['messages', 'conversationToProfiles'],
       })
+
+      console.log('conversation:', conversation)
 
       if (!conversation) {
         return res.status(404).json({ error: 'Conversation not found' })
@@ -256,6 +259,26 @@ class MessageController {
       if (!message.affected) {
         return res.status(404).json({ error: 'Message not found' })
       }
+
+      const io = getIO()
+      const emitters = new Emitters(io)
+      console.log(
+        'conversation.conversationToProfiles:',
+        conversation.conversationToProfiles
+      )
+      conversation.conversationToProfiles.forEach((profile) => {
+        if (profile.profileUuid !== req.session.user.profile.uuid) {
+          emitters.emitMessageDeleted(
+            req.session.user.profile.uuid,
+            req.session.user.profile.username,
+            profile.uuid,
+            profile.profileUsername,
+            conversation.uuid,
+            'Message has been deleted',
+            message.uuid
+          )
+        }
+      })
 
       return res.status(200).json({
         uuid: messageUuid,
