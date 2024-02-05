@@ -43,6 +43,7 @@ class ConversationController {
               where: { conversationUuid: conversationEntity.uuid },
             }),
           ])
+          console.log('messages:', messages)
 
           const messagesToSend = messages.map((message) => ({
             uuid: message.uuid,
@@ -53,7 +54,7 @@ class ConversationController {
             updatedAt: message.updatedAt,
             createdAt: message.createdAt,
             sender: {
-              uuid: message.senderUuid,
+              uuid: message.sender.uuid,
               username: message.sender.username,
             },
           }))
