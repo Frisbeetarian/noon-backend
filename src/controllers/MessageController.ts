@@ -262,20 +262,17 @@ class MessageController {
 
       const io = getIO()
       const emitters = new Emitters(io)
-      console.log(
-        'conversation.conversationToProfiles:',
-        conversation.conversationToProfiles
-      )
+      console.log('message.uuid:', message.raw[0].uuid)
       conversation.conversationToProfiles.forEach((profile) => {
         if (profile.profileUuid !== req.session.user.profile.uuid) {
           emitters.emitMessageDeleted(
             req.session.user.profile.uuid,
             req.session.user.profile.username,
-            profile.uuid,
+            profile.profileUuid,
             profile.profileUsername,
             conversation.uuid,
-            'Message has been deleted',
-            message.uuid
+            message.raw[0].uuid,
+            'Message has been deleted'
           )
         }
       })

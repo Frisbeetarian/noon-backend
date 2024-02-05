@@ -127,8 +127,8 @@ class Emitters {
     recipientUuid: String,
     recipientUsername: String,
     conversationUuid: String,
-    content: String,
-    message: Message
+    messageUuid: String,
+    content: String
   ) {
     this.io.to(recipientUuid).emit('message-deleted', {
       senderUuid,
@@ -136,8 +136,8 @@ class Emitters {
       recipientUuid,
       recipientUsername,
       conversationUuid,
+      messageUuid,
       content,
-      message,
     })
   }
 
