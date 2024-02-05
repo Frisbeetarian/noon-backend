@@ -223,7 +223,42 @@ class MessageController {
   }
 
   static async deleteMessage(req: Request, res: Response) {
-    // TODO: Implement delete message logic
+    try {
+      const { messageUuid, conversationUuid, from, type, src } = req.query
+
+      console.log('messageUuid:', messageUuid + 'end')
+      console.log('conversationUuid:', conversationUuid + 'end')
+
+      const conversation = await Conversation.findOne(conversationUuid)
+
+      if (conversation && from === req.session.user.profile.uuid) {
+        // const messageRepository = getConnection().getRepository(Message)
+        // const message = await Message.findOne(messageUuid)
+        console.log('entered update')
+        const message = await getConnection()
+          .createQueryBuilder()
+          .update(Message)
+          .set({
+            deleted: true,
+            content: 'Message has been deleted.',
+          })
+          .where('uuid = :messageUuid', {
+            messageUuid,
+          })
+          .returning('*')
+          .execute()
+        console.log('message has been deleted')
+
+        return {
+          uuid: messageUuid,
+          content: 'Message has been deleted.',
+          deleted: true,
+        }
+      }
+    } catch (e) {
+      console.log('error:', e)
+      return false
+    }
   }
 
   static async handleMessage(req: Request, res: Response) {
