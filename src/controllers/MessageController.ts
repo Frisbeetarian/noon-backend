@@ -224,40 +224,47 @@ class MessageController {
 
   static async deleteMessage(req: Request, res: Response) {
     try {
-      const { messageUuid, conversationUuid, from, type, src } = req.query
+      const { messageUuid, conversationUuid, from } = req.query
 
-      console.log('messageUuid:', messageUuid + 'end')
-      console.log('conversationUuid:', conversationUuid + 'end')
+      const conversation = await Conversation.findOne({
+        where: { uuid: conversationUuid },
+      })
 
-      const conversation = await Conversation.findOne(conversationUuid)
-
-      if (conversation && from === req.session.user.profile.uuid) {
-        // const messageRepository = getConnection().getRepository(Message)
-        // const message = await Message.findOne(messageUuid)
-        console.log('entered update')
-        const message = await getConnection()
-          .createQueryBuilder()
-          .update(Message)
-          .set({
-            deleted: true,
-            content: 'Message has been deleted.',
-          })
-          .where('uuid = :messageUuid', {
-            messageUuid,
-          })
-          .returning('*')
-          .execute()
-        console.log('message has been deleted')
-
-        return {
-          uuid: messageUuid,
-          content: 'Message has been deleted.',
-          deleted: true,
-        }
+      if (!conversation) {
+        return res.status(404).json({ error: 'Conversation not found' })
       }
+
+      if (req.session.user.profile.uuid !== from) {
+        return res
+          .status(403)
+          .json({ error: 'Not authorized to delete this message' })
+      }
+
+      const message = await getConnection()
+        .createQueryBuilder()
+        .update(Message)
+        .set({
+          deleted: true,
+          content: 'Message has been deleted.',
+        })
+        .where('uuid = :messageUuid', {
+          messageUuid,
+        })
+        .returning('*')
+        .execute()
+
+      if (!message.affected) {
+        return res.status(404).json({ error: 'Message not found' })
+      }
+
+      return res.status(200).json({
+        uuid: messageUuid,
+        content: 'Message has been deleted.',
+        deleted: true,
+      })
     } catch (e) {
-      console.log('error:', e)
-      return false
+      console.error('Error:', e.message)
+      return res.status(500).json({ error: 'Internal server error' })
     }
   }
 
