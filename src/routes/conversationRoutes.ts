@@ -26,6 +26,11 @@ conversationRouter.get(
   ConversationController.checkIfConversationHasMoreMessages
 )
 
+conversationRouter.get(
+  '/:conversationUuid/messages',
+  ConversationController.getMessagesForConversation
+)
+
 conversationRouter.post(
   '/clear-unread-messages',
   ConversationController.clearUnreadMessagesForConversation

@@ -13,6 +13,7 @@ class ConversationController {
   static async getConversationsForLoggedInUser(req: Request, res: Response) {
     try {
       const loggedInProfileUuid = req.session.user.profile.uuid
+
       const realLimit = 20
 
       const conversationProfiles = await ConversationToProfile.find({
@@ -104,6 +105,71 @@ class ConversationController {
       return res.status(200).json(count > 20 ? true : false)
     } catch (e) {
       console.log('error:', e.message)
+      return res.status(500).json(e.message)
+    }
+  }
+
+  static async getMessagesForConversation(req: Request, res: Response) {
+    try {
+      const { conversationUuid, limit, cursor } = req.query
+
+      if (conversationUuid === null) {
+        return res.json({
+          messages: [],
+          hasMore: false,
+        })
+      }
+
+      const realLimit = Math.min(20, Number(limit))
+      const realLimitPlusOne = realLimit + 1
+      const replacements: any[] = [realLimitPlusOne]
+
+      if (cursor) {
+        replacements.push(new Date(parseInt(cursor as string)))
+      }
+
+      replacements.push(conversationUuid)
+
+      const messages = await getConnection().query(
+        `
+      select profile.uuid, profile.username, message.*
+      from profile
+      LEFT JOIN message ON message."senderUuid" = profile.uuid
+      ${
+        cursor
+          ? `where message."conversationUuid" = $3 and message."createdAt" < $2`
+          : `where message."conversationUuid" = $2`
+      }
+      order by message."createdAt" DESC
+      limit $1
+      `,
+        replacements
+      )
+
+      let messagesToSend = []
+
+      messages.forEach((message) => {
+        messagesToSend.push({
+          uuid: message.uuid,
+          content: message.content,
+          type: message.type,
+          src: message.src,
+          updatedAt: message.updatedAt,
+          createdAt: message.createdAt,
+          deleted: message.deleted,
+          sender: {
+            uuid: message.senderUuid,
+            username: message.username,
+          },
+        })
+      })
+
+      return res.status(200).json({
+        messages: messagesToSend,
+        hasMore: messages.length === realLimitPlusOne,
+      })
+    } catch (e) {
+      console.log('Message error:', e.message)
       return res.status(500).json(e.message)
     }
   }
