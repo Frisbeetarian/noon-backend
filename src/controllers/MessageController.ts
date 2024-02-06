@@ -88,7 +88,6 @@ class MessageController {
       const file = req.file
 
       const participantUuidsArray = participantUuids.split(',')
-      console.log('participantUuids iun save fil:', participantUuidsArray)
 
       const senderProfile = await Profile.findOne({
         where: { userId: req.session.userId },
@@ -132,7 +131,7 @@ class MessageController {
     }
   }
 
-  static async uploadVoiceRecording(req: Request, res: Response) {
+  static async saveVoiceRecording(req: Request, res: Response) {
     // TODO: Implement file upload handling
   }
 
