@@ -93,6 +93,10 @@ class MessageController {
         where: { userId: req.session.userId },
       })
 
+      if (!senderProfile) {
+        return res.status(404).json({ error: 'Sender profile not found' })
+      }
+
       if (!file) {
         return res.status(400).json({ error: 'No file provided' })
       }
@@ -132,7 +136,56 @@ class MessageController {
   }
 
   static async saveVoiceRecording(req: Request, res: Response) {
-    // TODO: Implement file upload handling
+    try {
+      const { conversationUuid, conversationType, participantUuids } = req.body
+      const file = req.file
+
+      const participantUuidsArray = participantUuids.split(',')
+
+      if (!file) {
+        return res.status(400).json({ error: 'No voice recording provided' })
+      }
+
+      const senderProfile = await Profile.findOne({
+        where: { userId: req.session.userId },
+      })
+
+      if (!senderProfile) {
+        return res.status(404).json({ error: 'Sender profile not found' })
+      }
+
+      const fileBuffer = file.buffer
+      const filename = file.originalname
+      const mimeType = file.mimetype
+
+      const fileToSend = {
+        buffer: fileBuffer,
+        filename,
+        mimeType,
+      }
+
+      const conversation = await Conversation.findOne(conversationUuid)
+
+      const type = 'audio'
+      let message = new Message(conversation, senderProfile, '', type, '')
+      message = await getConnection().getRepository(Message).save(message)
+
+      await rpcClient.media().sendAudioRecording({
+        task: 'upload-audio',
+        file: fileToSend,
+        conversationUuid: conversationUuid,
+        conversationType: conversationType,
+        senderProfileUuid: senderProfile.uuid,
+        senderProfileUsername: senderProfile?.username,
+        messageUuid: message.uuid,
+        participantUuids: participantUuidsArray ? participantUuidsArray : [],
+      })
+
+      return res.status(200).json(message)
+    } catch (e) {
+      console.error('Error saving voice recording:', e.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
   }
 
   static async handleGroupMessage(req: Request, res: Response) {

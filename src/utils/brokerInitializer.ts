@@ -61,8 +61,6 @@ async function initRPCClient() {
 }
 
 async function relayRPCRequest(channel, task, params) {
-  // await initRPCClient()
-
   try {
     return await client.rpcRequest(channel, task, params)
   } catch (e) {
@@ -72,10 +70,6 @@ async function relayRPCRequest(channel, task, params) {
 }
 
 async function mediaRPCRequest(channel, task, params) {
-  // console.log('mediaRPCRequest:', channel, task, params)
-
-  // await initRPCClient()
-
   try {
     return await client.rpcRequest(channel, task, params)
   } catch (e) {
@@ -86,8 +80,6 @@ async function mediaRPCRequest(channel, task, params) {
 
 async function searchRPCRequest(channel, task, params) {
   try {
-    // await initRPCClient()
-
     return await client.rpcRequest(channel, task, params)
   } catch (e) {
     console.log('error:', e)
@@ -147,15 +139,29 @@ function media() {
         return null
       }
     },
-    async sendAudioRecording({ file, readStream, task }) {
+    async sendAudioRecording({
+      file,
+      task,
+      conversationUuid,
+      conversationType,
+      senderProfileUuid,
+      senderProfileUsername,
+      messageUuid,
+      participantUuids = [],
+    }) {
       try {
         const mediaResponse = await mediaRPCRequest(
           channel,
           'UPLOAD_AUDIO_RECORDING',
           {
             file,
-            readStream,
             task,
+            conversationUuid,
+            conversationType,
+            senderProfileUsername,
+            senderProfileUuid,
+            messageUuid,
+            participantUuids,
           }
         )
 
