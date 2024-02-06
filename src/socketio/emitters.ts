@@ -121,6 +121,26 @@ class Emitters {
     })
   }
 
+  emitMessageDeleted(
+    senderUuid: String,
+    senderUsername: String,
+    recipientUuid: String,
+    recipientUsername: String,
+    conversationUuid: String,
+    messageUuid: String,
+    content: String
+  ) {
+    this.io.to(recipientUuid).emit('message-deleted', {
+      senderUuid,
+      senderUsername,
+      recipientUuid,
+      recipientUsername,
+      conversationUuid,
+      messageUuid,
+      content,
+    })
+  }
+
   emitAddedToGroup(
     senderUuid: String,
     senderUsername: String,

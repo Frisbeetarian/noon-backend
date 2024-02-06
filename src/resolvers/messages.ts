@@ -305,13 +305,6 @@ export class MessageResolver {
   ): Promise<Message | null> {
     try {
       const conversation = await Conversation.findOne(conversationUuid)
-      console.log('conversation:', conversation)
-      console.log('from:', from)
-      console.log(
-        'req.session.user.profile.uuid:',
-        req.session.user.profile.uuid
-      )
-      console.log('messageUuid:', messageUuid)
 
       if (conversation && from === req.session.user.profile.uuid) {
         // const messageRepository = getConnection().getRepository(Message)

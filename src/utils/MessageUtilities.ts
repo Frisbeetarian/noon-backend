@@ -21,8 +21,6 @@ export class MessageUtilities {
       const messageToUpdate: Message | undefined =
         await messageRepository.findOne(messageUuid)
 
-      console.log('message path:', filePath)
-      console.log('participantUuids:', participantUuids)
       if (messageToUpdate) {
         messageToUpdate.src = filePath
         messageToUpdate.type = type

@@ -88,11 +88,14 @@ class MessageController {
       const file = req.file
 
       const participantUuidsArray = participantUuids.split(',')
-      console.log('participantUuids iun save fil:', participantUuidsArray)
 
       const senderProfile = await Profile.findOne({
         where: { userId: req.session.userId },
       })
+
+      if (!senderProfile) {
+        return res.status(404).json({ error: 'Sender profile not found' })
+      }
 
       if (!file) {
         return res.status(400).json({ error: 'No file provided' })
@@ -132,8 +135,57 @@ class MessageController {
     }
   }
 
-  static async uploadVoiceRecording(req: Request, res: Response) {
-    // TODO: Implement file upload handling
+  static async saveVoiceRecording(req: Request, res: Response) {
+    try {
+      const { conversationUuid, conversationType, participantUuids } = req.body
+      const file = req.file
+
+      const participantUuidsArray = participantUuids.split(',')
+
+      if (!file) {
+        return res.status(400).json({ error: 'No voice recording provided' })
+      }
+
+      const senderProfile = await Profile.findOne({
+        where: { userId: req.session.userId },
+      })
+
+      if (!senderProfile) {
+        return res.status(404).json({ error: 'Sender profile not found' })
+      }
+
+      const fileBuffer = file.buffer
+      const filename = file.originalname
+      const mimeType = file.mimetype
+
+      const fileToSend = {
+        buffer: fileBuffer,
+        filename,
+        mimeType,
+      }
+
+      const conversation = await Conversation.findOne(conversationUuid)
+
+      const type = 'audio'
+      let message = new Message(conversation, senderProfile, '', type, '')
+      message = await getConnection().getRepository(Message).save(message)
+
+      await rpcClient.media().sendAudioRecording({
+        task: 'upload-audio',
+        file: fileToSend,
+        conversationUuid: conversationUuid,
+        conversationType: conversationType,
+        senderProfileUuid: senderProfile.uuid,
+        senderProfileUsername: senderProfile?.username,
+        messageUuid: message.uuid,
+        participantUuids: participantUuidsArray ? participantUuidsArray : [],
+      })
+
+      return res.status(200).json(message)
+    } catch (e) {
+      console.error('Error saving voice recording:', e.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
   }
 
   static async handleGroupMessage(req: Request, res: Response) {
@@ -223,7 +275,69 @@ class MessageController {
   }
 
   static async deleteMessage(req: Request, res: Response) {
-    // TODO: Implement delete message logic
+    try {
+      const { messageUuid, conversationUuid, from } = req.query
+
+      const conversation = await Conversation.findOne({
+        where: { uuid: conversationUuid },
+        relations: ['messages', 'conversationToProfiles'],
+      })
+
+      console.log('conversation:', conversation)
+
+      if (!conversation) {
+        return res.status(404).json({ error: 'Conversation not found' })
+      }
+
+      if (req.session.user.profile.uuid !== from) {
+        return res
+          .status(403)
+          .json({ error: 'Not authorized to delete this message' })
+      }
+
+      const message = await getConnection()
+        .createQueryBuilder()
+        .update(Message)
+        .set({
+          deleted: true,
+          content: 'Message has been deleted.',
+        })
+        .where('uuid = :messageUuid', {
+          messageUuid,
+        })
+        .returning('*')
+        .execute()
+
+      if (!message.affected) {
+        return res.status(404).json({ error: 'Message not found' })
+      }
+
+      const io = getIO()
+      const emitters = new Emitters(io)
+      console.log('message.uuid:', message.raw[0].uuid)
+      conversation.conversationToProfiles.forEach((profile) => {
+        if (profile.profileUuid !== req.session.user.profile.uuid) {
+          emitters.emitMessageDeleted(
+            req.session.user.profile.uuid,
+            req.session.user.profile.username,
+            profile.profileUuid,
+            profile.profileUsername,
+            conversation.uuid,
+            message.raw[0].uuid,
+            'Message has been deleted'
+          )
+        }
+      })
+
+      return res.status(200).json({
+        uuid: messageUuid,
+        content: 'Message has been deleted.',
+        deleted: true,
+      })
+    } catch (e) {
+      console.error('Error:', e.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
   }
 
   static async handleMessage(req: Request, res: Response) {
