@@ -150,20 +150,16 @@ function media() {
       participantUuids = [],
     }) {
       try {
-        const mediaResponse = await mediaRPCRequest(
-          channel,
-          'UPLOAD_AUDIO_RECORDING',
-          {
-            file,
-            task,
-            conversationUuid,
-            conversationType,
-            senderProfileUsername,
-            senderProfileUuid,
-            messageUuid,
-            participantUuids,
-          }
-        )
+        return await mediaRPCRequest(channel, 'UPLOAD_AUDIO_RECORDING', {
+          file,
+          task,
+          conversationUuid,
+          conversationType,
+          senderProfileUsername,
+          senderProfileUuid,
+          messageUuid,
+          participantUuids,
+        })
 
         return mediaResponse
       } catch (e) {
