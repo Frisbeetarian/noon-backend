@@ -111,8 +111,9 @@ class ConversationController {
 
   static async getMessagesForConversation(req: Request, res: Response) {
     try {
-      const { conversationUuid, limit, cursor } = req.query
-
+      const { conversationUuid } = req.params
+      const { limit, cursor } = req.query
+      // console.log('conversationUuid', conversationUuid)
       if (conversationUuid === null) {
         return res.json({
           messages: [],
