@@ -106,11 +106,11 @@ class UserController {
       return res.status(200).json(user)
     } catch (error) {
       if (error.code === '23505') {
-        return res.status(400).json({
+        return res.status(200).json({
           errors: [
             {
               field: 'username',
-              message: 'username already taken',
+              message: 'username or email already taken.',
             },
           ],
         })
@@ -125,8 +125,6 @@ class UserController {
     try {
       const { usernameOrEmail, password, rememberMe } = req.body
 
-      console.log('req bodu:', req.body)
-
       let user = await User.findOne(
         usernameOrEmail.includes('@')
           ? { where: { email: usernameOrEmail } }
@@ -134,27 +132,27 @@ class UserController {
       )
 
       if (!user) {
-        return {
+        return res.status(200).json({
           errors: [
             {
               field: 'usernameOrEmail',
-              message: 'that username doesnt exist',
+              message: 'Invalid credentials.',
             },
           ],
-        }
+        })
       }
 
       const valid = await argon2.verify(user.password, password)
 
       if (!valid) {
-        return {
+        return res.status(200).json({
           errors: [
             {
-              field: 'password',
-              message: 'incorrect password',
+              field: 'usernameOrEmail',
+              message: 'Invalid credentials.',
             },
           ],
-        }
+        })
       }
 
       let profile = await Profile.findOne({ where: { userId: user?.uuid } })
