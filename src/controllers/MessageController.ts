@@ -35,8 +35,6 @@ class MessageController {
       }
 
       replacements.push(conversationUuid)
-      console.log('cursor:', cursor)
-      console.log('replacements:', replacements)
 
       const messages = await getConnection().query(
         `
