@@ -106,7 +106,7 @@ class UserController {
       return res.status(200).json(user)
     } catch (error) {
       if (error.code === '23505') {
-        return res.status(200).json({
+        return res.status(409).json({
           errors: [
             {
               field: 'username',
@@ -132,7 +132,7 @@ class UserController {
       )
 
       if (!user) {
-        return res.status(200).json({
+        return res.status(401).json({
           errors: [
             {
               field: 'usernameOrEmail',
@@ -145,7 +145,7 @@ class UserController {
       const valid = await argon2.verify(user.password, password)
 
       if (!valid) {
-        return res.status(200).json({
+        return res.status(401).json({
           errors: [
             {
               field: 'usernameOrEmail',
