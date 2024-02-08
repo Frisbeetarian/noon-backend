@@ -123,7 +123,6 @@ function media() {
       participantUuids = [],
     }) {
       try {
-        // console.log('file in send iamge:', file)
         return await mediaRPCRequest(channel, 'UPLOAD_IMAGE', {
           file,
           task,
@@ -136,7 +135,7 @@ function media() {
         })
       } catch (e) {
         console.log('error:', e)
-        return null
+        return new Error('Error uploading image')
       }
     },
     async sendAudioRecording({
@@ -164,7 +163,7 @@ function media() {
         return mediaResponse
       } catch (e) {
         console.log('error:', e)
-        return null
+        return new Error('Error uploading audio recording')
       }
     },
   }

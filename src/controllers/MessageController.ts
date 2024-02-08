@@ -84,7 +84,6 @@ class MessageController {
     try {
       const { conversationUuid, conversationType, participantUuids } = req.body
       const file = req.file
-
       const participantUuidsArray = participantUuids.split(',')
 
       const senderProfile = await Profile.findOne({
