@@ -13,7 +13,10 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: fileSizeLimit },
   fileFilter: (req, file, cb) => {
-    if (!allowedExtensions.test(path.extname(file.originalname))) {
+    if (
+      !allowedExtensions.test(path.extname(file.originalname)) &&
+      file.mimetype !== 'audio/ogg'
+    ) {
       // @ts-ignore
       req.fileValidationError = 'Forbidden extension'
       // @ts-ignore
@@ -36,7 +39,7 @@ messageRouter.post(
     // @ts-ignore
     if (req.fileValidationError) {
       // @ts-ignore
-      return res.status(400).json({ error: req.fileValidationError })
+      return res.status(400).json({ error: 'File type not allowed' })
     } else if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     } else if (req.file.size > fileSizeLimit) {
@@ -56,7 +59,7 @@ messageRouter.post(
     // @ts-ignore
     if (req.fileValidationError) {
       // @ts-ignore
-      return res.status(400).json({ error: req.fileValidationError })
+      return res.status(400).json({ error: 'File type not allowed' })
     } else if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     } else if (req.file.size > fileSizeLimit) {
