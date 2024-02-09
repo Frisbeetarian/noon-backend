@@ -128,7 +128,7 @@ class MessageController {
         participantUuids: participantUuidsArray ? participantUuidsArray : [],
       })
 
-      return res.status(200)
+      return res.status(200).json('File uploaded.')
     } catch (e) {
       console.error('Error saving file:', e.message)
       return res.status(500).json({ error: 'Internal server error' })
