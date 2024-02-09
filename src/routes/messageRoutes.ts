@@ -14,7 +14,9 @@ const upload = multer({
   limits: { fileSize: fileSizeLimit },
   fileFilter: (req, file, cb) => {
     if (!allowedExtensions.test(path.extname(file.originalname))) {
+      // @ts-ignore
       req.fileValidationError = 'Forbidden extension'
+      // @ts-ignore
       return cb(null, false, req.fileValidationError)
     }
     cb(null, true)
@@ -29,8 +31,11 @@ messageRouter.get(
 messageRouter.post(
   '/uploadFile',
   upload.single('file'),
+  // @ts-ignore
   (req, res, next) => {
+    // @ts-ignore
     if (req.fileValidationError) {
+      // @ts-ignore
       return res.status(400).json({ error: req.fileValidationError })
     } else if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
@@ -46,8 +51,11 @@ messageRouter.post(
 messageRouter.post(
   '/uploadVoiceRecording',
   upload.single('file'),
+  // @ts-ignore
   (req, res, next) => {
+    // @ts-ignore
     if (req.fileValidationError) {
+      // @ts-ignore
       return res.status(400).json({ error: req.fileValidationError })
     } else if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
