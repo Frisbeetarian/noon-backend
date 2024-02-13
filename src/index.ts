@@ -11,6 +11,7 @@ import { createConnection } from 'typeorm'
 import path from 'path'
 const { instrument } = require('@socket.io/admin-ui')
 import { createServer } from 'http'
+import rateLimit from 'express-rate-limit'
 
 import { Profile } from './entities/Profile'
 import { Friend } from './entities/Friend'
