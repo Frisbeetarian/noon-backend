@@ -12,6 +12,12 @@ module.exports = function (
       prefix: 'login_limiter_',
     }),
     message: 'Too many login attempts. Please try again later.',
+    handler: (_req, res, _next, options) => {
+      res.status(options.statusCode).json({
+        error: options.message,
+        retryAfter: Math.ceil(options.windowMs / 1000),
+      })
+    },
   })
 
   const registerLimiter = rateLimit({
@@ -22,6 +28,12 @@ module.exports = function (
       prefix: 'register_limiter_',
     }),
     message: 'Too many registration attempts. Please try again later.',
+    handler: (_req, res, _next, options) => {
+      res.status(options.statusCode).json({
+        error: options.message,
+        retryAfter: Math.ceil(options.windowMs / 1000),
+      })
+    },
   })
 
   return { loginLimiter, registerLimiter }
