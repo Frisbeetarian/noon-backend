@@ -9,11 +9,9 @@ import connectRedis from 'connect-redis'
 import cors from 'cors'
 import { createConnection } from 'typeorm'
 import path from 'path'
-let socketIo = require('socket.io')
 const { instrument } = require('@socket.io/admin-ui')
 import { createServer } from 'http'
 
-import { Post } from './entities/Post'
 import { Profile } from './entities/Profile'
 import { Friend } from './entities/Friend'
 
@@ -28,14 +26,10 @@ import { initRPCClient } from './utils/brokerInitializer'
 import { __prod__ } from './constants'
 
 import { User } from './entities/User'
-import { Updoot } from './entities/Updoot'
 import { RedisMessageStore } from './socketio/messageStore'
 
 import connection from './socketio/connection'
 import Emitters from './socketio/emitters'
-import userRoutes from './routes/userRoutes'
-import conversationRoutes from './routes/conversationRoutes'
-import messageRoutes from './routes/messageRoutes'
 import { initSocketIO } from './socketio/socket'
 import profileRouter from './routes/profileRoutes'
 import conversationRouter from './routes/conversationRoutes'
@@ -95,17 +89,6 @@ const main = async () => {
 
   const io = initSocketIO(httpServer, redis)
 
-  // let io = socketIo(httpServer, {
-  //   cors: {
-  //     origin: process.env.CORS_ORIGIN,
-  //     methods: ['GET', 'POST'],
-  //   },
-  //   adapter: require('socket.io-redis')({
-  //     pubClient: redis,
-  //     subClient: redis.duplicate(),
-  //   }),
-  // })
-
   console.log(`Worker ${process.pid} started`)
 
   instrument(io, {
@@ -150,46 +133,6 @@ const main = async () => {
 
   // await conn.runMigrations()
 
-  // app.use(
-  //   graphqlUploadExpress({
-  //     maxFileSize: 10000000, // 10 MB
-  //     maxFiles: 20,
-  //   })
-  // )
-
-  // const apolloServer = new ApolloServer({
-  //   schema: await buildSchema({
-  //     resolvers: [
-  //       PostResolver,
-  //       UserResolver,
-  //       ProfileResolver,
-  //       SearchResolver,
-  //       ConversationResolver,
-  //       ConversationProfileResolver,
-  //       MessageResolver,
-  //     ],
-  //     validate: false,
-  //   }),
-  //   typeDefs: require('./typeDefs'),
-  //   context: ({ req, res }) => ({
-  //     req,
-  //     res,
-  //     redis,
-  //     io,
-  //     userLoader: createUserLoader(),
-  //     updootLoader: createUpdootLoader(),
-  //     messageLoader: createMessageLoader(),
-  //   }),
-  //   // uploads: false,
-  // })
-
-  // apolloServer.start().then((res) => {
-  //   apolloServer.applyMiddleware({
-  //     app,
-  //     cors: false,
-  //   })
-  //
-  // })
   app.use('/api/users', userRouter)
   app.use('/api/profiles', profileRouter)
   app.use('/api/conversations', conversationRouter)
@@ -199,8 +142,6 @@ const main = async () => {
   httpServer.listen(parseInt(process.env.PORT), () =>
     console.log(`server listening at http://localhost:${process.env.PORT}`)
   )
-
-  // const { RPCServer } = require('@noon/rabbit-mq-rpc/server')
 
   const connectionObject = {
     protocol: 'amqp',
@@ -283,19 +224,6 @@ const main = async () => {
             JSON.stringify(e)
           )
         })
-
-      //   console.log('RPC_CONNECTION_SUCCESSFUL', {
-      //     hostId: 'localhost',
-      //     queue: 'rpc_queue.noon.search-results',
-      //   })
-      // } catch (e) {
-      //   console.log('RPC_CONNECTION_FAILED', JSON.stringify(e))
-      //
-      //   setTimeout(() => {
-      //     console.error(e)
-      //     process.exit(1)
-      //   }, 2000)
-      // }
     } catch (e) {
       console.log('RPC Server initialization failed', JSON.stringify(e))
 

@@ -43,7 +43,6 @@ messageRouter.post(
     } else if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     } else if (req.file.size > fileSizeLimit) {
-      // This check is redundant due to multer's limits, but included for clarity
       return res.status(400).json({ error: 'File is too large' })
     }
     next()
@@ -63,7 +62,6 @@ messageRouter.post(
     } else if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     } else if (req.file.size > fileSizeLimit) {
-      // This check is redundant due to multer's limits, but included for clarity
       return res.status(400).json({ error: 'File is too large' })
     }
     next()
