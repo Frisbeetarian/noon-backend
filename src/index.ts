@@ -54,6 +54,14 @@ const main = async () => {
 
   app.set('trust proxy', 1)
 
+  const { loginLimiter, registerLimiter } = require('./middleware/rateLimiter')(
+    redis,
+    RedisStore
+  )
+
+  app.use('/api/users/register', registerLimiter)
+  app.use('/api/users/login', loginLimiter)
+
   console.log('process.env.CORS_ORIGIN:', process.env.CORS_ORIGIN)
   console.log('prod:', __prod__)
 
