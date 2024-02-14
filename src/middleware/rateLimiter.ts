@@ -11,7 +11,7 @@ const defaultSettings = {
 export const globalLimiter = rateLimit({
   ...defaultSettings,
   windowMs: 60 * 1000, // 1 minute
-  limit: 50,
+  limit: 150,
   store: new RedisStore({
     // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
     sendCommand: (...args: string[]) => redisClient.call(...args),
@@ -35,7 +35,7 @@ export const globalLimiter = rateLimit({
 export const messageLimiter = rateLimit({
   ...defaultSettings,
   windowMs: 60 * 1000, // 1 minute
-  limit: 10,
+  limit: 100,
   store: new RedisStore({
     // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
     sendCommand: (...args: string[]) => redisClient.call(...args),
