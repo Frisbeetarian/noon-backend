@@ -38,6 +38,13 @@ import messageRouter from './routes/messageRoutes'
 import searchRouter from './routes/searchRoutes'
 import { MessageUtilities } from './utils/MessageUtilities'
 
+import {
+  globalLimiter,
+  registerLimiter,
+  loginLimiter,
+  messageLimiter,
+} from './middleware/rateLimiter'
+
 const main = async () => {
   const app = express()
   const httpServer = createServer(app)
@@ -86,6 +93,12 @@ const main = async () => {
 
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
+
+  app.use(globalLimiter)
+  app.use('/api/users/register', registerLimiter)
+  app.use('/api/users/login', loginLimiter)
+  app.use('/api/messages/handleMessage', messageLimiter)
+  app.use('/api/messages/handleGroupMessage', messageLimiter)
 
   const io = initSocketIO(httpServer, redis)
 

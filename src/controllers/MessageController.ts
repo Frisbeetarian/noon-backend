@@ -111,7 +111,9 @@ class MessageController {
         mimeType,
       }
 
-      const conversation = await Conversation.findOne(conversationUuid)
+      const conversation = await Conversation.findOne({
+        where: { uuid: conversationUuid },
+      })
 
       const type = 'image'
       let message = new Message(conversation, senderProfile, '', type, '')
@@ -164,7 +166,9 @@ class MessageController {
         mimeType,
       }
 
-      const conversation = await Conversation.findOne(conversationUuid)
+      const conversation = await Conversation.findOne({
+        where: { uuid: conversationUuid },
+      })
 
       const type = 'audio'
       let message = new Message(conversation, senderProfile, '', type, '')
@@ -206,10 +210,9 @@ class MessageController {
       }
 
       const messageRepository = queryRunner.manager.getRepository(Message)
-      const conversation = await queryRunner.manager.findOne(
-        Conversation,
-        conversationUuid
-      )
+      const conversation = await queryRunner.manager.findOne(Conversation, {
+        where: { uuid: conversationUuid },
+      })
 
       if (!conversation) {
         await queryRunner.rollbackTransaction()
@@ -314,7 +317,6 @@ class MessageController {
 
       const io = getIO()
       const emitters = new Emitters(io)
-      console.log('message.uuid:', message.raw[0].uuid)
       conversation.conversationToProfiles.forEach((profile) => {
         if (profile.profileUuid !== req.session.user.profile.uuid) {
           emitters.emitMessageDeleted(
@@ -360,9 +362,12 @@ class MessageController {
       }
 
       const messageRepository = getConnection().getRepository(Message)
-      // const conversationRepository = getConnection().getRepository(Conversation)
+      console.log('message.uuid:', message)
 
-      const conversation = await Conversation.findOne(conversationUuid)
+      const conversation = await Conversation.findOne({
+        where: { uuid: conversationUuid },
+      })
+
       const conversationToProfile = await ConversationToProfile.findOne({
         where: {
           conversationUuid: conversationUuid,
