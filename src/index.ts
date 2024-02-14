@@ -11,7 +11,6 @@ import { createConnection } from 'typeorm'
 import path from 'path'
 const { instrument } = require('@socket.io/admin-ui')
 import { createServer } from 'http'
-import rateLimit from 'express-rate-limit'
 
 import { Profile } from './entities/Profile'
 import { Friend } from './entities/Friend'
@@ -39,6 +38,13 @@ import messageRouter from './routes/messageRoutes'
 import searchRouter from './routes/searchRoutes'
 import { MessageUtilities } from './utils/MessageUtilities'
 
+import {
+  globalLimiter,
+  registerLimiter,
+  loginLimiter,
+  messageLimiter,
+} from './middleware/rateLimiter'
+
 const main = async () => {
   const app = express()
   const httpServer = createServer(app)
@@ -53,14 +59,6 @@ const main = async () => {
   const messageStore = new RedisMessageStore(redis)
 
   app.set('trust proxy', 1)
-
-  const { loginLimiter, registerLimiter } = require('./middleware/rateLimiter')(
-    redis,
-    RedisStore
-  )
-
-  app.use('/api/users/register', registerLimiter)
-  app.use('/api/users/login', loginLimiter)
 
   console.log('process.env.CORS_ORIGIN:', process.env.CORS_ORIGIN)
   console.log('prod:', __prod__)
@@ -95,6 +93,12 @@ const main = async () => {
 
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
+
+  app.use(globalLimiter)
+  app.use('/api/users/register', registerLimiter)
+  app.use('/api/users/login', loginLimiter)
+  app.use('/api/messages/handleMessage', messageLimiter)
+  app.use('/api/messages/handleGroupMessage', messageLimiter)
 
   const io = initSocketIO(httpServer, redis)
 
