@@ -3,18 +3,12 @@ import { Request, Response } from 'express'
 import { User } from '../entities/User'
 import { validateRegister } from '../utils/validateRegister'
 import argon2 from 'argon2'
-// import { UsernamePasswordInput } from './UsernamePasswordInput'
-// import { FORGET_PASSWORD_PREFIX } from '../constants'
-// import { sendEmail } from '../utils/sendEmail'
-// import { v4 } from 'uuid'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
 import {
   getFriendRequestsForProfile,
   getFriendsForProfile,
 } from '../neo4j/neo4j_calls/neo4j_api'
-import * as process from 'process'
-import { __prod__ } from '../constants'
 
 class UserController {
   static async me(req: Request, res: Response) {
@@ -91,7 +85,7 @@ class UserController {
         .returning('*')
         .execute()
 
-      user = await User.findOne({ where: { uuid: result.raw[0].uuid } })
+      user = await User.findOne(result.raw[0].uuid)
 
       let profile = await Profile.findOne({ where: { userId: user?.uuid } })
 
