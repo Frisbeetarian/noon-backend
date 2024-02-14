@@ -27,7 +27,11 @@ class ProfileController {
         return res.status(400).json({ error: 'Missing profileUuid' })
       }
 
-      const profile = await Profile.findOne(profileUuid)
+      const profile = await Profile.findOne({
+        where: {
+          uuid: profileUuid,
+        },
+      })
 
       if (!profile) {
         return res.status(404).json({ error: 'Profile not found' })
@@ -81,7 +85,6 @@ class ProfileController {
   static async sendFriendRequest(req: Request, res: Response) {
     try {
       const { profileUuid } = req.body
-      console.log('req.body in send friend request: ', profileUuid)
       const senderProfile = await Profile.findOne({
         where: { userId: req.session.userId },
       })
@@ -89,8 +92,13 @@ class ProfileController {
       if (!senderProfile) {
         return res.status(404).json({ error: 'Sender profile not found' })
       }
+      console.log('profileUuid: ', profileUuid)
 
-      const recipientProfile = await Profile.findOne(profileUuid)
+      const recipientProfile = await Profile.findOne({
+        where: { uuid: profileUuid },
+      })
+
+      console.log('recipientProfile: ', recipientProfile)
 
       if (recipientProfile) {
         await sendFriendRequest(
@@ -159,7 +167,9 @@ class ProfileController {
         return res.status(404).json({ error: 'Sender profile not found' })
       }
 
-      const recipientProfile = await Profile.findOne(profileUuid)
+      const recipientProfile = await Profile.findOne({
+        where: { uuid: profileUuid },
+      })
 
       if (!recipientProfile) {
         return res.status(404).json({ error: 'Recipient profile not found' })
@@ -203,7 +213,9 @@ class ProfileController {
         return res.status(404).json({ error: 'Recipient profile not found' })
       }
 
-      const recipientProfile = await Profile.findOne(profileUuid)
+      const recipientProfile = await Profile.findOne({
+        where: { uuid: profileUuid },
+      })
 
       if (!recipientProfile) {
         return res.status(404).json({ error: 'Sender profile not found' })
@@ -314,7 +326,9 @@ class ProfileController {
         return res.status(404).json({ error: 'Sender profile not found' })
       }
 
-      const recipientProfile = await Profile.findOne(profileUuid)
+      const recipientProfile = await Profile.findOne({
+        where: { uuid: profileUuid },
+      })
 
       if (!recipientProfile) {
         return res.status(404).json({ error: 'Recipient profile not found' })

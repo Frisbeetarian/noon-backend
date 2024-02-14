@@ -1,28 +1,12 @@
 import { rateLimit } from 'express-rate-limit'
 import { RedisStore } from 'rate-limit-redis'
+
 import redisClient from '../config/redisClient'
+
 const defaultSettings = {
   standardHeaders: true,
   legacyHeaders: false,
 }
-
-export const messageLimiter = rateLimit({
-  ...defaultSettings,
-  windowMs: 60 * 1000, // 1 minute
-  limit: 100,
-  store: new RedisStore({
-    // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
-    sendCommand: (...args: string[]) => redisClient.call(...args),
-    prefix: 'message_limiter_',
-  }),
-  message: 'Too many message attempts. Please try again later.',
-  handler: (_req, res, _next, options) => {
-    res.status(options.statusCode).json({
-      error: options.message,
-      retryAfter: Math.ceil(options.windowMs / 1000),
-    })
-  },
-})
 
 export const globalLimiter = rateLimit({
   ...defaultSettings,
@@ -46,6 +30,24 @@ export const globalLimiter = rateLimit({
       '/api/users/register',
       '/api/users/login',
     ].includes(req.baseUrl),
+})
+
+export const messageLimiter = rateLimit({
+  ...defaultSettings,
+  windowMs: 60 * 1000, // 1 minute
+  limit: 10,
+  store: new RedisStore({
+    // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
+    sendCommand: (...args: string[]) => redisClient.call(...args),
+    prefix: 'message_limiter_',
+  }),
+  message: 'Too many message attempts. Please try again later.',
+  handler: (_req, res, _next, options) => {
+    res.status(options.statusCode).json({
+      error: options.message,
+      retryAfter: Math.ceil(options.windowMs / 1000),
+    })
+  },
 })
 
 export const loginLimiter = rateLimit({
