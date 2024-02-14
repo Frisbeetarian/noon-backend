@@ -94,11 +94,11 @@ const main = async () => {
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
 
-  app.use(globalLimiter)
-  app.use('/api/users/register', registerLimiter)
-  app.use('/api/users/login', loginLimiter)
+  // app.use(globalLimiter)
+  // app.use('/api/users/register', registerLimiter)
+  // app.use('/api/users/login', loginLimiter)
   app.use('/api/messages/handleMessage', messageLimiter)
-  app.use('/api/messages/handleGroupMessage', messageLimiter)
+  // app.use('/api/messages/handleGroupMessage', messageLimiter)
 
   const io = initSocketIO(httpServer, redis)
 
