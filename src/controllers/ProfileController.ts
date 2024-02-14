@@ -98,8 +98,6 @@ class ProfileController {
         where: { uuid: profileUuid },
       })
 
-      console.log('recipientProfile: ', recipientProfile)
-
       if (recipientProfile) {
         await sendFriendRequest(
           senderProfile?.uuid,

@@ -91,7 +91,7 @@ class UserController {
         .returning('*')
         .execute()
 
-      user = await User.findOne(result.raw[0].uuid)
+      user = await User.findOne({ where: { uuid: result.raw[0].uuid } })
 
       let profile = await Profile.findOne({ where: { userId: user?.uuid } })
 

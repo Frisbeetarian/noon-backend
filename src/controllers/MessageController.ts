@@ -111,7 +111,9 @@ class MessageController {
         mimeType,
       }
 
-      const conversation = await Conversation.findOne(conversationUuid)
+      const conversation = await Conversation.findOne({
+        where: { uuid: conversationUuid },
+      })
 
       const type = 'image'
       let message = new Message(conversation, senderProfile, '', type, '')
@@ -164,7 +166,9 @@ class MessageController {
         mimeType,
       }
 
-      const conversation = await Conversation.findOne(conversationUuid)
+      const conversation = await Conversation.findOne({
+        where: { uuid: conversationUuid },
+      })
 
       const type = 'audio'
       let message = new Message(conversation, senderProfile, '', type, '')
@@ -206,10 +210,9 @@ class MessageController {
       }
 
       const messageRepository = queryRunner.manager.getRepository(Message)
-      const conversation = await queryRunner.manager.findOne(
-        Conversation,
-        conversationUuid
-      )
+      const conversation = await queryRunner.manager.findOne(Conversation, {
+        where: { uuid: conversationUuid },
+      })
 
       if (!conversation) {
         await queryRunner.rollbackTransaction()
