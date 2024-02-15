@@ -11,6 +11,7 @@ import {
   getFriendRequestsForProfile,
   getFriendsForProfile,
 } from '../neo4j/neo4j_calls/neo4j_api'
+import { encryptPassphrase } from './passphraseManager'
 
 class UserController {
   static async me(req: Request, res: Response) {
