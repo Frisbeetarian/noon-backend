@@ -25,6 +25,12 @@ export class User extends BaseEntity {
   @Column()
   password!: string
 
+  @Column({ type: 'text' })
+  publicKey!: string
+
+  @Column({ type: 'text' })
+  encryptedPrivateKey!: string
+
   @Column({ nullable: true })
   profileId?: string
 
