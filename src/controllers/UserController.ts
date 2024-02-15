@@ -8,6 +8,7 @@ import argon2 from 'argon2'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
 import {
+  checkFriendship,
   getFriendRequestsForProfile,
   getFriendsForProfile,
 } from '../neo4j/neo4j_calls/neo4j_api'
@@ -207,6 +208,14 @@ class UserController {
       return res.status(401).json({ error: 'Not authenticated' })
     }
 
+    const senderProfile = await Profile.findOne({
+      where: { userId: req.session.userId },
+    })
+
+    if (!senderProfile) {
+      return res.status(404).json({ error: 'Profile not found.' })
+    }
+
     const { uuid } = req.params
 
     try {
@@ -215,7 +224,16 @@ class UserController {
         return res.status(404).json({ error: 'User not found.' })
       }
 
-      // Depending on your security model, you might want to check if the requester has permission to fetch this key
+      const areFriends = await checkFriendship(
+        senderProfile?.uuid,
+        user.profile.uuid
+      )
+
+      if (!areFriends) {
+        return res
+          .status(403)
+          .json({ error: 'You are not friends with this user.' })
+      }
 
       return res.json({ publicKey: user.publicKey })
     } catch (error) {
