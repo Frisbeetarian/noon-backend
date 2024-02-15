@@ -8,12 +8,12 @@ import {
 // Function to derive a key from the user's password
 export function deriveKey(password) {
   const salt = randomBytes(16)
+
   // Using scrypt for key derivation
   const key = scryptSync(password, salt, 32)
   return { key, salt }
 }
 
-// Encrypt the passphrase
 export function encryptPassphrase(passphrase, password) {
   const { key, salt } = deriveKey(password)
   const iv = randomBytes(16)
@@ -23,7 +23,6 @@ export function encryptPassphrase(passphrase, password) {
   encrypted += cipher.final('hex')
   const tag = cipher.getAuthTag().toString('hex')
 
-  // You will need to store the `iv`, `salt`, `tag`, and `encrypted` passphrase securely
   return { iv: iv.toString('hex'), salt: salt.toString('hex'), tag, encrypted }
 }
 

@@ -11,7 +11,8 @@ import {
   getFriendRequestsForProfile,
   getFriendsForProfile,
 } from '../neo4j/neo4j_calls/neo4j_api'
-import { encryptPassphrase } from './passphraseManager'
+import { generateUserKeys } from '../utils/generateUserKeys'
+import { encryptPassphrase } from '../utils/passphraseManager'
 
 class UserController {
   static async me(req: Request, res: Response) {
@@ -75,16 +76,17 @@ class UserController {
     try {
       const hashedPassword = await argon2.hash(options.password)
 
-      // Generate RSA key pair
-      const { publicKey, privateKey } = generateKeyPairSync('rsa', {
-        modulusLength: 2048,
-        publicKeyEncoding: { type: 'spki', format: 'pem' },
-        privateKeyEncoding: {
-          type: 'pkcs8',
-          format: 'pem',
-          cipher: 'aes-256-cbc',
-          passphrase: 'kjbkjbkvhvg888ijo',
-        },
+      const { publicKey, privateKey, passphrase } = generateUserKeys()
+      const encryptedPassphraseData = encryptPassphrase(
+        passphrase,
+        options.password
+      )
+
+      const encryptedPassphraseDetails = JSON.stringify({
+        iv: encryptedPassphraseData.iv,
+        salt: encryptedPassphraseData.salt,
+        tag: encryptedPassphraseData.tag,
+        encrypted: encryptedPassphraseData.encrypted,
       })
 
       let user
@@ -99,6 +101,7 @@ class UserController {
           email: options.email,
           publicKey: publicKey,
           encryptedPrivateKey: privateKey,
+          encryptedPassphraseDetails: encryptedPassphraseDetails,
         })
         .returning('*')
         .execute()
