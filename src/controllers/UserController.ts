@@ -201,6 +201,28 @@ class UserController {
       return res.status(200).json({ message: 'Logged out successfully' })
     })
   }
+
+  static async getPublicKeyByUuid(req: Request, res: Response) {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not authenticated' })
+    }
+
+    const { uuid } = req.params
+
+    try {
+      const user = await User.findOne({ where: { uuid } })
+      if (!user) {
+        return res.status(404).json({ error: 'User not found.' })
+      }
+
+      // Depending on your security model, you might want to check if the requester has permission to fetch this key
+
+      return res.json({ publicKey: user.publicKey })
+    } catch (error) {
+      console.error('Error fetching public key:', error.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
 }
 
 export default UserController
