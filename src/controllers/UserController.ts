@@ -1,5 +1,7 @@
 // @ts-nocheck
 import { Request, Response } from 'express'
+import generateKeyPairSync from 'crypto'
+
 import { User } from '../entities/User'
 import { validateRegister } from '../utils/validateRegister'
 import argon2 from 'argon2'
@@ -80,7 +82,7 @@ class UserController {
           type: 'pkcs8',
           format: 'pem',
           cipher: 'aes-256-cbc',
-          passphrase: 'your-secure-passphrase',
+          passphrase: 'kjbkjbkvhvg888ijo',
         },
       })
 
