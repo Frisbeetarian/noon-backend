@@ -50,15 +50,7 @@ class UserController {
         return res.status(401).json({ error: 'Not authenticated' })
       }
 
-      return res.status(200).json({
-        uuid: user.uuid,
-        username: user.username,
-        email: user.email,
-        profile: user.profile,
-        publicKey: user.publicKey,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      })
+      return res.status(200).json(user)
     } catch (e) {
       console.error('Register Error:', e.message)
       return res.status(500).json({ error: 'Internal server error' })
@@ -80,21 +72,9 @@ class UserController {
     if (errors) {
       return res.status(400).json({ errors })
     }
+
     try {
       const hashedPassword = await argon2.hash(options.password)
-
-      const { publicKey, privateKey, passphrase } = generateUserKeys()
-      const encryptedPassphraseData = encryptPassphrase(
-        passphrase,
-        options.password
-      )
-
-      const encryptedPassphraseDetails = JSON.stringify({
-        iv: encryptedPassphraseData.iv,
-        salt: encryptedPassphraseData.salt,
-        tag: encryptedPassphraseData.tag,
-        encrypted: encryptedPassphraseData.encrypted,
-      })
 
       let user
 
@@ -106,9 +86,7 @@ class UserController {
           username: options.username,
           password: hashedPassword,
           email: options.email,
-          publicKey: publicKey,
-          encryptedPrivateKey: privateKey,
-          encryptedPassphraseDetails: encryptedPassphraseDetails,
+          publicKey: options.publicKey,
         })
         .returning('*')
         .execute()
