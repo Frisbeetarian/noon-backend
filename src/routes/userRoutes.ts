@@ -8,6 +8,6 @@ userRouter.get('/me', UserController.me)
 userRouter.post('/register', UserController.register)
 userRouter.post('/login', UserController.login)
 userRouter.post('/logout', UserController.logout)
-userRouter.get('/publicKey/:Uuid', UserController.getPublicKeyByUuid)
+userRouter.get('/publicKeys', UserController.getFriendsPublicKey)
 
 export default userRouter

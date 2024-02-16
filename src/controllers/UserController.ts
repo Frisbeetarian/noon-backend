@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { Request, Response } from 'express'
-import { generateKeyPairSync } from 'crypto'
 
 import { User } from '../entities/User'
 import { validateRegister } from '../utils/validateRegister'
@@ -22,7 +21,6 @@ class UserController {
         return res.status(401).json({ error: 'Not authenticated' })
       }
 
-      // Get user from database
       let user = await getConnection()
         .getRepository(User)
         .createQueryBuilder('user')
@@ -52,7 +50,15 @@ class UserController {
         return res.status(401).json({ error: 'Not authenticated' })
       }
 
-      return res.status(200).json(user)
+      return res.status(200).json({
+        uuid: user.uuid,
+        username: user.username,
+        email: user.email,
+        profile: user.profile,
+        publicKey: user.publicKey,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })
     } catch (e) {
       console.error('Register Error:', e.message)
       return res.status(500).json({ error: 'Internal server error' })
@@ -203,7 +209,7 @@ class UserController {
     })
   }
 
-  static async getPublicKeyByUuid(req: Request, res: Response) {
+  static async getFriendsPublicKey(req: Request, res: Response) {
     if (!req.session.userId) {
       return res.status(401).json({ error: 'Not authenticated' })
     }
@@ -216,28 +222,25 @@ class UserController {
       return res.status(404).json({ error: 'Profile not found.' })
     }
 
-    const { uuid } = req.params
-
     try {
-      const user = await User.findOne({ where: { uuid } })
-      if (!user) {
-        return res.status(404).json({ error: 'User not found.' })
+      const friendsArray = await getFriendsForProfile(senderProfile.uuid)
+      let publicKeys = []
+
+      if (friendsArray.length !== 0) {
+        publicKeys = friendsArray.map(async (friend) => {
+          const friendUser = await User.findOne({
+            where: { profileUuid: friend.uuid },
+          })
+
+          return { uuid: friend.uuid, publicKey: friendUser.publicKey }
+        })
+      } else {
+        return res.status(404).json({ error: 'No friends found.' })
       }
 
-      const areFriends = await checkFriendship(
-        senderProfile?.uuid,
-        user.profile.uuid
-      )
-
-      if (!areFriends) {
-        return res
-          .status(403)
-          .json({ error: 'You are not friends with this user.' })
-      }
-
-      return res.json({ publicKey: user.publicKey })
+      return res.json(publicKeys)
     } catch (error) {
-      console.error('Error fetching public key:', error.message)
+      console.error('Error fetching public keys:', error.message)
       return res.status(500).json({ error: 'Internal server error' })
     }
   }
