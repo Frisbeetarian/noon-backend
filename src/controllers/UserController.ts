@@ -244,6 +244,50 @@ class UserController {
       return res.status(500).json({ error: 'Internal server error' })
     }
   }
+
+  static async getPublicKeyByProfileUuid(req: Request, res: Response) {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not authenticated' })
+    }
+
+    const senderProfile = await Profile.findOne({
+      where: { userId: req.session.userId },
+    })
+
+    if (!senderProfile) {
+      return res.status(404).json({ error: 'Profile not found.' })
+    }
+
+    try {
+      const { uuid } = req.params
+      const recipientProfile = await Profile.findOne({
+        where: { uuid },
+      })
+
+      if (recipientProfile) {
+        const areFriends = await checkFriendship(
+          senderProfile.uuid,
+          recipientProfile.uuid
+        )
+
+        if (!areFriends) {
+          return res.status(401).json({ error: 'Not authorized' })
+        }
+
+        return res.json({
+          uuid: recipientProfile.uuid,
+          publicKey: recipientProfile.user?.publicKey,
+        })
+      } else {
+        return res.status(404).json({ error: 'Profile not found.' })
+      }
+
+      return res.json(publicKeys)
+    } catch (error) {
+      console.error('Error fetching public key:', error.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
 }
 
 export default UserController

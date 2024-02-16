@@ -9,5 +9,6 @@ userRouter.post('/register', UserController.register)
 userRouter.post('/login', UserController.login)
 userRouter.post('/logout', UserController.logout)
 userRouter.get('/publicKeys', UserController.getFriendsPublicKey)
+userRouter.get('/publicKeys/:uuid', UserController.getPublicKeyByProfileUuid)
 
 export default userRouter
