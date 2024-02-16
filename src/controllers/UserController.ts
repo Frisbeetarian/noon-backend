@@ -224,21 +224,29 @@ class UserController {
 
     try {
       const friendsArray = await getFriendsForProfile(senderProfile.uuid)
-      let publicKeys = []
 
-      if (friendsArray.length !== 0) {
-        publicKeys = friendsArray.map(async (friend) => {
+      if (friendsArray.length === 0) {
+        return res.status(404).json({ error: 'No friends found.' })
+      }
+
+      const publicKeys = await Promise.all(
+        friendsArray.map(async (friend) => {
           const friendUser = await User.findOne({
             where: { profileUuid: friend.uuid },
           })
 
+          if (!friendUser) {
+            console.error(`User not found for UUID: ${friend.uuid}`)
+            return null
+          }
+
           return { uuid: friend.uuid, publicKey: friendUser.publicKey }
         })
-      } else {
-        return res.status(404).json({ error: 'No friends found.' })
-      }
+      )
 
-      return res.json(publicKeys)
+      const filteredPublicKeys = publicKeys.filter((pk) => pk !== null)
+
+      return res.status(200).json(filteredPublicKeys)
     } catch (error) {
       console.error('Error fetching public keys:', error.message)
       return res.status(500).json({ error: 'Internal server error' })
