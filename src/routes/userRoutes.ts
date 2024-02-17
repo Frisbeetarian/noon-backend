@@ -8,6 +8,7 @@ userRouter.get('/me', UserController.me)
 userRouter.post('/register', UserController.register)
 userRouter.post('/login', UserController.login)
 userRouter.post('/logout', UserController.logout)
+userRouter.post('/validatePassword', UserController.validatePassword)
 userRouter.get('/publicKeys', UserController.getFriendsPublicKey)
 userRouter.get('/publicKeys/:uuid', UserController.getPublicKeyByProfileUuid)
 

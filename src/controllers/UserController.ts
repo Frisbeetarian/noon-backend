@@ -75,7 +75,6 @@ class UserController {
 
     try {
       const hashedPassword = await argon2.hash(options.password)
-
       let user
 
       const result = await getConnection()
@@ -271,6 +270,28 @@ class UserController {
       return res.json(publicKeys)
     } catch (error) {
       console.error('Error fetching public key:', error.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
+  static async validatePassword(req: Request, res: Response) {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not authenticated' })
+    }
+
+    try {
+      const { password } = req.body
+      const user = await User.findOne({ where: { uuid: req.session.userId } })
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found.' })
+      }
+
+      const valid = await argon2.verify(user.password, password)
+
+      return res.status(200).json({ valid })
+    } catch (error) {
+      console.error('Error validating password:', error.message)
       return res.status(500).json({ error: 'Internal server error' })
     }
   }
