@@ -33,6 +33,9 @@ export class Message extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   uuid?: string
 
+  @Column({ nullable: true })
+  encryptedKey?: string
+
   @ManyToOne(() => Profile, (profile) => profile.senderMessages, {
     eager: true,
   })

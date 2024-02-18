@@ -266,8 +266,6 @@ class UserController {
       } else {
         return res.status(404).json({ error: 'Profile not found.' })
       }
-
-      return res.json(publicKeys)
     } catch (error) {
       console.error('Error fetching public key:', error.message)
       return res.status(500).json({ error: 'Internal server error' })
