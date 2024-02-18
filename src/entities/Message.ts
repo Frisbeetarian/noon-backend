@@ -10,6 +10,7 @@ import {
 
 import { Profile } from './Profile'
 import { Conversation } from './Conversation'
+import { EncryptedKey } from './EncryptedKey'
 
 @Entity()
 export class Message extends BaseEntity {
@@ -33,9 +34,6 @@ export class Message extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   uuid?: string
 
-  @Column({ nullable: true })
-  encryptedKey?: string
-
   @ManyToOne(() => Profile, (profile) => profile.senderMessages, {
     eager: true,
   })
@@ -58,6 +56,11 @@ export class Message extends BaseEntity {
 
   @ManyToOne(() => Conversation, (Conversation) => Conversation.messages)
   conversation: Conversation
+
+  @OneToMany(() => EncryptedKey, (encryptedKey) => encryptedKey.message, {
+    cascade: true,
+  })
+  encryptedKeys: EncryptedKey[]
 
   @UpdateDateColumn()
   updatedAt: Date
