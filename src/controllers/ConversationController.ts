@@ -8,6 +8,7 @@ import { Message } from '../entities/Message'
 import { getIO } from '../socketio/socket'
 import Emitters from '../socketio/emitters'
 import { checkFriendship } from '../neo4j/neo4j_calls/neo4j_api'
+import { EncryptedKey } from '../entities/EncryptedKey'
 
 class ConversationController {
   static async getConversationsForLoggedInUser(req: Request, res: Response) {
@@ -45,6 +46,16 @@ class ConversationController {
             }),
           ])
 
+          console.log('loggedInProfileUuid:', loggedInProfileUuid)
+
+          const [encryptedKeys] = await Promise.all([
+            EncryptedKey.find({
+              where: {
+                recipientUuid: loggedInProfileUuid,
+              },
+            }),
+          ])
+
           const messagesToSend = messages.map((message) => ({
             uuid: message.uuid,
             content: message.content,
@@ -53,12 +64,13 @@ class ConversationController {
             deleted: message.deleted,
             updatedAt: message.updatedAt,
             createdAt: message.createdAt,
+            encryptedKey: encryptedKeys[0].encryptedKey,
             sender: {
               uuid: message.sender.uuid,
               username: message.sender.username,
             },
           }))
-
+          console.log('messagesToSend:', messagesToSend)
           // const callsToSend = calls.map((call) => ({
           //   profileUuid: call.profile.uuid,
           //   profileUsername: call.profile.username,

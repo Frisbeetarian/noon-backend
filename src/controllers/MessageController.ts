@@ -66,6 +66,7 @@ class MessageController {
           updatedAt: message.updatedAt,
           createdAt: message.createdAt,
           deleted: message.deleted,
+          encryptedKeys: message.encryptedKeys,
           sender: {
             uuid: message.senderUuid,
             username: message.username,
@@ -422,7 +423,7 @@ class MessageController {
 
         for (const keyInfo of encryptedKeys) {
           let saveEncryptedKey = new EncryptedKey()
-          saveEncryptedKey.encryptedKey = keyInfo.key
+          saveEncryptedKey.encryptedKey = keyInfo.key[0]
           saveEncryptedKey.recipientUuid = keyInfo.uuid
           saveEncryptedKey.message = result
           await encryptedKeyRepository.save(saveEncryptedKey)
