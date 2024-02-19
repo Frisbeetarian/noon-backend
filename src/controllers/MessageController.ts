@@ -377,7 +377,6 @@ class MessageController {
 
       if (conversation) {
         const session = await sessionStore.findSession(recipientUuid)
-        // console.log('session on save message:', session)
 
         if (!session?.connected) {
           await getConnection()
