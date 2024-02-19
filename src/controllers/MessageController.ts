@@ -428,19 +428,26 @@ class MessageController {
           await encryptedKeyRepository.save(saveEncryptedKey)
         }
 
-        const io = getIO()
-        const emitters = new Emitters(io)
-        const content = senderProfile.username + ' sent you a message.'
-
-        emitters.emitSendMessage(
-          senderProfile.uuid,
-          senderProfile.username,
-          recipientUuid,
-          recipientUsername,
-          conversationUuid,
-          content,
-          result
+        const recipientEncryptedKey = encryptedKeys.find(
+          (keyInfo) => keyInfo.uuid === recipientUuid
         )
+
+        if (recipientEncryptedKey) {
+          const io = getIO()
+          const emitters = new Emitters(io)
+          const content = senderProfile.username + ' sent you a message.'
+
+          emitters.emitSendMessage(
+            senderProfile.uuid,
+            senderProfile.username,
+            recipientUuid,
+            recipientUsername,
+            conversationUuid,
+            content,
+            result,
+            recipientEncryptedKey.key
+          )
+        }
 
         return res.status(200).json(result)
       } else {

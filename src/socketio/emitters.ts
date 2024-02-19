@@ -86,7 +86,8 @@ class Emitters {
     recipientUsername: String,
     conversationUuid: String,
     content: String,
-    message: Message
+    message: Message,
+    encryptedKey: String
   ) {
     this.io.to(recipientUuid).emit('send-message', {
       senderUuid,
@@ -96,6 +97,7 @@ class Emitters {
       conversationUuid,
       content,
       message,
+      encryptedKey,
     })
   }
 
