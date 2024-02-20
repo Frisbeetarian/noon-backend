@@ -427,6 +427,7 @@ class MessageController {
           saveEncryptedKey.encryptedKey = keyInfo.key
           saveEncryptedKey.recipientUuid = keyInfo.uuid
           saveEncryptedKey.message = result
+          saveEncryptedKey.iv = keyInfo.iv
           await encryptedKeyRepository.save(saveEncryptedKey)
         }
 
