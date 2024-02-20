@@ -421,9 +421,10 @@ class MessageController {
 
         const result = await messageRepository.save(saveMessage)
 
+        console.log('encryptedKeys:', encryptedKeys)
         for (const keyInfo of encryptedKeys) {
           let saveEncryptedKey = new EncryptedKey()
-          saveEncryptedKey.encryptedKey = keyInfo.key[0]
+          saveEncryptedKey.encryptedKey = keyInfo.key
           saveEncryptedKey.recipientUuid = keyInfo.uuid
           saveEncryptedKey.message = result
           await encryptedKeyRepository.save(saveEncryptedKey)

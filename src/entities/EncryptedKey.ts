@@ -18,6 +18,9 @@ export class EncryptedKey extends BaseEntity {
   encryptedKey: string
 
   @Column()
+  iv: string
+
+  @Column()
   recipientUuid: string
 
   @ManyToOne(() => Message, (message) => message.encryptedKeys)
