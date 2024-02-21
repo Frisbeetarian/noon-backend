@@ -17,8 +17,8 @@ export class EncryptedKey extends BaseEntity {
   @Column()
   encryptedKey: string
 
-  // @Column()
-  // iv: string
+  @Column()
+  conversationUuid: string
 
   @Column()
   recipientUuid: string

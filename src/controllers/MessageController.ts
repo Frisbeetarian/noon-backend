@@ -373,14 +373,14 @@ class MessageController {
         where: { uuid: conversationUuid },
       })
 
-      const conversationToProfile = await ConversationToProfile.findOne({
-        where: {
-          conversationUuid: conversationUuid,
-          profileUuid: recipientUuid,
-        },
-      })
-
       if (conversation) {
+        const conversationToProfile = await ConversationToProfile.findOne({
+          where: {
+            conversationUuid: conversation.uuid,
+            profileUuid: recipientUuid,
+          },
+        })
+
         const session = await sessionStore.findSession(recipientUuid)
 
         if (!session?.connected) {
@@ -426,6 +426,7 @@ class MessageController {
           let saveEncryptedKey = new EncryptedKey()
           saveEncryptedKey.encryptedKey = keyInfo.key
           saveEncryptedKey.recipientUuid = keyInfo.uuid
+          saveEncryptedKey.conversationUuid = conversation.uuid
           saveEncryptedKey.message = result
           await encryptedKeyRepository.save(saveEncryptedKey)
         }
@@ -444,7 +445,7 @@ class MessageController {
             senderProfile.username,
             recipientUuid,
             recipientUsername,
-            conversationUuid,
+            conversation.uuids,
             content,
             result,
             recipientEncryptedKey.key
