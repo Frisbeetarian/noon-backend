@@ -421,7 +421,7 @@ class MessageController {
 
         const result = await messageRepository.save(saveMessage)
 
-        let senderEncryptedKey
+        let senderEncryptedKey, recipientEncryptedKey
         for (const keyInfo of encryptedKeys) {
           let saveEncryptedKey = new EncryptedKey()
           saveEncryptedKey.encryptedKey = keyInfo.key
@@ -432,12 +432,14 @@ class MessageController {
 
           if (keyInfo.uuid === senderProfile.uuid) {
             senderEncryptedKey = keyInfo.key
+          } else {
+            recipientEncryptedKey = keyInfo.key
           }
         }
 
-        const recipientEncryptedKey = encryptedKeys.find(
-          (keyInfo) => keyInfo.uuid === recipientUuid
-        )
+        // const recipientEncryptedKey = encryptedKeys.find(
+        //   (keyInfo) => keyInfo.uuid === recipientUuid
+        // )
 
         if (recipientEncryptedKey) {
           const io = getIO()
@@ -452,7 +454,7 @@ class MessageController {
             conversation.uuid,
             content,
             result,
-            recipientEncryptedKey.key
+            recipientEncryptedKey
           )
         }
 
