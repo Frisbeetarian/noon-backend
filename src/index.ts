@@ -44,6 +44,7 @@ import {
   loginLimiter,
   messageLimiter,
 } from './middleware/rateLimiter'
+import { EncryptedKey } from './entities/EncryptedKey'
 
 const main = async () => {
   const app = express()
@@ -133,6 +134,7 @@ const main = async () => {
           Conversation,
           Message,
           ConversationToProfile,
+          EncryptedKey,
         ],
         subscribers: [path.join(__dirname, './subscribers/*')],
       })

@@ -9,6 +9,7 @@ import { ConversationToProfile } from '../entities/ConversationToProfile'
 import Redis from 'ioredis'
 import { getIO } from '../socketio/socket'
 import Emitters from '../socketio/emitters'
+import { EncryptedKey } from '../entities/EncryptedKey'
 const rpcClient = require('../utils/brokerInitializer')
 const redis = new Redis()
 const { RedisSessionStore } = require('./../socketio/sessionStore')
@@ -65,6 +66,7 @@ class MessageController {
           updatedAt: message.updatedAt,
           createdAt: message.createdAt,
           deleted: message.deleted,
+          encryptedKeys: message.encryptedKeys,
           sender: {
             uuid: message.senderUuid,
             username: message.username,
@@ -351,6 +353,7 @@ class MessageController {
         conversationUuid,
         type,
         src,
+        encryptedKeys,
       } = req.body
 
       const senderProfile = await Profile.findOne({
@@ -362,22 +365,23 @@ class MessageController {
       }
 
       const messageRepository = getConnection().getRepository(Message)
+      const encryptedKeyRepository = getConnection().getRepository(EncryptedKey)
+
       console.log('message.uuid:', message)
 
       const conversation = await Conversation.findOne({
         where: { uuid: conversationUuid },
       })
 
-      const conversationToProfile = await ConversationToProfile.findOne({
-        where: {
-          conversationUuid: conversationUuid,
-          profileUuid: recipientUuid,
-        },
-      })
-
       if (conversation) {
+        const conversationToProfile = await ConversationToProfile.findOne({
+          where: {
+            conversationUuid: conversation.uuid,
+            profileUuid: recipientUuid,
+          },
+        })
+
         const session = await sessionStore.findSession(recipientUuid)
-        // console.log('session on save message:', session)
 
         if (!session?.connected) {
           await getConnection()
@@ -417,21 +421,43 @@ class MessageController {
 
         const result = await messageRepository.save(saveMessage)
 
-        const io = getIO()
-        const emitters = new Emitters(io)
-        const content = senderProfile.username + ' sent you a message.'
+        let senderEncryptedKey, recipientEncryptedKey
+        for (const keyInfo of encryptedKeys) {
+          let saveEncryptedKey = new EncryptedKey()
+          saveEncryptedKey.encryptedKey = keyInfo.key
+          saveEncryptedKey.recipientUuid = keyInfo.uuid
+          saveEncryptedKey.conversationUuid = conversation.uuid
+          saveEncryptedKey.message = result
+          await encryptedKeyRepository.save(saveEncryptedKey)
 
-        emitters.emitSendMessage(
-          senderProfile.uuid,
-          senderProfile.username,
-          recipientUuid,
-          recipientUsername,
-          conversationUuid,
-          content,
-          result
-        )
+          if (keyInfo.uuid === senderProfile.uuid) {
+            senderEncryptedKey = keyInfo.key
+          } else {
+            recipientEncryptedKey = keyInfo.key
+          }
+        }
 
-        return res.status(200).json(result)
+        if (recipientEncryptedKey) {
+          const io = getIO()
+          const emitters = new Emitters(io)
+          const content = senderProfile.username + ' sent you a message.'
+
+          emitters.emitSendMessage(
+            senderProfile.uuid,
+            senderProfile.username,
+            recipientUuid,
+            recipientUsername,
+            conversation.uuid,
+            content,
+            result,
+            recipientEncryptedKey
+          )
+        }
+
+        return res.status(200).json({
+          ...result,
+          encryptedKey: senderEncryptedKey,
+        })
       } else {
         return res.status(400).json({ error: 'Conversation not found' })
       }

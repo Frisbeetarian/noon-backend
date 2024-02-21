@@ -4,12 +4,14 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
 
 import { Profile } from './Profile'
 import { Conversation } from './Conversation'
+import { EncryptedKey } from './EncryptedKey'
 
 @Entity()
 export class Message extends BaseEntity {
@@ -55,6 +57,11 @@ export class Message extends BaseEntity {
 
   @ManyToOne(() => Conversation, (Conversation) => Conversation.messages)
   conversation: Conversation
+
+  @OneToMany(() => EncryptedKey, (encryptedKey) => encryptedKey.message, {
+    cascade: true,
+  })
+  encryptedKeys: EncryptedKey[]
 
   @UpdateDateColumn()
   updatedAt: Date

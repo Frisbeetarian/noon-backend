@@ -25,8 +25,8 @@ export class User extends BaseEntity {
   @Column()
   password!: string
 
-  @Column({ nullable: true })
-  profileId?: string
+  @Column({ type: 'text', nullable: true })
+  publicKey?: string
 
   @Column({ nullable: true })
   profileUuid?: string

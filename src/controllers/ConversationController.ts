@@ -8,6 +8,7 @@ import { Message } from '../entities/Message'
 import { getIO } from '../socketio/socket'
 import Emitters from '../socketio/emitters'
 import { checkFriendship } from '../neo4j/neo4j_calls/neo4j_api'
+import { EncryptedKey } from '../entities/EncryptedKey'
 
 class ConversationController {
   static async getConversationsForLoggedInUser(req: Request, res: Response) {
@@ -45,26 +46,36 @@ class ConversationController {
             }),
           ])
 
-          const messagesToSend = messages.map((message) => ({
-            uuid: message.uuid,
-            content: message.content,
-            type: message.type,
-            src: message.src,
-            deleted: message.deleted,
-            updatedAt: message.updatedAt,
-            createdAt: message.createdAt,
-            sender: {
-              uuid: message.sender.uuid,
-              username: message.sender.username,
-            },
-          }))
+          const messagesToSend = await Promise.all(
+            messages.map(async (message) => {
+              const encryptedKeysForMessage = await EncryptedKey.find({
+                where: {
+                  messageUuid: message.uuid,
+                  recipientUuid: loggedInProfileUuid,
+                },
+              })
 
-          // const callsToSend = calls.map((call) => ({
-          //   profileUuid: call.profile.uuid,
-          //   profileUsername: call.profile.username,
-          //   pendingCall: call.pendingCall,
-          //   ongoingCall: call.ongoingCall,
-          // }));
+              const encryptedKeyForUser =
+                encryptedKeysForMessage.length > 0
+                  ? encryptedKeysForMessage[0].encryptedKey
+                  : null
+
+              return {
+                uuid: message.uuid,
+                content: message.content,
+                type: message.type,
+                src: message.src,
+                deleted: message.deleted,
+                updatedAt: message.updatedAt,
+                createdAt: message.createdAt,
+                encryptedKey: encryptedKeyForUser,
+                sender: {
+                  uuid: message.sender.uuid,
+                  username: message.sender.username,
+                },
+              }
+            })
+          )
 
           return {
             uuid: conversationEntity.uuid,
