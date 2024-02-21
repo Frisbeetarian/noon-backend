@@ -46,37 +46,36 @@ class ConversationController {
             }),
           ])
 
-          console.log('loggedInProfileUuid:', loggedInProfileUuid)
+          const messagesToSend = await Promise.all(
+            messages.map(async (message) => {
+              const encryptedKeysForMessage = await EncryptedKey.find({
+                where: {
+                  messageUuid: message.uuid,
+                  recipientUuid: loggedInProfileUuid,
+                },
+              })
 
-          const [encryptedKeys] = await Promise.all([
-            EncryptedKey.find({
-              where: {
-                recipientUuid: loggedInProfileUuid,
-              },
-            }),
-          ])
+              const encryptedKeyForUser =
+                encryptedKeysForMessage.length > 0
+                  ? encryptedKeysForMessage[0].encryptedKey
+                  : null
 
-          const messagesToSend = messages.map((message) => ({
-            uuid: message.uuid,
-            content: message.content,
-            type: message.type,
-            src: message.src,
-            deleted: message.deleted,
-            updatedAt: message.updatedAt,
-            createdAt: message.createdAt,
-            encryptedKey: encryptedKeys[0].encryptedKey,
-            sender: {
-              uuid: message.sender.uuid,
-              username: message.sender.username,
-            },
-          }))
-          console.log('messagesToSend:', messagesToSend)
-          // const callsToSend = calls.map((call) => ({
-          //   profileUuid: call.profile.uuid,
-          //   profileUsername: call.profile.username,
-          //   pendingCall: call.pendingCall,
-          //   ongoingCall: call.ongoingCall,
-          // }));
+              return {
+                uuid: message.uuid,
+                content: message.content,
+                type: message.type,
+                src: message.src,
+                deleted: message.deleted,
+                updatedAt: message.updatedAt,
+                createdAt: message.createdAt,
+                encryptedKey: encryptedKeyForUser,
+                sender: {
+                  uuid: message.sender.uuid,
+                  username: message.sender.username,
+                },
+              }
+            })
+          )
 
           return {
             uuid: conversationEntity.uuid,
