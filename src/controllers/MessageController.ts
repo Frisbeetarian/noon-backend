@@ -437,10 +437,6 @@ class MessageController {
           }
         }
 
-        // const recipientEncryptedKey = encryptedKeys.find(
-        //   (keyInfo) => keyInfo.uuid === recipientUuid
-        // )
-
         if (recipientEncryptedKey) {
           const io = getIO()
           const emitters = new Emitters(io)
