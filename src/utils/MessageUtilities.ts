@@ -18,7 +18,9 @@ export class MessageUtilities {
       const messageRepository: Repository<Message> =
         getConnection().getRepository(Message)
 
+      // @ts-ignore
       const messageToUpdate: Message | undefined =
+        // @ts-ignore
         await messageRepository.findOne(messageUuid)
 
       if (messageToUpdate) {

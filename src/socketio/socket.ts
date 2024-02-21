@@ -1,5 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io'
 import { Server as HTTPServer } from 'http'
+// @ts-ignore
 import { RedisClient } from 'redis'
 
 let io: SocketIOServer

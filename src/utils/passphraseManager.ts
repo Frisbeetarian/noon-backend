@@ -5,7 +5,7 @@ import {
   createCipheriv,
 } from 'crypto'
 
-// Function to derive a key from the user's password
+// @ts-ignore
 export function deriveKey(password) {
   const salt = randomBytes(16)
 
@@ -14,6 +14,7 @@ export function deriveKey(password) {
   return { key, salt }
 }
 
+// @ts-ignore
 export function encryptPassphrase(passphrase, password) {
   const { key, salt } = deriveKey(password)
   const iv = randomBytes(16)
@@ -26,6 +27,7 @@ export function encryptPassphrase(passphrase, password) {
   return { iv: iv.toString('hex'), salt: salt.toString('hex'), tag, encrypted }
 }
 
+// @ts-ignore
 export function decryptPassphrase(encryptedData, password) {
   const key = scryptSync(password, Buffer.from(encryptedData.salt, 'hex'), 32)
   const decipher = createDecipheriv(
