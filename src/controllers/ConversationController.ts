@@ -30,10 +30,14 @@ class ConversationController {
 
           const profiles = await ConversationToProfile.find({
             where: { conversationUuid: conversationEntity.uuid },
-            relations: ['profile'],
+            relations: ['profile', 'profile.user'],
           })
 
-          const profilesToSend = profiles.map((cp) => cp.profile)
+          const profilesToSend = profiles.map((cp) => ({
+            uuid: cp.profile.uuid,
+            username: cp.profile.username,
+            publicKey: cp.profile.user.publicKey,
+          }))
 
           const [messages, calls] = await Promise.all([
             Message.find({
