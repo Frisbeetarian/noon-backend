@@ -30,10 +30,14 @@ class ConversationController {
 
           const profiles = await ConversationToProfile.find({
             where: { conversationUuid: conversationEntity.uuid },
-            relations: ['profile'],
+            relations: ['profile', 'profile.user'],
           })
 
-          const profilesToSend = profiles.map((cp) => cp.profile)
+          const profilesToSend = profiles.map((cp) => ({
+            uuid: cp.profile.uuid,
+            username: cp.profile.username,
+            publicKey: cp.profile.user.publicKey,
+          }))
 
           const [messages, calls] = await Promise.all([
             Message.find({
@@ -211,9 +215,18 @@ class ConversationController {
       Object.assign(conversation, input)
       conversation = await queryRunner.manager.save(conversation)
 
-      const profiles = await queryRunner.manager.findByIds(
-        Profile,
-        participants
+      // const profiles = await queryRunner.manager.findByIds(
+      //   Profile,
+      //   participants
+      // )
+
+      const profiles = await Promise.all(
+        participants.map(async (participantUuid) => {
+          return await Profile.findOne({
+            where: { uuid: participantUuid },
+            relations: ['user'],
+          })
+        })
       )
 
       let conversationsToProfiles = []
@@ -241,15 +254,14 @@ class ConversationController {
         conversationsToProfiles.push(conversationToProfile)
       }
 
-      // Bulk insert participants
       await queryRunner.manager.save(conversationsToProfiles)
       await queryRunner.commitTransaction()
-
       conversation = {
         ...conversation,
         profiles: profiles.map((profile) => ({
           uuid: profile.uuid,
           username: profile.username,
+          publicKey: profile.user?.publicKey,
         })),
         unreadMessages: 0,
         messages: [],
@@ -279,6 +291,8 @@ class ConversationController {
 
       return res.status(200).json(conversation)
     } catch (e) {
+      await queryRunner.rollbackTransaction()
+      await queryRunner.release()
       console.log('error:', e.message)
       return res.status(500).json(e.message)
     }
