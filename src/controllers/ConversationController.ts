@@ -254,6 +254,7 @@ class ConversationController {
         profiles: profiles.map((profile) => ({
           uuid: profile.uuid,
           username: profile.username,
+          publicKey: profile.user.publicKey,
         })),
         unreadMessages: 0,
         messages: [],
