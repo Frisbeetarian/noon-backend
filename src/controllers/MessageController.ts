@@ -331,7 +331,8 @@ class MessageController {
         type,
         src,
         encryptedKeys,
-        participants,
+        updatedAt,
+        createdAt,
       } = req.body
       const senderProfile = await Profile.findOne({
         where: { userId: req.session.userId },
@@ -377,13 +378,14 @@ class MessageController {
         content: message,
         type,
         src,
+        updatedAt,
+        createdAt,
       })
       const savedMessage = await queryRunner.manager.save(newMessage)
 
       const io = getIO()
       const emitters = new Emitters(io)
       const content = senderProfile.username + ' sent a message to the group.'
-      console.log('savedMessage:', savedMessage)
 
       let senderEncryptedKey
       for (const keyInfo of encryptedKeys) {
@@ -393,7 +395,7 @@ class MessageController {
           conversationUuid: conversation.uuid,
           message: savedMessage,
         })
-        console.log('encryptedkey:', encryptedKey)
+
         await queryRunner.manager.save(encryptedKey)
 
         if (keyInfo.uuid !== senderProfile.uuid) {
