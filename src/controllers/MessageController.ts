@@ -325,15 +325,7 @@ class MessageController {
     await queryRunner.startTransaction()
 
     try {
-      const {
-        message,
-        conversationUuid,
-        type,
-        src,
-        encryptedKeys,
-        updatedAt,
-        createdAt,
-      } = req.body
+      const { message, conversationUuid, type, src, encryptedKeys } = req.body
       const senderProfile = await Profile.findOne({
         where: { userId: req.session.userId },
       })
@@ -378,8 +370,6 @@ class MessageController {
         content: message,
         type,
         src,
-        updatedAt,
-        createdAt,
       })
       const savedMessage = await queryRunner.manager.save(newMessage)
 
