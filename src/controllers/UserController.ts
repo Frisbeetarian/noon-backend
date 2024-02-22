@@ -86,6 +86,8 @@ class UserController {
           password: hashedPassword,
           email: options.email,
           publicKey: options.publicKey,
+          salt: options.salt,
+          iv: options.iv,
         })
         .returning('*')
         .execute()
