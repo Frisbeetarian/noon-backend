@@ -29,7 +29,10 @@ export class User extends BaseEntity {
   publicKey?: string
 
   @Column({ type: 'text', nullable: true })
-  iv?: string
+  privateKeyIV?: string
+
+  @Column({ type: 'text', nullable: true })
+  masterKeyIV?: string
 
   @Column({ type: 'text', nullable: true })
   salt?: string

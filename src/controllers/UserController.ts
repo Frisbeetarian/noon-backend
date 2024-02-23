@@ -87,7 +87,8 @@ class UserController {
           email: options.email,
           publicKey: options.publicKey,
           salt: options.salt,
-          iv: options.iv,
+          privateKeyIV: options.privateKeyIV,
+          masterKeyIV: options.masterKeyIV,
         })
         .returning('*')
         .execute()
