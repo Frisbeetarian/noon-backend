@@ -53,7 +53,7 @@ export const messageLimiter = rateLimit({
 export const loginLimiter = rateLimit({
   ...defaultSettings,
   windowMs: 10 * 60 * 1000, // 10 minutes
-  limit: 5,
+  limit: 25,
   store: new RedisStore({
     // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
     sendCommand: (...args: string[]) => redisClient.call(...args),

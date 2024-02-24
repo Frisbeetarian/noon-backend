@@ -28,6 +28,15 @@ export class User extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   publicKey?: string
 
+  @Column({ type: 'text', nullable: true })
+  privateKeyIV?: string
+
+  @Column({ type: 'text', nullable: true })
+  masterKeyIV?: string
+
+  @Column({ type: 'text', nullable: true })
+  salt?: string
+
   @Column({ nullable: true })
   profileUuid?: string
 
