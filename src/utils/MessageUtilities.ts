@@ -21,7 +21,7 @@ export class MessageUtilities {
       // @ts-ignore
       const messageToUpdate: Message | undefined =
         // @ts-ignore
-        await messageRepository.findOne(messageUuid)
+        await messageRepository.findOne({ where: { uuid: messageUuid } })
 
       if (messageToUpdate) {
         messageToUpdate.src = filePath
