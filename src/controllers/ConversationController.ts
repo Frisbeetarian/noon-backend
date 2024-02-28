@@ -126,9 +126,11 @@ class ConversationController {
 
   static async getMessagesForConversation(req: Request, res: Response) {
     try {
+      const loggedInProfileUuid = req.session.user.profile.uuid
+
       const { conversationUuid } = req.params
       const { limit, cursor } = req.query
-      // console.log('conversationUuid', conversationUuid)
+
       if (conversationUuid === null) {
         return res.json({
           messages: [],
@@ -162,23 +164,38 @@ class ConversationController {
         replacements
       )
 
-      let messagesToSend = []
+      const messagesToSend = await Promise.all(
+        messages.map(async (message) => {
+          const encryptedKeysForMessage = await EncryptedKey.find({
+            where: {
+              messageUuid: message.uuid,
+              recipientUuid: loggedInProfileUuid,
+            },
+          })
 
-      messages.forEach((message) => {
-        messagesToSend.push({
-          uuid: message.uuid,
-          content: message.content,
-          type: message.type,
-          src: message.src,
-          updatedAt: message.updatedAt,
-          createdAt: message.createdAt,
-          deleted: message.deleted,
-          sender: {
-            uuid: message.senderUuid,
-            username: message.username,
-          },
+          const encryptedKeyForUser =
+            encryptedKeysForMessage.length > 0
+              ? encryptedKeysForMessage[0].encryptedKey
+              : null
+
+          return {
+            uuid: message.uuid,
+            content: message.content,
+            type: message.type,
+            src: message.src,
+            deleted: message.deleted,
+            updatedAt: message.updatedAt,
+            createdAt: message.createdAt,
+            encryptedKey: encryptedKeyForUser,
+            sender: {
+              uuid: message.senderUuid,
+              username: message.username,
+            },
+          }
         })
-      })
+      )
+
+      console.log('messages to send:', messagesToSend)
 
       return res.status(200).json({
         messages: messagesToSend,
