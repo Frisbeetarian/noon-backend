@@ -9,7 +9,6 @@ import connectRedis from 'connect-redis'
 import cors from 'cors'
 import { createConnection } from 'typeorm'
 import path from 'path'
-const { instrument } = require('@socket.io/admin-ui')
 import { createServer } from 'http'
 
 import { Profile } from './entities/Profile'
@@ -105,15 +104,8 @@ const main = async () => {
 
   console.log(`Worker ${process.pid} started`)
 
-  instrument(io, {
-    auth: {
-      type: 'basic',
-      username: process.env.SOCKET_INSTRUMENT_USERNAME,
-      password: process.env.SOCKET_INSTRUMENT_PASSWORD,
-    },
-  })
-
   connection(io, sessionStore, messageStore)
+  // const emitters = new Emitters(io)
 
   let retries = 5
   while (retries) {
@@ -157,106 +149,6 @@ const main = async () => {
   httpServer.listen(parseInt(process.env.PORT), () =>
     console.log(`server listening at http://localhost:${process.env.PORT}`)
   )
-
-  const connectionObject = {
-    protocol: 'amqp',
-    hostname: 'localhost',
-    port: 5672,
-    username: process.env.RABBIT_MQ_USERNAME,
-    password: process.env.RABBIT_MQ_PASSWORD,
-    locale: 'en_US',
-    vhost: '/',
-  }
-
-  const initializeRPCServer = (emitters) => {
-    try {
-      const searchRpcServer = new RPCServer({
-        connectionObject,
-        hostId: 'localhost',
-        queue: 'rpc_queue.noon.search-results',
-        handleMessage: (index, params) => {
-          console.log('RPC_SEARCH_RECEIVED', { index, params })
-          const { profiles, senderUuid } = params
-          emitters.emitSearchResultSet(senderUuid, profiles)
-        },
-      })
-
-      searchRpcServer
-        .start()
-        .then(() => {
-          console.log('RPC_CONNECTION_SUCCESSFUL for search results', {
-            hostId: 'localhost',
-            queue: 'rpc_queue.noon.search-results',
-          })
-        })
-        .catch((e) => {
-          console.error(
-            'RPC_CONNECTION_FAILED for search results',
-            JSON.stringify(e)
-          )
-        })
-
-      const mediaRpcServer = new RPCServer({
-        connectionObject,
-        hostId: 'localhost',
-        queue: 'rpc_queue.noon.media-results',
-        handleMessage: async (index, params) => {
-          console.log('RPC_MEDIA_RECEIVED', { index, params })
-          const {
-            filePath,
-            type,
-            messageUuid,
-            conversationUuid,
-            conversationType,
-            senderProfileUuid,
-            senderProfileUsername,
-            participantUuids,
-          } = params
-          await MessageUtilities.updateMessagePath(
-            messageUuid,
-            filePath,
-            type,
-            conversationUuid,
-            conversationType,
-            senderProfileUuid,
-            senderProfileUsername,
-            participantUuids
-          )
-        },
-      })
-
-      mediaRpcServer
-        .start()
-        .then(() => {
-          console.log('RPC_CONNECTION_SUCCESSFUL for media results', {
-            hostId: 'localhost',
-            queue: 'rpc_queue.noon.media-results',
-          })
-        })
-        .catch((e) => {
-          console.error(
-            'RPC_CONNECTION_FAILED for media results',
-            JSON.stringify(e)
-          )
-        })
-    } catch (e) {
-      console.log('RPC Server initialization failed', JSON.stringify(e))
-
-      setTimeout(() => {
-        console.error(e)
-        process.exit(1)
-      }, 2000)
-    }
-  }
-
-  const emitters = new Emitters(io)
-  initializeRPCServer(emitters)
-
-  async function establishRPCConnections() {
-    await initRPCClient()
-  }
-
-  establishRPCConnections()
 }
 
 main().catch((err) => {

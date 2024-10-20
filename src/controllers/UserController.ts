@@ -6,13 +6,11 @@ import { validateRegister } from '../utils/validateRegister'
 import argon2 from 'argon2'
 import { getConnection } from 'typeorm'
 import { Profile } from '../entities/Profile'
-import {
-  checkFriendship,
-  getFriendRequestsForProfile,
-  getFriendsForProfile,
-} from '../neo4j/neo4j_calls/neo4j_api'
-import { generateUserKeys } from '../utils/generateUserKeys'
-import { encryptPassphrase } from '../utils/passphraseManager'
+// import {
+//   checkFriendship,
+//   getFriendRequestsForProfile,
+//   getFriendsForProfile,
+// } from '../neo4j/neo4j_calls/neo4j_api'
 
 class UserController {
   static async me(req: Request, res: Response) {
@@ -30,22 +28,22 @@ class UserController {
         .getOne()
 
       if (user && user.profile) {
-        const friendsArray = await getFriendsForProfile(user?.profile?.uuid)
-        const friendRequestsArray = await getFriendRequestsForProfile(
-          user?.profile?.uuid
-        )
-
-        if (friendsArray.length !== 0) {
-          user.profile.friends = friendsArray
-        } else {
-          user.profile.friends = []
-        }
-
-        if (friendRequestsArray.length !== 0) {
-          user.profile.friendshipRequests = friendRequestsArray
-        } else {
-          user.profile.friendshipRequests = []
-        }
+        // const friendsArray = await getFriendsForProfile(user?.profile?.uuid)
+        // const friendRequestsArray = await getFriendRequestsForProfile(
+        //   user?.profile?.uuid
+        // )
+        //
+        // if (friendsArray.length !== 0) {
+        //   user.profile.friends = friendsArray
+        // } else {
+        //   user.profile.friends = []
+        // }
+        //
+        // if (friendRequestsArray.length !== 0) {
+        //   user.profile.friendshipRequests = friendRequestsArray
+        // } else {
+        //   user.profile.friendshipRequests = []
+        // }
       } else {
         return res.status(401).json({ error: 'Not authenticated' })
       }

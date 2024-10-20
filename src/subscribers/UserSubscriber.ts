@@ -7,9 +7,6 @@ import {
 
 import { User } from '../entities/User'
 import { Profile } from '../entities/Profile'
-import { createUserAndAssociateWithProfile } from '../neo4j/neo4j_calls/neo4j_api'
-
-const rpcClient = require('../utils/brokerInitializer')
 
 @EventSubscriber()
 export class UserSubscriber implements EntitySubscriberInterface<User> {
@@ -38,9 +35,6 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
         user.profileUuid = profile.raw[0].uuid
 
         await getConnection().manager.save(user)
-
-        await createUserAndAssociateWithProfile(user, profile.raw[0])
-        await rpcClient.search().indexProfile({ profile })
       }
     } catch (e) {
       console.log('error in listener:', e)

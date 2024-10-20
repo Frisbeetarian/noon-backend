@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { getFriendsForProfile } from '../neo4j/neo4j_calls/neo4j_api'
+// import { getFriendsForProfile } from '../neo4j/neo4j_calls/neo4j_api'
 
 const emitSearchResultSet = (io, senderUuid, profile) => {
   console.log('emitSearchResultSet:', { senderUuid, profile })
@@ -57,16 +57,16 @@ const connection = (io, sessionStore, messageStore) => {
         })
       })
 
-      const friends = await getFriendsForProfile(
-        socket.handshake.auth.sessionID
-      )
+      // const friends = await getFriendsForProfile(
+      //   socket.handshake.auth.sessionID
+      // )
 
-      friends.map((friend) => {
-        io.to(friend.uuid).emit('friend-connected', {
-          username: socket.handshake.auth.username,
-          uuid: socket.handshake.auth.sessionID,
-        })
-      })
+      // friends.map((friend) => {
+      //   io.to(friend.uuid).emit('friend-connected', {
+      //     username: socket.handshake.auth.username,
+      //     uuid: socket.handshake.auth.sessionID,
+      //   })
+      // })
 
       socket.on(
         'group-created',
@@ -341,18 +341,18 @@ const connection = (io, sessionStore, messageStore) => {
             socket.handshake.auth.sessionID
           )
 
-          const friends = await getFriendsForProfile(
-            socket.handshake.auth.sessionID
-          )
-
-          friends.map((friend) => {
-            io.to(friend.uuid).emit('friend-disconnected', {
-              username: socket.handshake.auth.username,
-              uuid: socket.handshake.auth.sessionID,
-            })
-          })
-
-          console.log('friends on disconnect:', friends)
+          // const friends = await getFriendsForProfile(
+          //   socket.handshake.auth.sessionID
+          // )
+          //
+          // friends.map((friend) => {
+          //   io.to(friend.uuid).emit('friend-disconnected', {
+          //     username: socket.handshake.auth.username,
+          //     uuid: socket.handshake.auth.sessionID,
+          //   })
+          // })
+          //
+          // console.log('friends on disconnect:', friends)
         }
       })
     }
