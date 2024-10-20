@@ -1,15 +1,15 @@
 // @ts-nocheck
 import { Request, Response } from 'express'
 import { getConnection } from 'typeorm'
-import { Message } from '../entities/Message'
-import { Profile } from '../entities/Profile'
-import { Conversation } from '../entities/Conversation'
-import { ConversationToProfile } from '../entities/ConversationToProfile'
+import { Message } from '../models/Message'
+import { Profile } from '../models/Profile'
+import { Conversation } from '../models/Conversation'
+import { ConversationToProfile } from '../models/ConversationToProfile'
 
 import Redis from 'ioredis'
 import { getIO } from '../socketio/socket'
 import Emitters from '../socketio/emitters'
-import { EncryptedKey } from '../entities/EncryptedKey'
+import { EncryptedKey } from '../models/EncryptedKey'
 const rpcClient = require('../utils/brokerInitializer')
 const redis = new Redis()
 const { RedisSessionStore } = require('./../socketio/sessionStore')

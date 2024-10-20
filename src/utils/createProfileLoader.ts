@@ -1,9 +1,9 @@
 // import DataLoader from 'dataloader'
-// import { Profile } from '../entities/Profile'
-// import { Event } from '../entities/Event'
-// import { EventProfile } from '../entities/EventToProfile'
+// import { Profile } from '../models/Profile'
+// import { Event } from '../models/Event'
+// import { EventProfile } from '../models/EventToProfile'
 // import { In } from 'typeorm'
-// // import { User } from '../entities/User'
+// // import { User } from '../models/User'
 //
 // const batchProfiles = async (eventIds: number[]) => {
 //   const eventProfiles = await EventProfile.find({

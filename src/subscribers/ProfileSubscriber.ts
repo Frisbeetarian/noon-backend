@@ -4,9 +4,9 @@
 //   getConnection,
 //   InsertEvent,
 // } from 'typeorm'
-// import { Profile } from '../entities/Profile'
-// import { User } from '../entities/User'
-// import { Post } from '../entities/Post'
+// import { Profile } from '../models/Profile'
+// import { User } from '../models/User'
+// import { Post } from '../models/Post'
 //
 // @EventSubscriber()
 // export class UserSubscriber implements EntitySubscriberInterface<Profile> {

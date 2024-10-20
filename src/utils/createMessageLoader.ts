@@ -1,7 +1,7 @@
 // @ts-nocheck
 import DataLoader from 'dataloader'
-import { Message } from '../entities/Message'
-import { Conversation } from '../entities/Conversation'
+import { Message } from '../models/Message'
+import { Conversation } from '../models/Conversation'
 
 export const createMessageLoader = () =>
   new DataLoader<string, Message>(async (conversationUuids: Conversation[]) => {

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import DataLoader from 'dataloader'
-import { User } from '../entities/User'
+import { User } from '../models/User'
 
 export const createUserLoader = () =>
   new DataLoader<number, User>(async (userIds: string[]) => {

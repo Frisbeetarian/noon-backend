@@ -1,10 +1,10 @@
 import { Request, Response } from 'express'
-import { Profile } from '../entities/Profile'
+import { Profile } from '../models/Profile'
 // import {
 //   getFriendRequestsForProfile,
 //   getFriendsForProfile,
 // } from '../neo4j/neo4j_calls/neo4j_api'
-// import { Search } from '../entities/Search'
+// import { Search } from '../models/Search'
 const rpcClient = require('../utils/brokerInitializer')
 
 class SearchController {

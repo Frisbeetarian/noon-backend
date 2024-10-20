@@ -1,5 +1,5 @@
 import { getConnection, Repository } from 'typeorm'
-import { Message } from '../entities/Message'
+import { Message } from '../models/Message'
 import { getIO } from '../socketio/socket'
 import Emitters from '../socketio/emitters'
 

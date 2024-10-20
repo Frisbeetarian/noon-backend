@@ -5,8 +5,8 @@ import {
   InsertEvent,
 } from 'typeorm'
 
-import { User } from '../entities/User'
-import { Profile } from '../entities/Profile'
+import { User } from '../models/User'
+import { Profile } from '../models/Profile'
 
 @EventSubscriber()
 export class UserSubscriber implements EntitySubscriberInterface<User> {

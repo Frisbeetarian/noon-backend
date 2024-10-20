@@ -1,14 +1,14 @@
 // @ts-nocheck
 import { Request, Response } from 'express'
 import { getConnection } from 'typeorm'
-import { ConversationToProfile } from '../entities/ConversationToProfile'
-import { Conversation } from '../entities/Conversation'
-import { Profile } from '../entities/Profile'
-import { Message } from '../entities/Message'
+import { ConversationToProfile } from '../models/ConversationToProfile'
+import { Conversation } from '../models/Conversation'
+import { Profile } from '../models/Profile'
+import { Message } from '../models/Message'
 import { getIO } from '../socketio/socket'
 import Emitters from '../socketio/emitters'
 import { checkFriendship } from '../neo4j/neo4j_calls/neo4j_api'
-import { EncryptedKey } from '../entities/EncryptedKey'
+import { EncryptedKey } from '../models/EncryptedKey'
 
 class ConversationController {
   static async getConversationsForLoggedInUser(req: Request, res: Response) {

@@ -1,11 +1,11 @@
 // @ts-nocheck
 import { Request, Response } from 'express'
 
-import { User } from '../entities/User'
+import { User } from '../models/User'
 import { validateRegister } from '../utils/validateRegister'
 import argon2 from 'argon2'
 import { getConnection } from 'typeorm'
-import { Profile } from '../entities/Profile'
+import { Profile } from '../models/Profile'
 // import {
 //   checkFriendship,
 //   getFriendRequestsForProfile,

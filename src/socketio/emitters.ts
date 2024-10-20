@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Message } from '../entities/Message'
+import { Message } from '../models/Message'
 
 class Emitters {
   private io: any

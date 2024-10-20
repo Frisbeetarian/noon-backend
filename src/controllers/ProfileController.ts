@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { Request, Response } from 'express'
-import { Profile } from '../entities/Profile'
+import { Profile } from '../models/Profile'
 import {
   acceptFriendRequest,
   cancelFriendRequest,
@@ -14,9 +14,9 @@ import {
 import Emitters from '../socketio/emitters'
 import { getIO } from '../socketio/socket'
 import { getConnection } from 'typeorm'
-import { Conversation } from '../entities/Conversation'
-import { ConversationToProfile } from '../entities/ConversationToProfile'
-import { Message } from '../entities/Message'
+import { Conversation } from '../models/Conversation'
+import { ConversationToProfile } from '../models/ConversationToProfile'
+import { Message } from '../models/Message'
 
 class ProfileController {
   static async getProfile(req: Request, res: Response) {
