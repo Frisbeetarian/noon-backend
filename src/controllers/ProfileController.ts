@@ -1,16 +1,6 @@
 // @ts-nocheck
 import { Request, Response } from 'express'
 import { Profile } from '../models/Profile'
-import {
-  acceptFriendRequest,
-  cancelFriendRequest,
-  checkFriendship,
-  getFriendRequestsForProfile,
-  getFriendsForProfile,
-  getProfileByUsername,
-  sendFriendRequest,
-  unfriend,
-} from '../neo4j/neo4j_calls/neo4j_api'
 import Emitters from '../socketio/emitters'
 import { getIO } from '../socketio/socket'
 import { getConnection } from 'typeorm'

@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize'
 import config from './config'
 import { createLogger, format, transports } from 'winston'
+import { User } from './models/User'
 
 const logger = createLogger({
   level: config.log.level,
@@ -9,12 +10,12 @@ const logger = createLogger({
 })
 
 export const sequelize = new Sequelize(
-  process.env.POSTGRESQL_DATABASE,
-  process.env.POSTGRESQL_USERNAME,
-  process.env.POSTGRESQL_PASSWORD,
+  config.db.postgres.database,
+  config.db.postgres.username,
+  config.db.postgres.password,
   {
-    host: process.env.POSTGRESQL_HOST,
-    port: parseInt(process.env.POSTGRESQL_PORT || '5432'),
+    host: config.db.postgres.host,
+    port: config.db.postgres.port,
     dialect: 'postgres',
     logging: (msg) => logger.info(msg),
   }

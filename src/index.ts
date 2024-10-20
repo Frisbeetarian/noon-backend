@@ -7,7 +7,6 @@ import Redis from 'ioredis'
 import session from 'express-session'
 import connectRedis from 'connect-redis'
 import cors from 'cors'
-import path from 'path'
 import { createServer } from 'http'
 
 import { initRPCClient } from './utils/brokerInitializer'
@@ -15,6 +14,7 @@ import { __prod__ } from './constants'
 
 import { RedisSessionStore } from './socketio/sessionStore'
 import { RedisMessageStore } from './socketio/messageStore'
+import config from './config'
 
 import connection from './socketio/connection'
 import Emitters from './socketio/emitters'
@@ -39,7 +39,7 @@ const main = async () => {
   const httpServer = createServer(app)
 
   const RedisStore = connectRedis(session)
-  const redis = new Redis(process.env.REDIS_URL)
+  const redis = new Redis(config.redis.url)
 
   const { RedisSessionStore } = require('./socketio/sessionStore')
   const sessionStore = new RedisSessionStore(redis)
@@ -47,7 +47,7 @@ const main = async () => {
   const { RedisMessageStore } = require('./socketio/messageStore')
   const messageStore = new RedisMessageStore(redis)
 
-  app.set('trust proxy', 1)
+  app.set('trust proxy', config.app.trustProxy ? 1 : 0)
 
   console.log('process.env.CORS_ORIGIN:', process.env.CORS_ORIGIN)
   console.log('prod:', __prod__)
@@ -68,14 +68,14 @@ const main = async () => {
         secure: __prod__,
       },
       saveUninitialized: false,
-      secret: process.env.SESSION_SECRET,
+      secret: config.session.secret,
       resave: false,
     })
   )
 
   app.use(
     cors({
-      origin: process.env.CORS_ORIGIN,
+      origin: config.cors.origins,
       credentials: true,
     })
   )
@@ -103,8 +103,8 @@ const main = async () => {
   app.use('/api/messages', messageRouter)
   app.use('/api/search', searchRouter)
 
-  httpServer.listen(parseInt(process.env.PORT), () =>
-    console.log(`server listening at http://localhost:${process.env.PORT}`)
+  httpServer.listen(config.app.port, () =>
+    console.log(`server listening at http://localhost:${config.app.port}`)
   )
 }
 

@@ -7,7 +7,6 @@ import { Profile } from '../models/Profile'
 import { Message } from '../models/Message'
 import { getIO } from '../socketio/socket'
 import Emitters from '../socketio/emitters'
-import { checkFriendship } from '../neo4j/neo4j_calls/neo4j_api'
 import { EncryptedKey } from '../models/EncryptedKey'
 
 class ConversationController {
